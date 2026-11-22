@@ -96,6 +96,15 @@ button{font:inherit}
 .ctxmenu button .mi{color:var(--muted);font-size:16px}
 .ctxmenu .ctxsep{height:1px;background:var(--line);margin:5px 10px}
 .ctxmenu button.danger{color:#ff3b30}.ctxmenu button.danger .mi{color:#ff3b30}
+/* --- What's new sheet --- */
+.sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;background:rgb(0 0 0 / .35);padding:16px}
+.sheet[hidden]{display:none}
+.sheetcard{width:100%;max-width:560px;max-height:82vh;overflow:auto;padding:20px 22px;border-radius:24px}
+.sheetcard h3{margin:18px 0 6px;font-size:15px}
+.sheetcard h3:first-of-type{margin-top:12px}
+.sheetcard ul{margin:0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--text)}
+.sheetcard ul li{margin:4px 0}
+.sheetcard .lrow{display:flex;justify-content:space-between;align-items:center}
 /* --- Inspo 2: glass pill button, black circular chevron at the right end --- */
 .pillbtn{display:inline-flex;align-items:center;gap:12px;padding:7px 7px 7px 18px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;
   background:var(--glass-tint);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
@@ -263,6 +272,7 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
       <div class="ctxsep"></div>
       <button onclick="menuAuto()"><span id="menuAutoLabel">Auto-refresh: on</span> <span class="mi" id="menuAutoIcon">✓</span></button>
       <button onclick="menuExport()">Export trips CSV <span class="mi">↓</span></button>
+      <button onclick="menuChangelog()">What's new <span class="mi">✦</span></button>
       <div class="ctxsep"></div>
       <button class="danger" onclick="menuClear()">Clear trip history <span class="mi">✕</span></button>
     </div>
@@ -428,6 +438,26 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
   <a href="#controls"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg><span>Controls</span></a>
 </nav>
 </div>
+</div>
+<div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
+  <div class="glass sheetcard">
+    <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.1.0 — 22 Nov 2026</h3>
+    <ul>
+      <li>Remote controls: lock / unlock, climate start/stop (temp + duration), start charging. 6-digit control PIN, once per tab, never stored.</li>
+      <li>Background trip logging: the car is polled every 5 min; Trips shows automatic trips with distance, energy and cost.</li>
+      <li>Page-based navigation with a floating glass bottom dock.</li>
+      <li>Tyre pressure now shows your own top-down car photo.</li>
+      <li>Liquid Glass restyle: frosted unlock card, glass pill buttons, capsule on the active tab.</li>
+      <li>Charging can be started but not stopped from the app — stop with the key fob / door-handle double-unlock.</li>
+    </ul>
+    <h3>v1.0.0 — 22 Nov 2026</h3>
+    <ul>
+      <li>First release: live battery, range, odometer, charging, location, tyres, doors, climate, energy and cost from BYD's Indonesia server.</li>
+      <li>No Google sign-in, no subscription, no account system. App-key protected.</li>
+      <li>Liquid Glass design, OLED dark mode, charging scene with live power and ETA.</li>
+    </ul>
+  </div>
 </div>
 <script>
 // Chromium-only refraction: detect via userAgentData, never @supports (it lies).
@@ -636,8 +666,10 @@ function toggleAuto(){auto=!auto;$('autoBtn').querySelector('span').textContent=
   $('menuAutoLabel').textContent='Auto-refresh: '+(auto?'on':'off');$('menuAutoIcon').textContent=auto?'✓':'○';
   if(auto)startTimer();else clearInterval(timer);}
 function toggleMenu(e){e.stopPropagation();$('ctxmenu').classList.toggle('open');}
+function menuChangelog(){closeMenu();$('changelogSheet').hidden=false;}
+function closeChangelog(){$('changelogSheet').hidden=true;}
 document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')$('ctxmenu').classList.remove('open');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');closeChangelog();}});
 function closeMenu(){$('ctxmenu').classList.remove('open');}
 function menuRefresh(){closeMenu();load(true);}
 function menuAuto(){closeMenu();toggleAuto();}
