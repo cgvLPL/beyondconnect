@@ -4,8 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BEYONDconnect — Dolphino</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.1 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -202,23 +204,24 @@ body.lightbg .bgopts button.on{background:#111;color:#fff;border-color:#111}
 .pillbtn .chev{width:32px;height:32px;flex:none;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
 @media (prefers-color-scheme:dark){.pillbtn .chev{background:#f5f5f7;color:#111}}
 /* --- Inspo 1: frosted login card — pill field + black circular arrow --- */
-.logincard{max-width:430px;margin:26px auto 0;padding:26px}
-.logincard .lrow{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}
-.logincard .lrow .lbrand{color:var(--muted)}
-.logincard .lrow .lact{font-weight:600}
-.logincard h2{font-size:34px;font-weight:800;margin:18px 0 16px;text-transform:none;letter-spacing:-.02em;color:var(--text)}
-.pillfield{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:var(--card-soft);border-radius:999px;padding:8px 8px 8px 16px}
-.pillfield svg{flex:none;color:var(--muted)}
-.pillfield input{flex:1;min-width:0;border:0;background:none;padding:14px 0;outline:none;width:auto;font-size:17px}
-.pillfield input::placeholder{color:var(--muted)}
-.circlebtn{width:48px;height:48px;flex:none;border-radius:50%;border:0;background:#111;color:#fff;display:grid;place-items:center;cursor:pointer}
-@media (prefers-color-scheme:dark){.circlebtn{background:#f5f5f7;color:#111}}
-.logincard .fine{font-size:12px;color:var(--muted);margin:16px 2px 0;line-height:1.5}
-.keysub{max-width:430px;margin:14px auto 0;background:#111;color:#fff;border-radius:24px;padding:22px}
-.keysub .k1{font-size:28px;font-weight:700;letter-spacing:-.02em}
-.keysub .k2{color:#a1a1aa;margin-top:2px}
-.keysub .k3{text-align:right;margin-top:14px;font-weight:600}
-@media (prefers-color-scheme:dark){.keysub{background:#1c1c1e;border:1px solid #2c2c2e}}
+/* --- Login, HomeView style (measured from tuya-minimal.vercel.app, 390px) ---
+   Flat system background, no card, no glass: round photo logo, 28px bold
+   title, muted description, 13px bold label, a 52px field with a 2px dark
+   border and 16px radius, a 52px black pill button, car line under it. */
+body.locked{background:var(--bg)}
+body.locked #bgLayer{display:none}
+#keybox{display:none;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
+.login{width:100%;max-width:400px}
+.login .logo{width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;background:var(--card);box-shadow:0 4px 16px rgb(0 0 0 / .18)}
+.login h1{font-size:26px;font-weight:700;margin:16px 0 0;letter-spacing:-.02em;color:var(--text);white-space:nowrap}
+.login label{display:block;font-size:13px;font-weight:700;margin:16px 0 6px;color:var(--text)}
+.login input{width:100%;height:52px;font-size:16px;color:var(--text);background:rgb(255 255 255 / .82);border:2px solid #1c1c1e;border-radius:16px;padding:0 16px;outline:none;-webkit-appearance:none}
+.login input:focus{border-color:#0071e3}
+.login .signin{width:100%;height:52px;margin-top:16px;border:0;border-radius:26px;background:#1c1c1e;color:#fff;font-size:15px;font-weight:800;cursor:pointer}
+@media (prefers-color-scheme:dark){
+  .login input{background:#1c1c1e;border-color:#f5f5f7}
+  .login .signin{background:#f5f5f7;color:#000}
+}
 /* --- Bottom pill navigation (inspo 4): frosted dark pill, icon + label,
    active item inside a filled rounded capsule. Always visible, all sizes;
    safe-area aware. --- */
@@ -385,24 +388,16 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
   </filter>
 </svg>
 
-<div class="wrap">
 <div id="keybox">
-  <div class="glass panel logincard">
-    <div class="lrow"><span class="lbrand">BEYONDconnect</span><span class="lact">Unlock</span></div>
-    <h2>Welcome back</h2>
-    <div class="pillfield">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="14" r="4"/><path d="M11 11l8-8M16 4l3 3M13 7l3 3"/></svg>
-      <input id="keyInput" type="password" placeholder="App key" autocomplete="off" onkeydown="if(event.key==='Enter')saveKey()">
-      <button class="circlebtn" onclick="saveKey()" title="Unlock" aria-label="Unlock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
-    </div>
-    <p class="fine">This dashboard is protected by an app key. Enter it once — it stays in this tab only and is never stored on the server.</p>
-  </div>
-  <div class="keysub">
-    <div class="k1">Dolphino</div>
-    <div class="k2">BYD Dolphin</div>
-    <div class="k3">Live from BYD Indonesia server</div>
+  <div class="login">
+    <img class="logo" src="logo.png" alt="BEYONDconnect">
+    <h1>Sign in to BEYONDconnect</h1>
+    <label for="keyInput">App key</label>
+    <input id="keyInput" type="password" autocomplete="off" onkeydown="if(event.key==='Enter')saveKey()">
+    <button class="signin" onclick="saveKey()">Sign in</button>
   </div>
 </div>
+<div class="wrap">
 <div id="error"></div>
 <div id="app" style="display:none">
 
@@ -586,6 +581,11 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.1 — 22 Nov 2026</h3>
+    <ul>
+      <li>Login screen, like HomeView: flat system background, round logo, "Sign in to BEYONDconnect", a 52px field with a dark border, and a black pill Sign in button (white in dark mode). No subtext.</li>
+      <li>New BEYONDconnect logo: a bold white B on a green gradient — the round version is the login logo, the rounded-square version is the favicon (and the Add to Home Screen icon).</li>
+    </ul>
     <h3>v1.3.0 — 22 Nov 2026</h3>
     <ul>
       <li>A/C detail sheet: tap the Climate tile — seat ventilation for driver and passenger, big temperature slider, Fast cooling and Quick heating, circulation and fan speed.</li>
@@ -711,7 +711,7 @@ applyBg(settings.background||'system');
 function saveSettings(){settings.tariff=+$('tariff').value;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);}
 function menuSettings(){closeMenu();$('settingsSheet').hidden=false;}
 function closeSettings(){$('settingsSheet').hidden=true;}
-function saveKey(){appKey=$('keyInput').value.trim();sessionStorage.setItem('beyondKey',appKey);$('keybox').style.display='none';load(true);}
+function saveKey(){appKey=$('keyInput').value.trim();sessionStorage.setItem('beyondKey',appKey);$('keybox').style.display='none';document.body.classList.remove('locked');load(true);}
 function fmt(n,d=1){return n==null||isNaN(n)?'–':Number(n).toFixed(d);}
 function wib(iso){if(!iso)return'';return new Date(iso).toLocaleString('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 function psiToKpa(p){return p==null?null:p*6.89476;}
@@ -719,10 +719,11 @@ async function load(manual){
   $('error').innerHTML='';
   try{
     const r=await fetch('/api/status',{headers:appKey?{'X-App-Key':appKey}:{}});
-    if(r.status===401){$('keybox').style.display='block';return;}
+    if(r.status===401){$('keybox').style.display='flex';document.body.classList.add('locked');return;}
     const d=await r.json();
     if(!d.ok){throw new Error(d.error+(d.detail?': '+d.detail:'')+(d.hint?' — '+d.hint:''));}
     window._last=d; render(d);
+    document.body.classList.remove('locked');
     $('app').style.display='block';
     loadServerTrips();
   }catch(e){

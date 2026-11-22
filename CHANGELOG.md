@@ -1,5 +1,10 @@
 # BEYONDconnect changelog
 
+## v1.3.1 — 22 Nov 2026
+
+- Login screen, like HomeView (measured from tuya-minimal.vercel.app): flat system background (no wallpaper, no glass card), round logo (logo.png), "Sign in to BEYONDconnect" in 26px bold (28px wrapped the longer name), 13px bold "App key" label, a 52px field with a 2px dark border and 16px radius, and a 52px black pill "Sign in" button (white with black text in dark mode). No subtext — the description and the car line under the button are gone. The flat background only applies while locked — the wallpaper comes back once you're in.
+- New BEYONDconnect logo: a bold white B on a BYD-green gradient (light #00c853 → #007a33) with a soft top sheen, matching the app's glass. Round version (logo.png, 256px) is the login logo; rounded-square version (favicon.png 64px, apple-touch-icon.png 180px) is the favicon and the Add to Home Screen icon. NOTE: logo.png, favicon.png and apple-touch-icon.png are binaries — they need uploading via GitHub web when v1.3.1 is pushed (connector pushes text only).
+
 ## v1.3.0 — 22 Nov 2026
 
 - A/C detail sheet: tap the Climate tile to open it — cabin view with driver/passenger seat ventilation (tap to cycle Off → Low → High), big temperature with a cold-to-hot slider, Turn on, Fast cooling (15 °C) and Quick heating (31 °C), plus circulation (Fresh / Recirculate), fan speed (1–7) and duration. While climate is running, temperature changes adjust the session without restarting it; circulation and fan changes re-send the full command.
