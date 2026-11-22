@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.10 — 22 Nov 2026
+
+- The scrollbar is hidden while scrolling. The page, the detail sheets and the trips table still scroll exactly as before — the bar just never renders (scrollbar-width: none + ::-webkit-scrollbar hidden, the same pattern the quick-action pills row already used).
+
 ## v1.3.9 — 22 Nov 2026
 
 - Range calculation fixed: it now uses the car's own measured efficiency (recent 50 km, from the car's energy meter in the latest snapshot) instead of deriving efficiency from battery-% drops. The old way was wrong because the battery % is an integer — on a short trip a 1% rounding error swings the efficiency by a third. A single 18 km trip read 10.1 kWh/100km and produced a 599 km full range (563 km at 94%), while the car's own meter says 14.1 kWh/100km, giving 429 km full and 403 km at 94%. The trip-derived figure is now only a fallback when the car gives no efficiency reading.

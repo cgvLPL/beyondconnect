@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.9 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.10 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -39,6 +39,10 @@
 *{box-sizing:border-box}
 input,textarea,select{-webkit-user-select:text;user-select:text}
 html{scroll-behavior:smooth}
+/* No visible scrollbar while scrolling — the page, sheets and tables
+   still scroll, the bar just never shows (same pattern as .qapills). */
+html,body,.sheetcard,.tblwrap{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,.sheetcard::-webkit-scrollbar,.tblwrap::-webkit-scrollbar{display:none}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   background:
@@ -542,7 +546,7 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div class="sections">
 <div class="card span2" id="trips"><div class="cardhead"><h2>Trips</h2><div class="menuwrap"><button class="iconbtn" onclick="toggleTripsMenu(event)" title="Trips menu" aria-haspopup="true">•••</button><div class="glass ctxmenu" id="tripsMenu" role="menu"><button onclick="tripsMenuExport()">Export CSV <span class="mi">↓</span></button><button class="danger" onclick="tripsMenuClear()">Clear history <span class="mi">✕</span></button></div></div></div>
 <div id="serverTrips"><div class="muted">Loading automatic trips…</div></div>
-<div style="overflow-x:auto;margin-top:8px"><table><thead><tr><th>Time (WIB)</th><th>Battery</th><th>Odo</th><th>Δ km</th><th>Δ kWh</th><th>Est. cost</th></tr></thead>
+<div class="tblwrap" style="overflow-x:auto;margin-top:8px"><table><thead><tr><th>Time (WIB)</th><th>Battery</th><th>Odo</th><th>Δ km</th><th>Δ kWh</th><th>Est. cost</th></tr></thead>
 <tbody id="tripRows"></tbody></table></div></div>
 </div>
 </div>
@@ -623,6 +627,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.10 — 22 Nov 2026</h3>
+    <ul>
+      <li>The scrollbar is hidden while scrolling — the page, the sheets and the trips table still scroll, the bar just never shows. Same pattern the quick-action pills already used.</li>
+    </ul>
     <h3>v1.3.9 — 22 Nov 2026</h3>
     <ul>
       <li>Range is now calculated from the car's own measured efficiency (recent 50 km from its energy meter) instead of deriving efficiency from battery-% drops. The old way read 10.1 kWh/100km off a single short trip and gave 599 km full — the car's own meter says 14.1, which gives 429 km full, 403 km at 94%.</li>
