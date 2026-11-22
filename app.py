@@ -316,7 +316,9 @@ async def control(
     action = str(body.get("action") or "")
     pin = str(body.get("pin") or "")
     if action in ("lock", "unlock", "climate_start", "climate_stop",
-                  "seat_climate"):
+                  "seat_climate", "find_car", "flash_lights",
+                  "open_windows", "close_windows", "open_trunk",
+                  "close_trunk"):
         if not _PIN_RE.match(pin):
             return JSONResponse(status_code=400, content={
                 "ok": False, "error": "bad_pin",
@@ -327,7 +329,9 @@ async def control(
         return JSONResponse(status_code=400, content={
             "ok": False, "error": "bad_action",
             "detail": "action must be lock, unlock, climate_start, "
-                      "climate_stop, seat_climate or charge_start."})
+                      "climate_stop, seat_climate, find_car, flash_lights, "
+                      "open_windows, close_windows, open_trunk, close_trunk "
+                      "or charge_start."})
     if action == "charge_stop":
         # Honest no-op: the cloud cannot stop a charge (see header note).
         return JSONResponse(status_code=400, content={
@@ -448,6 +452,23 @@ async def control(
                 vin, params=params, command_pwd=pin)
         elif action == "climate_stop":
             res = await client.stop_climate(vin, command_pwd=pin)
+        elif action == "find_car":
+            # Horn + lights.
+            res = await client.find_car(vin, command_pwd=pin)
+        elif action == "flash_lights":
+            res = await client.flash_lights(vin, command_pwd=pin)
+        elif action == "open_windows":
+            # BYD vents the windows to a ~10% crack, not a full drop.
+            res = await client.open_windows(vin, command_pwd=pin)
+        elif action == "close_windows":
+            res = await client.close_windows(vin, command_pwd=pin)
+        elif action == "open_trunk":
+            # Gated by functionNo 1020 (OPENTRUNK) in Latest Config —
+            # may be unsupported on this car (400 not_supported).
+            res = await client.open_trunk(vin, command_pwd=pin)
+        elif action == "close_trunk":
+            # Gated by functionNo 1021 (CLOSETRUNK) in Latest Config.
+            res = await client.close_trunk(vin, command_pwd=pin)
         elif action == "charge_start":
             res = await client.start_charging(vin)
             return {"ok": True, "action": action,

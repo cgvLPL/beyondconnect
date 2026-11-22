@@ -1,5 +1,10 @@
 # BEYONDconnect changelog
 
+## v1.3.5 — 22 Nov 2026
+
+- Controls tab: four new functions — Find car (horn + lights), Flash lights, Windows and Trunk. Windows and Trunk are toggles: the tile shows Open/Closed from the car's live state, tap to open/close. Opening the windows vents them to a ~10% crack (BYD's native vent behaviour, not a full drop). Trunk open/close is gated on the car's config (functionNo 1020/1021) — if the Dolphin doesn't support it the app will say so instead of failing silently. All four need the 6-digit control PIN and ask for confirmation first.
+- Controls fix: the Climate tile's big temperature was clipped at the tile edge (64px was too wide for the half-width tile) — now 52px and it fits. The −/+ steppers were white-on-white (the button colour came from the dark-mode text variable on the white "on" tile) — now dark on white with a visible border.
+
 ## v1.3.4 — 22 Nov 2026
 
 - The PWA can't be zoomed or copied now: the viewport locks scaling (maximum-scale=1, user-scalable=no), text can't be selected and the long-press copy menu is blocked. Input fields (app key, PIN, tariff, battery kWh) still accept typing and pasting.

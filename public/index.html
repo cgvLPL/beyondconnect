@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.4 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.5 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -145,11 +145,11 @@ button{font:inherit}
 .ctltile.on .seg{background:rgb(0 0 0 / .06);border-color:transparent}
 .ctlbigrow{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .ctlbigrow .ctlstep{flex-direction:row}
-.ctlbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.ctlbig{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .ctltile.on .ctlbig{color:#0a84ff}
 .ctlstep{display:flex;flex-direction:column;gap:8px}
 .ctlstep button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:20px;font-weight:600;line-height:1;cursor:pointer}
-.ctltile.on .ctlstep button{background:#fff}
+.ctltile.on .ctlstep button{background:#fff;color:#111;border-color:rgb(0 0 0 / .18)}
 /* --- A/C detail sheet --- */
 .ac-cabin{position:relative;margin-top:6px}
 .ac-cabin svg{width:100%;height:auto;display:block}
@@ -562,6 +562,26 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <div class="ctlname">Charging</div>
     <div class="ctlstate" id="ctlChargeState">Not charging</div>
   </div>
+  <div class="ctltile" id="tileFind" role="button" tabindex="0" onclick="tapFind()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapFind();}">
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+    <div class="ctlname">Find car</div>
+    <div class="ctlstate">Horn + lights</div>
+  </div>
+  <div class="ctltile" id="tileFlash" role="button" tabindex="0" onclick="tapFlash()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapFlash();}">
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 00-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0012 3z"/></svg></div>
+    <div class="ctlname">Flash lights</div>
+    <div class="ctlstate">Flashes once</div>
+  </div>
+  <div class="ctltile" id="tileWin" role="button" tabindex="0" onclick="tapWindows()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapWindows();}">
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18"/><path d="M12 12v8"/></svg></div>
+    <div class="ctlname">Windows</div>
+    <div class="ctlstate" id="ctlWinState">Closed</div>
+  </div>
+  <div class="ctltile" id="tileTrunk" role="button" tabindex="0" onclick="tapTrunk()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapTrunk();}">
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5"/><path d="M5 8v10a1 1 0 001 1h12a1 1 0 001-1V8"/><path d="M9 19v-5h6v5"/></svg></div>
+    <div class="ctlname">Trunk</div>
+    <div class="ctlstate" id="ctlTrunkState">Closed</div>
+  </div>
 </div>
 <div id="ctrlMsg" style="margin-top:10px"></div></div>
 </div>
@@ -589,6 +609,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.5 — 22 Nov 2026</h3>
+    <ul>
+      <li>Controls tab: four new functions — Find car (horn + lights), Flash lights, Windows (tap to vent ~10% or close, shows Open/Closed) and Trunk (tap to open/close, shows Open/Closed). All need the 6-digit control PIN and ask first. The Climate tile is fixed too: the big temperature no longer clips at the tile edge, and the −/+ steppers are dark on white now.</li>
+    </ul>
     <h3>v1.3.4 — 22 Nov 2026</h3>
     <ul>
       <li>The app can't be zoomed or copied now: pinch-zoom is locked, text can't be selected and the long-press copy menu is blocked. Input fields still accept typing and pasting.</li>
@@ -791,7 +815,10 @@ async function doControl(action,extra){
   const labels={lock:'Lock Dolphino?',unlock:'Unlock Dolphino?',
     climate_start:'Start climate at '+$('climTemp').value+' °C for '+$('climDur').value+' min?',
     climate_stop:'Stop climate?',charge_start:'Start charging?',
-    seat_climate:'Set seat ventilation?'};
+    seat_climate:'Set seat ventilation?',
+    find_car:'Find Dolphino? (horn + lights)',flash_lights:'Flash the lights?',
+    open_windows:'Vent the windows? (cracks ~10%)',close_windows:'Close all windows?',
+    open_trunk:'Open the trunk?',close_trunk:'Close the trunk?'};
   const noConfirm=action==='seat_climate'||(action==='climate_start'&&extra&&extra.adjust);
   if(!noConfirm&&!confirm(labels[action]||'Send command?'))return false;
   if(/^\d{6}$/.test(pin))sessionStorage.setItem('beyondPin',pin);
@@ -1134,6 +1161,12 @@ function render(d){
   $('ctlLockState').textContent=allLocked?'Locked':'Unlocked';
   $('tileCharge').classList.toggle('on',charging);
   $('ctlChargeState').textContent=charging?(kw?fmt(kw,1)+' kW':'Charging'):'Not charging';
+  window._winsOpen=openWins.length>0;
+  window._trunkOpen=rt.doors.trunk===1;
+  $('tileWin').classList.toggle('on',window._winsOpen);
+  $('ctlWinState').textContent=window._winsOpen?'Open':(winNames.every(([,v])=>v===1)?'Closed':'–');
+  $('tileTrunk').classList.toggle('on',window._trunkOpen);
+  $('ctlTrunkState').textContent=trunkVal;
   // Home hero: lock button, quick-actions labels, battery stat
   const temp=hv.main_setting_temp!=null?hv.main_setting_temp:+$('climTemp').value;
   $('heroLock').innerHTML=allLocked?LOCK_SVG:UNLOCK_SVG;
@@ -1197,6 +1230,10 @@ function stepTemp(d){const v=Math.min(31,Math.max(15,(parseFloat($('climTemp').v
 function toggleClimate(){doControl(window._climOn?'climate_stop':'climate_start');}
 function toggleLock(){doControl(window._locked?'unlock':'lock');}
 function tapCharge(){if(window._charging){ctrlSay('<div class="muted">Already charging — stop it with the key fob / door-handle double-unlock.</div>');return;}doControl('charge_start');}
+function tapFind(){doControl('find_car');}
+function tapFlash(){doControl('flash_lights');}
+function tapWindows(){doControl(window._winsOpen?'close_windows':'open_windows');}
+function tapTrunk(){doControl(window._trunkOpen?'close_trunk':'open_trunk');}
 function toggleMenu(e){e.stopPropagation();$('tripsMenu').classList.remove('open');$('ctxmenu').classList.toggle('open');}
 function toggleTripsMenu(e){e.stopPropagation();$('ctxmenu').classList.remove('open');$('tripsMenu').classList.toggle('open');}
 function tripsMenuExport(){$('tripsMenu').classList.remove('open');exportCSV();}
