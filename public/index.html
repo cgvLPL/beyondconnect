@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.1 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.2 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -135,7 +135,7 @@ button{font:inherit}
 .ctltile.big .btn{width:100%}
 .ctltile.big .seg{margin-top:12px}
 .ctlicon{width:56px;height:56px;border-radius:50%;background:rgb(127 127 127 / .16);display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--text)}
-.ctlname{font-size:19px;font-weight:600}
+.ctlname{font-size:17px;font-weight:600}
 .ctlstate{color:var(--muted);font-size:15px;margin-top:2px}
 .ctltile.on{background:#fff;color:#111;border-color:transparent}
 .ctltile.on .ctlstate{color:#8e8e93}
@@ -212,7 +212,7 @@ body.locked{background:var(--bg)}
 body.locked #bgLayer{display:none}
 #keybox{display:none;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
 .login{width:100%;max-width:400px}
-.login .logo{width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;background:var(--card);box-shadow:0 4px 16px rgb(0 0 0 / .18)}
+.login .logo{width:64px;height:64px;border-radius:16px;object-fit:cover;display:block;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
 .login h1{font-size:26px;font-weight:700;margin:16px 0 0;letter-spacing:-.02em;color:var(--text);white-space:nowrap}
 .login label{display:block;font-size:13px;font-weight:700;margin:16px 0 6px;color:var(--text)}
 .login input{width:100%;height:52px;font-size:16px;color:var(--text);background:rgb(255 255 255 / .82);border:2px solid #1c1c1e;border-radius:16px;padding:0 16px;outline:none;-webkit-appearance:none}
@@ -261,25 +261,25 @@ body.lightbg .qapill.on{background:#111;color:#fff;border-color:#111}
 .statcard .sc-body{display:flex;gap:12px;align-items:center;margin-top:12px}
 .statcard .sc-batt{width:30px;height:42px;flex:none;color:var(--text)}
 .statcard .sc-trip{width:30px;height:30px;flex:none;color:var(--muted)}
-.statcard .sc-val{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.statcard .sc-val{font-size:22px;font-weight:700;letter-spacing:-.02em}
 .statcard .sc-sub{font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
 /* --- Location card: map fills the card, labels float on top --- */
 .card.loccard{position:relative;padding:0;overflow:hidden}
 .loccard .map{height:230px;border-radius:0;margin:0;display:block}
 .loc-ov{position:absolute;top:0;left:0;right:0;padding:18px 20px 44px;pointer-events:none;background:linear-gradient(180deg,rgb(0 0 0 / .45),transparent)}
-.loc-ov .loc-title{font-size:20px;font-weight:700;color:#fff}
+.loc-ov .loc-title{font-size:17px;font-weight:700;color:#fff}
 .loc-ov .loc-name{font-size:15px;font-weight:500;color:rgb(255 255 255 / .85);margin-top:2px}
 .loc-foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:36px 20px 14px;background:linear-gradient(0deg,rgb(0 0 0 / .45),transparent)}
 .loc-foot a{color:#fff;font-weight:600;text-shadow:0 1px 8px rgb(0 0 0 / .6)}
 .loc-foot .muted{color:rgb(255 255 255 / .75);text-shadow:0 1px 8px rgb(0 0 0 / .6)}
 .card{background:color-mix(in srgb, var(--card) 58%, transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:16px;box-shadow:0 1px 2px rgb(0 0 0 / .04)}
-.card h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 16px;color:var(--text)}
+.card h2{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0 0 16px;color:var(--text)}
 .muted{color:var(--muted);font-size:13px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .tile{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--card-soft)}
 .tile .k{font-size:13px;font-weight:600;color:var(--muted)}
-.tile .v{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.tile .v{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
 .tile .s{font-size:12px;color:var(--muted)}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600;background:var(--green-soft);color:#0a7a3a}
 .pill.off{background:#f2f2f7;color:var(--muted)}
@@ -321,8 +321,8 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .carview{position:relative;max-width:380px;margin:6px auto 0}
 .carview img{width:140px;margin:0 auto;display:block;filter:drop-shadow(0 6px 12px rgb(0 0 0 / .12))}
 .tyre-callout{position:absolute;width:88px}
-.tyre-callout .num{font-size:24px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;text-shadow:0 1px 6px rgb(0 0 0 / .7),0 0 2px rgb(0 0 0 / .5)}
-.tyre-callout .num span{font-size:14px;font-weight:500;color:var(--muted)}
+.tyre-callout .num{font-size:20px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;text-shadow:0 1px 6px rgb(0 0 0 / .7),0 0 2px rgb(0 0 0 / .5)}
+.tyre-callout .num span{font-size:12px;font-weight:500;color:var(--muted)}
 .tyre-callout .line{height:1px;background:#9a9aa0;margin-top:5px;position:relative}
 .tyre-callout .line::after{content:"";position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:#9a9aa0}
 .tyre-callout.fl{left:0;top:19%;text-align:left}
@@ -333,7 +333,7 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .tyre-callout.fr .line::after,.tyre-callout.rr .line::after{left:0}
 .tyre-callout .sub{font-size:12px;color:var(--muted);margin-top:5px}
 /* --- Summary rows (doors / windows) --- */
-.sumrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:16px 2px;border-bottom:1px solid var(--line);font-size:19px}
+.sumrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:16px 2px;border-bottom:1px solid var(--line);font-size:17px}
 .sumrow:last-child{border-bottom:0}
 .sumrow .lab{font-weight:600}
 .sumrow .val{color:#8e8e93;text-align:right}
@@ -532,7 +532,6 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div class="page" id="page-controls">
 <div class="sections">
 <div class="card" id="controls"><h2>Controls</h2>
-<div class="muted" style="margin-bottom:10px">Remote commands need your 6-digit BYD control PIN — set it in Settings (••• menu). It stays in this tab only and is sent with each command — never stored on the server.</div>
 <div class="ctlgrid">
   <div class="ctltile big" id="tileClimate" onclick="openAc()">
     <div class="ctlbigrow"><span class="ctlbig" id="ctlTempBig">23°</span>
@@ -554,7 +553,6 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <div class="ctlstate" id="ctlChargeState">Not charging</div>
   </div>
 </div>
-<div class="muted" style="margin-top:12px">Charging can't be stopped from the cloud — use the key fob / door-handle double-unlock.</div>
 <div id="ctrlMsg" style="margin-top:10px"></div></div>
 </div>
 </div>
@@ -581,6 +579,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.2 — 22 Nov 2026</h3>
+    <ul>
+      <li>New app icon, from your photo: the orange-to-pink gradient square with the white star. It's now the login logo, the favicon, and the Add to Home Screen icon — replacing the green B.</li>
+    </ul>
     <h3>v1.3.1 — 22 Nov 2026</h3>
     <ul>
       <li>Login screen, like HomeView: flat system background, round logo, "Sign in to BEYONDconnect", a 52px field with a dark border, and a black pill Sign in button (white in dark mode). No subtext.</li>
@@ -815,8 +817,7 @@ async function loadServerTrips(){
       $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
     window._soh=d.soh||null; window._range=d.range||null; updateSohRow(); updateRangeTile();
     window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
-    if(!d.trips.length){
-      $('serverTrips').innerHTML='<div class="muted">Automatic trips — no trips recorded yet. Background polling snapshots the car every 5 minutes.</div>';return;}
+    if(!d.trips.length){$('serverTrips').innerHTML='';return;}
     $('serverTrips').innerHTML='<div class="muted" style="margin-bottom:6px">Automatic trips (background logging · '+d.snapshots+' snapshots)</div>'+
       d.trips.map(t=>{
         const route=tripRoute(t);

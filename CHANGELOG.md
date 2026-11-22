@@ -1,5 +1,11 @@
 # BEYONDconnect changelog
 
+## v1.3.2 — 22 Nov 2026
+
+- New app icon, from Ray's photo: the orange-to-pink gradient rounded square with the white star glyph. It replaces the green B everywhere — login logo (shown as the rounded square, not a circle), favicon and Add to Home Screen icon. The icon was cropped from the photo (491×491) with its own corner radius kept and transparent corners, so it reads cleanly on light and dark.
+- Removed three notes: the 6-digit PIN explainer on the Controls page, the "charging can't be stopped from the cloud" note, and the "no trips recorded yet" empty state (the Trips section is blank until a trip exists).
+- Font sizing: the dashboard type was a step too big (card headings 20px, list rows 19px, tyre/tile values 24px, stat values 26px). Brought it down to iOS body scale — headings and rows 17px, tyre/tile values 20px, stat values 22px. The hero name, greeting and the big climate numbers are unchanged.
+
 ## v1.3.1 — 22 Nov 2026
 
 - Login screen, like HomeView (measured from tuya-minimal.vercel.app): flat system background (no wallpaper, no glass card), round logo (logo.png), "Sign in to BEYONDconnect" in 26px bold (28px wrapped the longer name), 13px bold "App key" label, a 52px field with a 2px dark border and 16px radius, and a 52px black pill "Sign in" button (white with black text in dark mode). No subtext — the description and the car line under the button are gone. The flat background only applies while locked — the wallpaper comes back once you're in.
