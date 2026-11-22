@@ -1,1 +1,1 @@
-{"functions":{"app.py":{"maxDuration":60}}}
+{"functions":{"app.py":{"includeFiles":"public/**","maxDuration":60}}}

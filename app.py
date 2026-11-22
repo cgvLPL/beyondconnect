@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 import aiohttp
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pybyd import BydClient, BydConfig
 
@@ -234,6 +234,18 @@ async def status(x_app_key: str | None = Header(default=None)):
     return JSONResponse(status_code=502, content={"ok": False, "error": "byd_error"})
 
 
-# Serve the static frontend (public/) — on Vercel this is also served as
-# static files; locally uvicorn serves it from here.
-app.mount("/", StaticFiles(directory="public", html=True), name="public")
+# Serve the static frontend (public/). Path is anchored to this file, not the
+# process working directory — on Vercel the function runs from /var/task and
+# the relative "public" path does not exist there (import failed with
+# RuntimeError: Directory 'public' does not exist). vercel.json also lists
+# public/** in includeFiles so the directory is bundled into the function.
+from pathlib import Path as _Path
+BASE_DIR = _Path(__file__).resolve().parent
+
+
+@app.get("/version.json")
+def version_file():
+    return FileResponse(BASE_DIR / "version.json", media_type="application/json")
+
+
+app.mount("/", StaticFiles(directory=BASE_DIR / "public", html=True), name="public")
