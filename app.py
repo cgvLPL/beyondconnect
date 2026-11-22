@@ -47,7 +47,7 @@ from pybyd.exceptions import (
     BydEndpointNotSupportedError,
     BydRemoteControlError,
 )
-from pybyd.models.control import ClimateStartParams
+from pybyd.models.control import ClimateStartParams, SeatClimateParams
 
 try:
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "version.json")) as _vf:
@@ -189,10 +189,25 @@ async def status(x_app_key: str | None = Header(default=None)):
                     return None if n is None or n == 0.0 else n
                 def _st(v):
                     return None if v is None or int(v) == -1 else int(v)
+                def _seat(v):
+                    # SeatHeatVentState: 0=no data, 1=off, 2=low, 3=high.
+                    return None if v is None else int(v)
                 hvac = {"temp_in_car": _temp(hv.temp_in_car),
                         "temp_out_car": _temp(hv.temp_out_car),
                         "ac_switch": _st(hv.ac_switch), "status": _st(hv.status),
-                        "main_setting_temp": _temp(hv.main_setting_temp)}
+                        "main_setting_temp": _temp(hv.main_setting_temp),
+                        "set_temp_c": _temp(hv.main_setting_temp_new),
+                        "cycle": _st(hv.cycle_choice),
+                        "fan": _st(hv.wind_position),
+                        "seats": {
+                            "driver": {"heat": _seat(hv.main_seat_heat_state),
+                                       "vent": _seat(hv.main_seat_ventilation_state)},
+                            "copilot": {"heat": _seat(hv.copilot_seat_heat_state),
+                                        "vent": _seat(hv.copilot_seat_ventilation_state)},
+                            "rear_left": {"heat": _seat(hv.lr_seat_heat_state),
+                                          "vent": _seat(hv.lr_seat_ventilation_state)},
+                            "rear_right": {"heat": _seat(hv.rr_seat_heat_state),
+                                           "vent": _seat(hv.rr_seat_ventilation_state)}}}
             else:
                 hvac = None
             return {
@@ -300,7 +315,8 @@ async def control(
         body = {}
     action = str(body.get("action") or "")
     pin = str(body.get("pin") or "")
-    if action in ("lock", "unlock", "climate_start", "climate_stop"):
+    if action in ("lock", "unlock", "climate_start", "climate_stop",
+                  "seat_climate"):
         if not _PIN_RE.match(pin):
             return JSONResponse(status_code=400, content={
                 "ok": False, "error": "bad_pin",
@@ -311,7 +327,7 @@ async def control(
         return JSONResponse(status_code=400, content={
             "ok": False, "error": "bad_action",
             "detail": "action must be lock, unlock, climate_start, "
-                      "climate_stop or charge_start."})
+                      "climate_stop, seat_climate or charge_start."})
     if action == "charge_stop":
         # Honest no-op: the cloud cannot stop a charge (see header note).
         return JSONResponse(status_code=400, content={
@@ -351,9 +367,85 @@ async def control(
             except (TypeError, ValueError):
                 dur = 30
             span = min(5, max(1, (dur + 4) // 5))  # 10..30 min -> code 1..5
-            res = await client.start_climate(
-                vin, params=ClimateStartParams(temperature=temp, time_span=span),
-                command_pwd=pin)
+            cycle = body.get("cycle_mode")
+            try:
+                cycle = int(cycle) if cycle is not None else 2
+            except (TypeError, ValueError):
+                cycle = 2
+            cycle = 1 if cycle == 1 else 2  # 1=fresh air, 2=recirculate
+            fan = body.get("fan_level")
+            try:
+                fan = int(fan) if fan is not None else None
+            except (TypeError, ValueError):
+                fan = None
+            fan = fan if fan is not None and 1 <= fan <= 7 else None
+            if body.get("adjust"):
+                # Setpoint tweak of a running session: keep the session
+                # and its auto-off timer (air_set "14").
+                hv_now = None
+                try:
+                    hv_now = await client.get_hvac_status(vin)
+                except Exception:
+                    hv_now = None
+                if hv_now is not None and hv_now.is_ac_on:
+                    res = await client.start_climate(
+                        vin, params=ClimateStartParams(temperature=temp,
+                                                        air_set="14"),
+                        command_pwd=pin)
+                else:
+                    res = await client.start_climate(
+                        vin, params=ClimateStartParams(
+                            temperature=temp, time_span=span,
+                            cycle_mode=cycle, wind_level=fan),
+                        command_pwd=pin)
+            else:
+                res = await client.start_climate(
+                    vin, params=ClimateStartParams(
+                        temperature=temp, time_span=span,
+                        cycle_mode=cycle, wind_level=fan),
+                    command_pwd=pin)
+        elif action == "seat_climate":
+            # Seat ventilation (and heat) — the API requires ALL seat
+            # values in every command, so build from the current state
+            # and change only the requested seat (pyBYD factory).
+            seat = str(body.get("seat") or "")
+            mode = str(body.get("mode") or "")
+            level = body.get("level")
+            try:
+                level = int(level)
+            except (TypeError, ValueError):
+                level = -1
+            _SEAT_PARAM = {
+                ("driver", "heat"): "main_heat",
+                ("driver", "vent"): "main_ventilation",
+                ("copilot", "heat"): "copilot_heat",
+                ("copilot", "vent"): "copilot_ventilation",
+                ("rear_left", "heat"): "lr_seat_heat_state",
+                ("rear_left", "vent"): "lr_seat_ventilation_state",
+                ("rear_right", "heat"): "rr_seat_heat_state",
+                ("rear_right", "vent"): "rr_seat_ventilation_state",
+            }
+            key = _SEAT_PARAM.get((seat, mode))
+            if key is None or level not in (0, 1, 2):
+                return JSONResponse(status_code=400, content={
+                    "ok": False, "error": "bad_seat",
+                    "detail": "seat must be driver/copilot/rear_left/"
+                              "rear_right, mode heat/vent, level 0/1/2."})
+            # UI level 0=off, 1=low, 2=high -> command scale 3/2/1.
+            cmd_level = {0: 3, 1: 2, 2: 1}[level]
+            hv_now = rt_now = None
+            try:
+                hv_now = await client.get_hvac_status(vin)
+            except Exception:
+                hv_now = None
+            try:
+                rt_now = await client.get_vehicle_realtime(vin)
+            except Exception:
+                rt_now = None
+            params = SeatClimateParams.from_current_state(hv_now, rt_now)
+            params = params.with_change(key, cmd_level)
+            res = await client.set_seat_climate(
+                vin, params=params, command_pwd=pin)
         elif action == "climate_stop":
             res = await client.stop_climate(vin, command_pwd=pin)
         elif action == "charge_start":
@@ -414,9 +506,39 @@ async def _kv(args: list[str], method: str = "POST") -> dict | None:
         return None
 
 
+def _home_location(snaps: list[dict]) -> tuple | None:
+    """The car's home: the median GPS of all snapshots (the car is parked
+    at home most of the time, so the median is a robust home estimate)."""
+    lats = sorted(s["lat"] for s in snaps
+                  if isinstance(s.get("lat"), (int, float)))
+    lons = sorted(s["lon"] for s in snaps
+                  if isinstance(s.get("lon"), (int, float)))
+    if len(lats) < 10:
+        return None
+    return (lats[len(lats) // 2], lons[len(lons) // 2])
+
+
+def _haversine_km(a: tuple, b: tuple) -> float:
+    import math
+    lat1, lon1, lat2, lon2 = (math.radians(x) for x in (*a, *b))
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    h = (math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) *
+         math.sin(dlon / 2) ** 2)
+    return 2 * 6371 * math.asin(math.sqrt(h))
+
+
 def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dict]:
     """Group snapshots into trips: a trip is a run of snapshots where the
     odometer keeps increasing (gaps under 30 min). Needs >= 0.5 km."""
+    home = _home_location(snaps)
+
+    def place(s):
+        if home is None:
+            return None
+        lat, lon = s.get("lat"), s.get("lon")
+        if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+            return None
+        return "Home" if _haversine_km(home, (lat, lon)) < 0.5 else None
     trips = []
     cur = None  # [first_snap, last_moving_snap]
     prev = None
@@ -452,31 +574,43 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dic
             continue
         batt_drop = (first.get("batt_pct") or 0) - (last.get("batt_pct") or 0)
         energy = round(batt_drop / 100 * batt_kwh, 2) if batt_drop > 0 else None
+        try:
+            dur_min = round((datetime.fromisoformat(last["t"]) -
+                             datetime.fromisoformat(first["t"])).total_seconds() / 60)
+        except Exception:
+            dur_min = None
         out.append({
             "start_time": first["t"], "end_time": last["t"],
             "start_odo_km": first["odo_km"], "end_odo_km": last["odo_km"],
             "distance_km": dist,
+            "duration_min": dur_min,
+            "avg_speed_kmh": round(dist / (dur_min / 60), 1)
+            if dur_min and dur_min > 0 else None,
             "start_batt_pct": first.get("batt_pct"),
             "end_batt_pct": last.get("batt_pct"),
+            "batt_used_pct": round(batt_drop, 1) if batt_drop > 0 else None,
             "energy_kwh": energy,
+            "eff_kwh100": round(energy / dist * 100, 1)
+            if energy is not None and dist > 0 else None,
             "est_cost_rp": round(energy * tariff) if energy is not None else None,
+            "start_lat": first.get("lat"), "start_lon": first.get("lon"),
+            "end_lat": last.get("lat"), "end_lon": last.get("lon"),
+            "start_place": place(first), "end_place": place(last),
         })
     return list(reversed(out))  # newest first
 
 
-def _estimate_soh(snaps: list[dict], trips: list[dict],
-                  batt_kwh: float) -> dict | None:
-    """Estimate battery state-of-health from trip + charging history.
+def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
+    """Implied full usable capacity (kWh) from history, as a list of
+    (capacity_kwh, weight, kind) — shared by the SOH and range estimates.
 
-    The BYD API reports no SOH number, so it is derived two ways, both
-    implying the full usable capacity, then averaged weighted by |dSOC|:
+    Derived two ways, both implying the full usable capacity:
     - Charging sessions: integrate charge power over time (trapezoid rule
       on the 5-minute snapshots) and divide by the SOC gained.
     - Trips: distance x the car's own measured efficiency (kWh/100 km,
       stored per snapshot) divided by the SOC dropped.
     Only sessions with >= 10 points of SOC change (>= 5 for trips) and an
-    implied capacity in a sane 30-60 kWh band count. Returns None when
-    there is no usable history yet (e.g. no charging session recorded).
+    implied capacity in a sane 30-60 kWh band count.
     """
     def _dt(a, b):
         try:
@@ -543,6 +677,15 @@ def _estimate_soh(snaps: list[dict], trips: list[dict],
         cap = t["distance_km"] * eff / 100 / (drop / 100)
         if 30 <= cap <= 60:
             estimates.append((cap, drop, "trip"))
+    return estimates
+
+
+def _estimate_soh(snaps: list[dict], trips: list[dict],
+                  batt_kwh: float) -> dict | None:
+    """Battery state-of-health from history: the implied capacity (see
+    _capacity_estimates) averaged weighted by |dSOC|, vs the nominal pack.
+    Returns None when there is no usable history yet."""
+    estimates = _capacity_estimates(snaps, trips)
     if not estimates:
         return None
     wsum = sum(w for _, w, _ in estimates)
@@ -553,6 +696,64 @@ def _estimate_soh(snaps: list[dict], trips: list[dict],
         "nominal_kwh": batt_kwh,
         "charge_sessions": sum(1 for _, _, k in estimates if k == "charge"),
         "trip_estimates": sum(1 for _, _, k in estimates if k == "trip"),
+    }
+
+
+def _estimate_range(snaps: list[dict], trips: list[dict],
+                    batt_kwh: float) -> dict | None:
+    """Range from the car's own history, not BYD's dashboard number:
+    implied usable capacity (from charging sessions + trips, else the
+    nominal pack) divided by the efficiency the car actually drove at.
+
+    Efficiency comes from the trips first (energy / distance, weighted
+    by distance), falling back to the car's own recent 50 km figure in
+    the latest snapshot. Returns None until at least one efficiency
+    reading exists. range_now_km is the range at the latest battery %."""
+    estimates = _capacity_estimates(snaps, trips)
+    if estimates:
+        wsum = sum(w for _, w, _ in estimates)
+        cap = sum(c * w for c, w, _ in estimates) / wsum
+        cap_source = "history"
+    else:
+        cap = batt_kwh
+        cap_source = "nominal"
+    eff_num = eff_den = 0.0
+    for t in trips:
+        e = t.get("eff_kwh100")
+        d = t.get("distance_km") or 0
+        if e and d > 0:
+            eff_num += e * d
+            eff_den += d
+    if eff_den > 0:
+        eff = eff_num / eff_den
+        eff_source = "trips"
+    else:
+        eff = None
+        for s in reversed(snaps):
+            if s.get("eff_kwh100"):
+                eff = s["eff_kwh100"]
+                break
+        if eff is None:
+            return None
+        eff_source = "car"
+    batt_now = None
+    for s in reversed(snaps):
+        if s.get("batt_pct") is not None:
+            batt_now = s["batt_pct"]
+            break
+    if batt_now is None:
+        return None
+    full = cap / eff * 100
+    return {
+        "range_full_km": round(full),
+        "range_now_km": round(full * batt_now / 100),
+        "eff_kwh100": round(eff, 1),
+        "eff_source": eff_source,
+        "capacity_kwh": round(cap, 1),
+        "capacity_source": cap_source,
+        "batt_pct": batt_now,
+        "trips_used": sum(1 for t in trips if t.get("eff_kwh100")),
+        "charge_sessions": sum(1 for _, _, k in estimates if k == "charge"),
     }
 
 
@@ -641,7 +842,8 @@ async def trips(
     trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH)
     return {"ok": True, "source": "server", "trips": trips,
             "snapshots": len(snaps),
-            "soh": _estimate_soh(snaps, trips, BATTERY_KWH)}
+            "soh": _estimate_soh(snaps, trips, BATTERY_KWH),
+            "range": _estimate_range(snaps, trips, BATTERY_KWH)}
 
 
 # Serve the static frontend (public/). Path is anchored to this file, not the

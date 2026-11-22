@@ -5,33 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BEYONDconnect — Dolphino</title>
 <style>
-/* BEYONDconnect v1.1 — Liquid Glass chrome, standard-material content.
+/* BEYONDconnect v1.3 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
-   pills, rail, dock). Content cards stay opaque. Refraction is a
+   pills, rail, dock). Content cards are standard material. The sheen is a
+   soft-light top fade; the gradient rim was tried and removed at Ray's
+   request — glass now has a plain 1px edge again. Refraction is a
    Chromium-only progressive enhancement over the blur fallback. */
 :root{
   --bg:#f4f4f6; --text:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea;
   --card:#ffffff; --card-soft:#f5f5f7;
   --green:#00a651; --green-soft:#e6f7ee; --lime:#d3f34f;
-  --glass-tint:rgb(255 255 255 / .42);
+  --glass-tint:rgb(255 255 255 / .62);
+  --glass-strong:rgb(255 255 255 / .72);
   --glass-border:rgb(255 255 255 / .55);
-  --glass-shadow:0 8px 24px rgb(0 0 0 / .10), inset 0 1px 0 rgb(255 255 255 / .7), inset 0 -1px 0 rgb(0 0 0 / .05);
+  --glass-shadow:0 8px 26px rgb(0 0 0 / .12), 0 1px 3px rgb(0 0 0 / .08);
   --radius:28px;
 }
 @media (prefers-color-scheme:dark){
   /* OLED dark: pure black background so pixels turn off; cards/glass stay
      just above black so surfaces still read, glows kept faint. */
   :root{color-scheme:dark;--bg:#000;--text:#f5f5f7;--muted:#9a9aa0;--line:#232326;--card:#0c0c0c;--card-soft:#141414;
-  --green-soft:#0d2b18;--glass-tint:rgb(18 18 18 / .55);--glass-border:rgb(255 255 255 / .14);
-  --glass-shadow:0 8px 24px rgb(0 0 0 / .6), inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -1px 0 rgb(0 0 0 / .2);}
-  .glass::before{background:radial-gradient(120% 70% at 25% 0%, rgb(255 255 255 / .14), transparent 55%)}
+  --green-soft:#0d2b18;--glass-tint:rgb(36 36 40 / .62);--glass-strong:rgb(40 40 44 / .74);
+  --glass-border:rgb(255 255 255 / .14);
+  --glass-shadow:0 8px 26px rgb(0 0 0 / .5), 0 1px 3px rgb(0 0 0 / .4);}
   .tabs{background:rgb(255 255 255 / .06)}
   .pill.off{background:#161616}
   .charge-scene{background:#0b0b0b}
-  .map{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
 }
 @media (prefers-color-scheme:dark) and (prefers-reduced-transparency:reduce){.glass{background:rgb(0 0 0 / .94)}}
-@media (prefers-color-scheme:dark) and (prefers-contrast:more){.glass{background:#000;border-color:#f5f5f7}}
+@media (prefers-color-scheme:dark) and (prefers-contrast:more){.glass{background:#000}}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
@@ -44,47 +46,53 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Seg
     radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .07), transparent 60%),
     radial-gradient(700px 420px at 10% 0%, rgb(10 132 255 / .05), transparent 60%),
     #000;}}
-/* --- Background wallpapers (Ray's images in public/backgrounds/) --- */
-body.bg-ember,body.bg-dune,body.bg-nebula,body.bg-silk,body.bg-beams{background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}
-body.bg-ember{background-image:url(backgrounds/ember.jpg)}
-body.bg-dune{background-image:url(backgrounds/dune.jpg)}
-body.bg-nebula{background-image:url(backgrounds/nebula.jpg)}
-body.bg-silk{background-image:url(backgrounds/silk.jpg)}
-body.bg-beams{background-image:url(backgrounds/beams.jpg)}
+/* --- Background wallpapers (Ray's images in public/backgrounds/) ---
+   A fixed-position layer, NOT background-attachment:fixed on the body:
+   iOS Safari sizes a fixed body background to the whole (scrolling) page,
+   so the wallpaper showed as a stretched slice instead of the photo. */
+#bgLayer{position:fixed;inset:0;z-index:-1;background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none}
+body.bg-ember #bgLayer{background-image:url(backgrounds/ember.jpg)}
+body.bg-dune #bgLayer{background-image:url(backgrounds/dune.jpg)}
+body.bg-nebula #bgLayer{background-image:url(backgrounds/nebula.jpg)}
+body.bg-silk #bgLayer{background-image:url(backgrounds/silk.jpg)}
+body.bg-beams #bgLayer{background-image:url(backgrounds/beams.jpg)}
 /* A dark background forces dark UI colours (and vice versa), whatever the system says. */
-body.darkbg{color-scheme:dark;--bg:#000;--text:#f5f5f7;--muted:#9a9aa0;--line:#232326;--card:#0c0c0c;--card-soft:#141414;--green-soft:#0d2b18;--glass-tint:rgb(18 18 18 / .55);--glass-border:rgb(255 255 255 / .14);--glass-shadow:0 8px 24px rgb(0 0 0 / .6), inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -1px 0 rgb(0 0 0 / .2)}
-body.darkbg .glass::before{background:radial-gradient(120% 70% at 25% 0%, rgb(255 255 255 / .14), transparent 55%)}
+body.darkbg{color-scheme:dark;--bg:#000;--text:#f5f5f7;--muted:#9a9aa0;--line:#232326;--card:#0c0c0c;--card-soft:#141414;--green-soft:#0d2b18;--glass-tint:rgb(36 36 40 / .62);--glass-strong:rgb(40 40 44 / .74);--glass-border:rgb(255 255 255 / .14);--glass-shadow:0 8px 26px rgb(0 0 0 / .5), 0 1px 3px rgb(0 0 0 / .4)}
 body.darkbg .tabs{background:rgb(255 255 255 / .06)}
 body.darkbg .pill.off{background:#161616}
 body.darkbg .charge-scene{background:#0b0b0b}
-body.darkbg .map{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
 body.darkbg .seg button.on{background:#f5f5f7;color:#111}
-body.lightbg{color-scheme:light;--bg:#f4f4f6;--text:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--card:#ffffff;--card-soft:#f5f5f7;--green-soft:#e6f7ee;--glass-tint:rgb(255 255 255 / .42);--glass-border:rgb(255 255 255 / .55);--glass-shadow:0 8px 24px rgb(0 0 0 / .10), inset 0 1px 0 rgb(255 255 255 / .7), inset 0 -1px 0 rgb(0 0 0 / .05)}
+body.lightbg{color-scheme:light;--bg:#f4f4f6;--text:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--card:#ffffff;--card-soft:#f5f5f7;--green-soft:#e6f7ee;--glass-tint:rgb(255 255 255 / .62);--glass-strong:rgb(255 255 255 / .72);--glass-border:rgb(255 255 255 / .55);--glass-shadow:0 8px 26px rgb(0 0 0 / .12), 0 1px 3px rgb(0 0 0 / .08)}
 body.lightbg .map{filter:none}
 
 /* --- Liquid Glass (chrome only) --- */
 .glass{
   position:relative;
   background:var(--glass-tint);
-  -webkit-backdrop-filter:blur(14px) saturate(160%) brightness(1.08);
-  backdrop-filter:blur(14px) saturate(160%) brightness(1.08);
+  -webkit-backdrop-filter:blur(14px) saturate(180%) brightness(1.04);
+  backdrop-filter:blur(14px) saturate(180%) brightness(1.04);
   border:1px solid var(--glass-border);
   border-radius:999px;
   box-shadow:var(--glass-shadow);
 }
-.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:radial-gradient(120% 70% at 25% 0%, rgb(255 255 255 / .35), transparent 55%);}
 .glass.panel{border-radius:var(--radius)}
+.glass.sheetcard{background:var(--glass-strong)}
+/* HomeView sheen: light catching the top of the glass */
+.glass::after,.dock::after,.iconbtn::after,.ctxmenu::after,.pillbtn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg, rgb(255 255 255 / .28) 0%, rgb(255 255 255 / 0) 38%);
+  mix-blend-mode:soft-light;}
+@media (prefers-color-scheme:dark){.glass::after,.dock::after,.iconbtn::after,.ctxmenu::after,.pillbtn::after{background:linear-gradient(180deg, rgb(255 255 255 / .08) 0%, rgb(255 255 255 / 0) 38%);mix-blend-mode:normal}}
+body.darkbg .glass::after,body.darkbg .dock::after,body.darkbg .iconbtn::after,body.darkbg .ctxmenu::after,body.darkbg .pillbtn::after{background:linear-gradient(180deg, rgb(255 255 255 / .08) 0%, rgb(255 255 255 / 0) 38%);mix-blend-mode:normal}
 /* Chromium-only refraction enhancement, over the blur fallback */
 html.refract .glass{
-  -webkit-backdrop-filter:url(#lg-refract) blur(2px) saturate(160%) brightness(1.08);
-  backdrop-filter:url(#lg-refract) blur(2px) saturate(160%) brightness(1.08);
+  -webkit-backdrop-filter:url(#lg-refract) blur(2px) saturate(180%) brightness(1.04);
+  backdrop-filter:url(#lg-refract) blur(2px) saturate(180%) brightness(1.04);
 }
-@media (prefers-reduced-transparency:reduce){.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgb(255 255 255 / .94);}}
-@media (prefers-contrast:more){.glass{background:#fff;border-color:#0b1220;}}
+@media (prefers-reduced-transparency:reduce){.glass,.dock,.iconbtn,.ctxmenu,.pillbtn{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgb(255 255 255 / .94);}.glass::after,.dock::after,.iconbtn::after,.ctxmenu::after,.pillbtn::after{content:none}}
+@media (prefers-contrast:more){.glass{background:#fff}}
 
-.iconbtn{width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-tint);
-  -webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
+.iconbtn{width:38px;height:38px;flex:none;position:relative;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-tint);
+  -webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);
   display:grid;place-items:center;cursor:pointer;font-size:17px;color:var(--text);box-shadow:var(--glass-shadow)}
 button{font:inherit}
 
@@ -96,7 +104,7 @@ button{font:inherit}
 /* --- Inspo 3: glass context menu (rows, right icons, dividers) --- */
 .menuwrap{position:relative;flex:none}
 .ctxmenu{position:absolute;top:calc(100% + 10px);right:0;min-width:248px;padding:8px;border-radius:22px;z-index:70;display:none;
-  background:rgb(255 255 255 / .78);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%)}
 @media (prefers-color-scheme:dark){.ctxmenu{background:rgb(28 28 30 / .82)}}
 .ctxmenu.open{display:block}
 .ctxmenu button{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:13px 14px;border:0;background:none;color:var(--text);font:inherit;font-size:16px;text-align:left;cursor:pointer;border-radius:12px}
@@ -107,7 +115,10 @@ button{font:inherit}
 /* --- HomeView: iOS switch (black on in light, green on in OLED dark) --- */
 .switch{width:52px;height:32px;flex:none;border-radius:999px;background:#e5e5ea;position:relative;transition:background .2s}
 .switch.on{background:#111}
-.switch .knob{position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgb(0 0 0 / .25);transition:left .2s}
+.switch .knob{position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgb(0 0 0 / .25);transition:left .2s, width .15s ease, background-color .15s ease}
+/* HomeView: the knob turns into a glass lens while pressed */
+.switch:active .knob{width:30px;background:rgb(255 255 255 / .55);-webkit-backdrop-filter:blur(6px) saturate(180%);backdrop-filter:blur(6px) saturate(180%);box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .9), 0 3px 10px rgb(0 0 0 / .2)}
+.switch.on:active .knob{left:20px}
 .switch.on .knob{left:22px}
 @media (prefers-color-scheme:dark){.switch{background:#3a3a3c}.switch.on{background:#30d158}}
 /* --- HomeView: segmented control (grey track, black active pill) --- */
@@ -128,12 +139,40 @@ button{font:inherit}
 .ctltile.on .ctlstate{color:#8e8e93}
 .ctltile.on .ctlicon{background:rgb(0 0 0 / .08);color:#111}
 .ctltile.on .seg{background:rgb(0 0 0 / .06);border-color:transparent}
-.ctlbigrow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ctlbigrow{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.ctlbigrow .ctlstep{flex-direction:row}
 .ctlbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .ctltile.on .ctlbig{color:#0a84ff}
 .ctlstep{display:flex;flex-direction:column;gap:8px}
 .ctlstep button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:20px;font-weight:600;line-height:1;cursor:pointer}
 .ctltile.on .ctlstep button{background:#fff}
+/* --- A/C detail sheet --- */
+.ac-cabin{position:relative;margin-top:6px}
+.ac-cabin svg{width:100%;height:auto;display:block}
+.ac-seatbtn{position:absolute;width:64px;height:64px;border-radius:50%;border:1px solid var(--line);background:var(--card-soft);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transform:translate(-50%,-50%)}
+.ac-seatbtn.on{background:#0a84ff;border-color:#0a84ff;color:#fff}
+.ac-seatbtn .bars{display:flex;gap:2px}
+.ac-seatbtn .bars i{width:4px;height:10px;border-radius:2px;background:currentColor;opacity:.25}
+.ac-seatbtn .bars i.f{opacity:1}
+.ac-seatbtn .slab{font-size:10px;font-weight:700;opacity:.8}
+.ac-tempwrap{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px}
+.ac-tempbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1}
+input[type=range].actemp{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:999px;margin:14px 0 4px;
+  background:linear-gradient(90deg,#0a84ff,#7dd3fc 35%,#f5f5f7 55%,#fdba74 75%,#ef4444);outline:none;cursor:pointer}
+input[type=range].actemp::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid rgb(0 0 0 / .12);box-shadow:0 2px 10px rgb(0 0 0 / .3);cursor:pointer}
+input[type=range].actemp::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid rgb(0 0 0 / .12);box-shadow:0 2px 10px rgb(0 0 0 / .3);cursor:pointer}
+.ac-rounds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.ac-round{border:1px solid var(--line);background:var(--card-soft);color:var(--text);border-radius:20px;padding:14px 6px;font:inherit;font-size:15px;font-weight:700;line-height:1.25;cursor:pointer}
+.ac-round small{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:3px}
+.ac-round.on{background:#111;color:#fff;border-color:#111}
+@media (prefers-color-scheme:dark){.ac-round.on{background:#f5f5f7;color:#111;border-color:#f5f5f7}}
+.ac-setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.ac-setrow:last-child{border-bottom:0}
+.ac-setrow .seg{margin:0}
+#acSheet #durSeg button{padding:8px 9px;font-size:13px}
+.ac-setrow .ctlstep{flex-direction:row;align-items:center;gap:10px}
+.ac-setrow .ctlstep b{font-size:17px;min-width:18px;text-align:center}
+.ac-seatlab{position:absolute;transform:translate(-50%,0);font-size:12px;font-weight:600;color:var(--muted);text-align:center;pointer-events:none}
 /* --- Settings sheet: background option pills --- */
 .bgopts{display:flex;flex-wrap:wrap;gap:8px}
 .bgopts button{border:1px solid var(--line);background:var(--card-soft);color:var(--text);border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
@@ -157,8 +196,8 @@ body.lightbg .bgopts button.on{background:#111;color:#fff;border-color:#111}
 .sheetcard ul li{margin:4px 0}
 .sheetcard .lrow{display:flex;justify-content:space-between;align-items:center}
 /* --- Inspo 2: glass pill button, black circular chevron at the right end --- */
-.pillbtn{display:inline-flex;align-items:center;gap:12px;padding:7px 7px 7px 18px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;
-  background:var(--glass-tint);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
+.pillbtn{display:inline-flex;position:relative;align-items:center;gap:12px;padding:7px 7px 7px 18px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;
+  background:var(--glass-tint);-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);
   border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .pillbtn .chev{width:32px;height:32px;flex:none;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
 @media (prefers-color-scheme:dark){.pillbtn .chev{background:#f5f5f7;color:#111}}
@@ -185,23 +224,34 @@ body.lightbg .bgopts button.on{background:#111;color:#fff;border-color:#111}
    safe-area aware. --- */
 .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom, 0px));z-index:60;display:flex;
   align-items:center;gap:4px;padding:7px 12px;border-radius:999px;max-width:calc(100vw - 24px);
-  background:rgb(20 20 22 / .72);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
-  border:1px solid rgb(255 255 255 / .16);box-shadow:0 10px 30px rgb(0 0 0 / .35), inset 0 1px 0 rgb(255 255 255 / .18)}
-.dock a{display:flex;align-items:center;justify-content:center;width:48px;height:46px;border-radius:999px;color:#fff;opacity:.7;text-decoration:none}
+  background:var(--glass-tint);-webkit-backdrop-filter:blur(14px) saturate(180%) brightness(1.04);backdrop-filter:blur(14px) saturate(180%) brightness(1.04);
+  border:1px solid rgb(255 255 255 / .16);box-shadow:var(--glass-shadow)}
+.dock a{display:flex;align-items:center;justify-content:center;width:48px;height:46px;border-radius:999px;color:var(--text);opacity:.7;text-decoration:none}
 .dock a svg{display:block;flex:none}
-.dock a.on{background:rgb(255 255 255 / .18);opacity:1}
+.dock a.on{background:rgb(0 0 0 / .07);opacity:1}
+@media (prefers-color-scheme:dark){.dock a.on{background:rgb(255 255 255 / .16)}}
+body.darkbg .dock a.on{background:rgb(255 255 255 / .16)}
 /* --- Home screen (Volvo EX90 ref): greeting, dark hero car card, stat cards --- */
 .greet{display:flex;align-items:center;gap:12px;margin-top:18px}
 .gavatar{flex:none;width:46px;height:46px;border-radius:50%;background:#1c1c1e;border:1px solid var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
 .gtext{flex:1;line-height:1.25}
 .ghey{font-size:16px;font-weight:600}
 .gname{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.gdate{font-size:13px;color:var(--muted);font-weight:500;margin-top:1px}
+/* --- Quick-action pills (HomeView room pills, for the car) --- */
+.qapills{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:2px;scrollbar-width:none}
+.qapills::-webkit-scrollbar{display:none}
+.qapill{flex:none;display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:999px;background:var(--glass-tint);color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:var(--glass-shadow)}
+.qapill.on{background:#111;color:#fff;border-color:#111}
+@media (prefers-color-scheme:dark){.qapill.on{background:#f5f5f7;color:#111;border-color:#f5f5f7}}
+body.darkbg .qapill.on{background:#f5f5f7;color:#111;border-color:#f5f5f7}
+body.lightbg .qapill.on{background:#111;color:#fff;border-color:#111}
 .herocard{background:linear-gradient(180deg,#1e1e23,#0e0e10);border-radius:28px;padding:22px 22px 20px;margin-top:16px;color:#f5f5f7;box-shadow:0 8px 32px rgb(0 0 0 / .25)}
 .hc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .hc-name{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .hc-loc{color:rgb(255 255 255 / .6);font-size:15px;font-weight:500;margin-top:4px}
 .herolock{flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .10);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.herocard img.car{width:100%;max-width:520px;display:block;margin:6px auto 0}
+.herocard img.car{width:88%;max-width:460px;display:block;margin:10px auto 0}
 .statrow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .card.statcard{padding:18px;cursor:pointer}
 .statcard .sc-label{font-size:15px;font-weight:600}
@@ -219,7 +269,7 @@ body.lightbg .bgopts button.on{background:#111;color:#fff;border-color:#111}
 .loc-foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:36px 20px 14px;background:linear-gradient(0deg,rgb(0 0 0 / .45),transparent)}
 .loc-foot a{color:#fff;font-weight:600;text-shadow:0 1px 8px rgb(0 0 0 / .6)}
 .loc-foot .muted{color:rgb(255 255 255 / .75);text-shadow:0 1px 8px rgb(0 0 0 / .6)}
-.card{background:color-mix(in srgb, var(--card) 58%, transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px;margin-top:16px;box-shadow:0 8px 32px rgb(0 0 0 / .12)}
+.card{background:color-mix(in srgb, var(--card) 58%, transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:16px;box-shadow:0 1px 2px rgb(0 0 0 / .04)}
 .card h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 16px;color:var(--text)}
 .muted{color:var(--muted);font-size:13px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -266,16 +316,16 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 
 /* --- Top-down car view (tyres) --- */
 .carview{position:relative;max-width:380px;margin:6px auto 0}
-.carview img{width:170px;margin:0 auto;display:block;filter:drop-shadow(0 6px 12px rgb(0 0 0 / .12))}
+.carview img{width:140px;margin:0 auto;display:block;filter:drop-shadow(0 6px 12px rgb(0 0 0 / .12))}
 .tyre-callout{position:absolute;width:88px}
-.tyre-callout .num{font-size:24px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.tyre-callout .num{font-size:24px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;text-shadow:0 1px 6px rgb(0 0 0 / .7),0 0 2px rgb(0 0 0 / .5)}
 .tyre-callout .num span{font-size:14px;font-weight:500;color:var(--muted)}
 .tyre-callout .line{height:1px;background:#9a9aa0;margin-top:5px;position:relative}
 .tyre-callout .line::after{content:"";position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:#9a9aa0}
 .tyre-callout.fl{left:0;top:19%;text-align:left}
-.tyre-callout.fr{right:0;top:19%;text-align:left}
+.tyre-callout.fr{right:0;top:19%;text-align:right}
 .tyre-callout.rl{left:0;bottom:19%;text-align:left}
-.tyre-callout.rr{right:0;bottom:19%;text-align:left}
+.tyre-callout.rr{right:0;bottom:19%;text-align:right}
 .tyre-callout.fl .line::after,.tyre-callout.rl .line::after{right:0}
 .tyre-callout.fr .line::after,.tyre-callout.rr .line::after{left:0}
 .tyre-callout .sub{font-size:12px;color:var(--muted);margin-top:5px}
@@ -287,10 +337,33 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .sumrow .val.alert{color:#ff3b30}
 .bars{display:flex;gap:6px;align-items:flex-end;height:64px}
 .bars div{flex:1;background:var(--green);border-radius:4px 4px 0 0;opacity:.85}
-table{width:100%;border-collapse:collapse;font-size:14px}
+/* --- Trip cards (server trip history, detailed) --- */
+.tripcard{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--card-soft);margin-top:10px}
+.trip-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.trip-date{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.trip-route{font-size:14px;color:var(--muted);margin-top:2px}
+.trip-time{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+.trip-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 8px;margin-top:12px}
+.trip-stats .k{font-size:12px;color:var(--muted);font-weight:600}
+.trip-stats .v{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
+.trip-stats .v small{font-size:12px;font-weight:500;color:var(--muted)}
 td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase}
-iframe.map{width:100%;height:260px;border:0;border-radius:20px}
+/* In-page Leaflet map (replaces the OSM embed iframe, which sized itself by
+   device pixels and rendered at half size on 2x / a third on 3x screens).
+   OSM tiles (tile.openstreetmap.org is reachable; CARTO's CDN timed out from here).
+   Dark mode inverts the tile layer with a CSS filter on the container — the pin
+   gets the same filter again so it stays green. */
+.leaflet-container{background:var(--card-soft);font:inherit;z-index:0}
+.leaflet-container .leaflet-control-attribution{font-size:9px;padding:1px 5px;margin:0 8px 6px 0;background:rgb(255 255 255 / .65);color:#555}
+@media (prefers-color-scheme:dark){
+  .leaflet-container{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
+  .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
+}
+body.darkbg .leaflet-container{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
+body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
+.car-pin{background:transparent;border:0}
+.car-pin::before{content:"";display:block;width:18px;height:18px;border-radius:50%;background:#00a651;border:3px solid #fff;box-shadow:0 1px 8px rgb(0 0 0 / .5)}
 .stat{font-size:17px;font-weight:600;letter-spacing:-.01em}
 #gmapsLink{color:var(--text);font-weight:600}
 #keybox{display:none}
@@ -299,8 +372,10 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 @media (min-width:860px){.sections{grid-template-columns:repeat(3,1fr)}}
 @media (min-width:860px){.sections .card.span2{grid-column:span 2}}
 </style>
+<link rel="stylesheet" href="leaflet/leaflet.css">
 </head>
 <body>
+<div id="bgLayer" aria-hidden="true"></div>
 <!-- Chromium-only refraction filter (progressive enhancement; blur fallback elsewhere) -->
 <svg width="0" height="0" aria-hidden="true" style="position:absolute">
   <filter id="lg-refract" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
@@ -334,7 +409,7 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 <div class="page active" id="page-overview">
 <div class="greet">
   <div class="gavatar">R</div>
-  <div class="gtext"><div class="ghey">Hey 👋</div><div class="gname">Ray!</div></div>
+  <div class="gtext"><div class="ghey">Hey 👋</div><div class="gname">Ray!</div><div class="gdate" id="greetDate"></div></div>
   <button class="iconbtn gbell" onclick="menuChangelog()" title="What's new" aria-label="What's new"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></button>
   <div class="menuwrap">
     <button class="iconbtn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true">•••</button>
@@ -349,6 +424,11 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
       <button class="danger" onclick="menuClear()">Clear trip history <span class="mi">✕</span></button>
     </div>
   </div>
+</div>
+<div class="qapills" id="qaPills">
+  <button class="qapill" id="qaLock" onclick="toggleLock()">🔒 Locked</button>
+  <button class="qapill" id="qaClimate" onclick="openAc()">❄️ Climate</button>
+  <button class="qapill" id="qaCharge" onclick="tapCharge()">⚡ Charge</button>
 </div>
 <div class="herocard">
   <div class="hc-top"><div><div class="hc-name" id="carName">Dolphino</div><div class="hc-loc">📍 <span id="heroLoc">Cikarang</span></div></div>
@@ -403,7 +483,7 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
   </div>
 </div>
 <div class="card loccard" id="location">
-  <iframe class="map" id="mapFrame" loading="lazy"></iframe>
+  <div class="map" id="mapDiv"></div>
   <div class="loc-ov"><div class="loc-title">Location</div><div class="loc-name" id="locName">Cikarang</div></div>
   <div class="loc-foot"><a id="gmapsLink" href="#" target="_blank" rel="noopener">Open in Google Maps</a><span class="muted" id="gpsTime"></span></div>
 </div>
@@ -434,6 +514,7 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 <div class="tile"><div class="k">Recent 50 km</div><div class="v" id="eRecent">–</div><div class="s">kWh / 100 km</div></div>
 <div class="tile"><div class="k">Cost per km</div><div class="v" id="costKm">–</div><div class="s">at your tariff</div></div>
 <div class="tile"><div class="k">Full charge (0–100%)</div><div class="v" id="costFull">–</div><div class="s">at your tariff</div></div>
+<div class="tile"><div class="k">Range (your driving)</div><div class="v" id="rangeEst">–</div><div class="s" id="rangeEstSub">from trip + charging history</div></div>
 </div>
 <div class="row" style="margin-top:12px">
 <label class="muted">Tariff Rp/kWh <input id="tariff" type="number" value="1700" min="0" step="1"></label>
@@ -458,14 +539,14 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 <div class="card" id="controls"><h2>Controls</h2>
 <div class="muted" style="margin-bottom:10px">Remote commands need your 6-digit BYD control PIN — set it in Settings (••• menu). It stays in this tab only and is sent with each command — never stored on the server.</div>
 <div class="ctlgrid">
-  <div class="ctltile big" id="tileClimate">
+  <div class="ctltile big" id="tileClimate" onclick="openAc()">
     <div class="ctlbigrow"><span class="ctlbig" id="ctlTempBig">23°</span>
-      <span class="ctlstep"><button type="button" onclick="stepTemp(-0.5)" aria-label="Cooler">−</button><button type="button" onclick="stepTemp(0.5)" aria-label="Warmer">+</button></span></div>
+      <span class="ctlstep"><button type="button" onclick="event.stopPropagation();stepTemp(-0.5)" aria-label="Cooler">−</button><button type="button" onclick="event.stopPropagation();stepTemp(0.5)" aria-label="Warmer">+</button></span></div>
     <div class="ctlname">Climate</div>
     <div class="ctlstate" id="ctlClimateState">Off</div>
     <input type="hidden" id="climTemp" value="23">
     <input type="hidden" id="climDur" value="30">
-    <button class="btn" id="ctlClimateBtn" style="margin-top:12px" onclick="toggleClimate()">Start</button>
+    <button class="btn" id="ctlClimateBtn" style="margin-top:12px" onclick="event.stopPropagation();toggleClimate()">Start</button>
   </div>
   <div class="ctltile" id="tileLock" role="button" tabindex="0" onclick="toggleLock()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();toggleLock();}">
     <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
@@ -478,8 +559,6 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
     <div class="ctlstate" id="ctlChargeState">Not charging</div>
   </div>
 </div>
-<div class="seg" id="durSeg" role="group" aria-label="Climate duration" style="margin-top:12px">
-<button type="button" data-dur="10" onclick="setDur(10)">10 min</button><button type="button" data-dur="15" onclick="setDur(15)">15 min</button><button type="button" data-dur="20" onclick="setDur(20)">20 min</button><button type="button" data-dur="25" onclick="setDur(25)">25 min</button><button type="button" data-dur="30" class="on" onclick="setDur(30)">30 min</button></div>
 <div class="muted" style="margin-top:12px">Charging can't be stopped from the cloud — use the key fob / door-handle double-unlock.</div>
 <div id="ctrlMsg" style="margin-top:10px"></div></div>
 </div>
@@ -507,6 +586,15 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.0 — 22 Nov 2026</h3>
+    <ul>
+      <li>A/C detail sheet: tap the Climate tile — seat ventilation for driver and passenger, big temperature slider, Fast cooling and Quick heating, circulation and fan speed.</li>
+      <li>Fixed the four screenshot issues: the Location map is a real map again, tyre pressures no longer hide behind the car, the hero car sits with breathing room, and the Climate −/+ buttons stay inside their tile.</li>
+      <li>Range is now estimated from your charging and trip history — on the Battery card, the Energy page and the Vehicle tab.</li>
+      <li>Trip history is detailed: each trip shows its route, duration, average speed, energy, efficiency, battery used and cost.</li>
+      <li>Wallpapers now show your actual photo (iOS was stretching them). More from HomeView: the date under the greeting, and quick-action pills (Lock, Climate, Charge).</li>
+      <li>Liquid Glass from HomeView: the dock, pills, sheets and buttons now have HomeView's top sheen, and the dock turns white in light mode with a quiet fill on the active tab.</li>
+    </ul>
     <h3>v1.2.1 — 22 Nov 2026</h3>
     <ul>
       <li>Fix: the Vehicle tab's system-health section read fields BYD doesn't report, which broke the whole dashboard (black screen). The section is removed; the battery health estimate stays.</li>
@@ -555,7 +643,55 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
     <div class="muted" style="font-size:13px;margin-top:6px">The wallpapers you sent. Dune is the light one; the rest are dark.</div>
   </div>
 </div>
+<div id="acSheet" class="sheet" hidden onclick="if(event.target===this)closeAc()">
+  <div class="glass sheetcard">
+    <div class="lrow"><span class="lbrand">A/C</span><button class="iconbtn" onclick="closeAc()" title="Close">✕</button></div>
+    <div class="ac-cabin">
+      <svg viewBox="0 0 340 200" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="60" y="8" width="220" height="184" rx="36" opacity=".45"/>
+        <path d="M76 48 Q170 36 264 48" opacity=".45"/>
+        <path d="M76 152 Q170 164 264 152" opacity=".45"/>
+        <rect x="88" y="62" width="58" height="50" rx="12" opacity=".45"/>
+        <rect x="194" y="62" width="58" height="50" rx="12" opacity=".45"/>
+        <rect x="88" y="140" width="164" height="32" rx="12" opacity=".45"/>
+      </svg>
+      <button class="ac-seatbtn" id="seatDriver" style="left:34.4%;top:43.5%" onclick="seatTap('driver')" title="Driver seat ventilation"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 12m-2 0a2 2 0 104 0a2 2 0 10-4 0"/><path d="M12 10V4M12 10l5 3M12 10l-5 3"/></svg><span class="bars"><i></i><i></i><i></i></span></button>
+      <button class="ac-seatbtn" id="seatCopilot" style="left:65.6%;top:43.5%" onclick="seatTap('copilot')" title="Passenger seat ventilation"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 12m-2 0a2 2 0 104 0a2 2 0 10-4 0"/><path d="M12 10V4M12 10l5 3M12 10l-5 3"/></svg><span class="bars"><i></i><i></i><i></i></span></button>
+      <span class="ac-seatlab" style="left:34.4%;top:61%">Driver</span>
+      <span class="ac-seatlab" style="left:65.6%;top:61%">Passenger</span>
+    </div>
+    <div class="ac-tempwrap"><span class="ac-tempbig" id="acTempBig">23°</span><span class="muted" id="acStateLab">Off</span></div>
+    <input type="range" id="acTempSlider" class="actemp" min="15" max="31" step="0.5" value="23" aria-label="Temperature" oninput="acTempInput(this.value)" onchange="acTempChange()">
+    <div class="ac-rounds">
+      <button class="ac-round" id="acPowerBtn" onclick="toggleClimate()">Turn on</button>
+      <button class="ac-round" onclick="acFast(15)">❄ MAX<small>Fast cooling</small></button>
+      <button class="ac-round" onclick="acFast(31)">☀ MAX<small>Quick heating</small></button>
+    </div>
+    <div class="muted" style="margin:16px 0 4px">Settings</div>
+    <div class="ac-setrow"><span>Circulation</span><div class="seg" id="acCycleSeg"><button type="button" data-cycle="1" onclick="setCycle(1)">Fresh</button><button type="button" data-cycle="2" class="on" onclick="setCycle(2)">Recirculate</button></div></div>
+    <div class="ac-setrow"><span>Fan</span><span class="ctlstep"><button type="button" onclick="stepFan(-1)" aria-label="Fan slower">−</button><b id="acFanVal">Auto</b><button type="button" onclick="stepFan(1)" aria-label="Fan faster">+</button></span></div>
+    <div class="ac-setrow"><span>Duration</span><div class="seg" id="durSeg" role="group" aria-label="Climate duration"><button type="button" data-dur="10" onclick="setDur(10)">10m</button><button type="button" data-dur="15" onclick="setDur(15)">15m</button><button type="button" data-dur="20" onclick="setDur(20)">20m</button><button type="button" data-dur="25" onclick="setDur(25)">25m</button><button type="button" data-dur="30" class="on" onclick="setDur(30)">30m</button></div></div>
+  </div>
+</div>
+<script src="leaflet/leaflet.js"></script>
 <script>
+// Location map: in-page Leaflet (static view; "Open in Google Maps" is the interactive route).
+// OSM tiles; dark mode inverts the layer via CSS (see .leaflet-container rules).
+let carMap=null,carMarker=null,carTiles=null;
+function mapTileUrl(){return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';}
+function showCarOnMap(lat,lon){
+  if(!window.L)return; // Leaflet failed to load: card still shows the Google Maps link + GPS time
+  if(!carMap){
+    carMap=L.map('mapDiv',{zoomControl:false,dragging:false,scrollWheelZoom:false,touchZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false}).setView([lat,lon],15);
+    window.carMap=carMap;
+    carTiles=L.tileLayer(mapTileUrl(),{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(carMap);
+    carMarker=L.marker([lat,lon],{icon:L.divIcon({className:'car-pin',iconSize:[18,18],iconAnchor:[9,9]}),interactive:false}).addTo(carMap);
+  }else{
+    carMap.setView([lat,lon],15);
+    carMarker.setLatLng([lat,lon]);
+  }
+  setTimeout(()=>{if(carMap)carMap.invalidateSize();},60);
+}
 // Chromium-only refraction: detect via userAgentData, never @supports (it lies).
 try{
   const brands=(navigator.userAgentData&&navigator.userAgentData.brands||[]).map(b=>b.brand);
@@ -597,31 +733,77 @@ function ctrlSay(h){const c=$('ctrlMsg');if(c)c.innerHTML=h;const q=$('qaMsg');i
 const LOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>';
 const UNLOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 017.7-1.5"/></svg>';
 function ago(ts){const s=Math.floor((Date.now()-new Date(ts).getTime())/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' h ago';const d=Math.floor(s/86400);return d===1?'Yesterday':d+' days ago';}
-function updateLastTrip(){const t=window._lastTrip,v=$('lastTripVal'),s=$('lastTripSub');if(!v)return;if(!t){v.textContent='—';s.textContent='No trips yet';return;}v.textContent=fmt(t.distance_km,1)+' km';s.textContent=ago(t.end_time||t.start_time);}
+function updateLastTrip(){const t=window._lastTrip,v=$('lastTripVal'),s=$('lastTripSub');if(!v)return;if(!t){v.textContent='—';s.textContent='No trips yet';return;}v.textContent=fmt(t.distance_km,1)+' km';s.textContent=(t.duration_min!=null?t.duration_min+' min · ':'')+ago(t.end_time||t.start_time);}
 /* --- Remote controls (v1.1) --- */
-async function doControl(action){
+async function doControl(action,extra){
   const pin=$('pinInput').value.trim();
   if(action!=='charge_start'&&!/^\d{6}$/.test(pin)){
-    ctrlSay('<div class="err">Enter your 6-digit BYD control PIN first.</div>');return;}
+    ctrlSay('<div class="err">Enter your 6-digit BYD control PIN first.</div>');return false;}
   const labels={lock:'Lock Dolphino?',unlock:'Unlock Dolphino?',
     climate_start:'Start climate at '+$('climTemp').value+' °C for '+$('climDur').value+' min?',
-    climate_stop:'Stop climate?',charge_start:'Start charging?'};
-  if(!confirm(labels[action]))return;
+    climate_stop:'Stop climate?',charge_start:'Start charging?',
+    seat_climate:'Set seat ventilation?'};
+  const noConfirm=action==='seat_climate'||(action==='climate_start'&&extra&&extra.adjust);
+  if(!noConfirm&&!confirm(labels[action]||'Send command?'))return false;
   if(/^\d{6}$/.test(pin))sessionStorage.setItem('beyondPin',pin);
   ctrlSay('<div class="muted">Sending…</div>');
   try{
     const r=await fetch('/api/control',{method:'POST',
       headers:{'Content-Type':'application/json',...(appKey?{'X-App-Key':appKey}:{})},
-      body:JSON.stringify({action,pin,temperature:+$('climTemp').value,duration_min:+$('climDur').value})});
+      body:JSON.stringify(Object.assign({action,pin,temperature:+$('climTemp').value,duration_min:+$('climDur').value,cycle_mode:window._acCycle,fan_level:window._acFan},extra||{}))});
     const d=await r.json();
     if(!d.ok)throw new Error(d.error+(d.detail?': '+d.detail:''));
-    ctrlSay('<div class="muted" style="color:var(--green)">✓ '+labels[action].replace('?','')+' — sent.</div>');
+    ctrlSay('<div class="muted" style="color:var(--green)">✓ '+(labels[action]||action).replace('?','')+' — sent.</div>');
     setTimeout(()=>load(false),8000);
+    return true;
   }catch(e){
     ctrlSay('<div class="err"><b>Command failed.</b><br>'+String(e.message||e)+'</div>');
+    return false;
   }
 }
+/* --- A/C detail sheet (v1.3) --- */
+function openAc(){closeMenu();syncAcSheet();$('acSheet').hidden=false;}
+function closeAc(){$('acSheet').hidden=true;}
+function acSetTemp(v){v=Math.min(31,Math.max(15,parseFloat(v)||23));$('climTemp').value=v;const t=(v%1?v.toFixed(1):v)+'°';$('ctlTempBig').textContent=t;$('acTempBig').textContent=t;if(document.activeElement!==$('acTempSlider'))$('acTempSlider').value=v;}
+function acTempInput(v){acSetTemp(v);}
+function acTempChange(){if(window._climOn)doControl('climate_start',{adjust:true});}
+function acFast(t){acSetTemp(t);if(window._climOn)doControl('climate_start',{adjust:true});else doControl('climate_start');}
+function setCycle(c){window._acCycle=c;document.querySelectorAll('#acCycleSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.cycle===c));if(window._climOn)doControl('climate_start');}
+function stepFan(d){const cur=window._acFan!=null?window._acFan:(window._hvacFan||3);window._acFan=Math.min(7,Math.max(1,cur+d));$('acFanVal').textContent=window._acFan;if(window._climOn)doControl('climate_start');}
+async function seatTap(seat){const cur=(window._seats&&window._seats[seat]!=null)?window._seats[seat]:0;const next=(cur+1)%3;if(!window._seats)window._seats={};window._seats[seat]=next;paintSeat(seat,next);const ok=await doControl('seat_climate',{seat:seat,mode:'vent',level:next});if(!ok){window._seats[seat]=cur;paintSeat(seat,cur);}}
+function paintSeat(seat,level){const b=$(seat==='driver'?'seatDriver':'seatCopilot');if(!b)return;b.classList.toggle('on',level>0);b.querySelectorAll('.bars i').forEach((el,i)=>el.classList.toggle('f',i<level));}
+function syncAcSheet(){const hv=window._hvac||{};const on=!!window._climOn;
+  $('acPowerBtn').textContent=on?'Turn off':'Turn on';
+  $('acPowerBtn').classList.toggle('on',on);
+  const t=hv.set_temp_c!=null?hv.set_temp_c:(hv.main_setting_temp!=null?hv.main_setting_temp:+$('climTemp').value);
+  // Only take the car's set temp while climate is running — when off,
+  // the slider holds the temp the user picked for the next Start.
+  if(on)acSetTemp(t);
+  $('acStateLab').textContent=on?('Cooling to '+fmt(t,0)+'°'):'Off';
+  if(hv.cycle!=null)window._acCycle=hv.cycle; else if(window._acCycle==null)window._acCycle=2;
+  document.querySelectorAll('#acCycleSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.cycle===window._acCycle));
+  window._hvacFan=hv.fan!=null?hv.fan:null;
+  $('acFanVal').textContent=window._acFan!=null?window._acFan:(window._hvacFan!=null?window._hvacFan:'Auto');
+  const seats=hv.seats||{};
+  // API scale 1=off, 2=low, 3=high -> UI level 0/1/2.
+  const api2ui=v=>v===2?1:v===3?2:0;
+  window._seats={driver:seats.driver?api2ui(seats.driver.vent):0,copilot:seats.copilot?api2ui(seats.copilot.vent):0};
+  paintSeat('driver',window._seats.driver);paintSeat('copilot',window._seats.copilot);}
 /* --- Server-side trips (v1.1 background logging) --- */
+function tripRoute(t){
+  const a=t.start_place, b=t.end_place;
+  if(a&&b) return a===b?'Round trip · '+a:a+' → '+b;
+  if(a) return 'From '+a;
+  if(b) return 'To '+b;
+  return '';
+}
+function tripDate(t){
+  try{return new Date(t.start_time).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}catch(e){return '';}
+}
+function tripTime(t){
+  const s=wib(t.start_time).slice(-5), e=wib(t.end_time).slice(-5);
+  return s+'–'+e+(t.duration_min!=null?' · '+t.duration_min+' min':'');
+}
 async function loadServerTrips(){
   try{
     const r=await fetch('/api/trips?tariff='+(settings.tariff||1700),
@@ -630,14 +812,25 @@ async function loadServerTrips(){
     const d=await r.json();
     if(!d.ok||d.source!=='server'){
       $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
-    window._soh=d.soh||null; updateSohRow();
+    window._soh=d.soh||null; window._range=d.range||null; updateSohRow(); updateRangeTile();
     window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
     if(!d.trips.length){
       $('serverTrips').innerHTML='<div class="muted">Automatic trips — no trips recorded yet. Background polling snapshots the car every 5 minutes.</div>';return;}
     $('serverTrips').innerHTML='<div class="muted" style="margin-bottom:6px">Automatic trips (background logging · '+d.snapshots+' snapshots)</div>'+
-      '<div style="overflow-x:auto"><table><thead><tr><th>Start (WIB)</th><th>End</th><th>Distance</th><th>Energy</th><th>Est. cost</th></tr></thead><tbody>'+
-      d.trips.map(t=>'<tr><td>'+wib(t.start_time)+'</td><td>'+wib(t.end_time)+'</td><td>'+t.distance_km+' km</td><td>'+(t.energy_kwh==null?'–':t.energy_kwh+' kWh')+'</td><td>'+(t.est_cost_rp==null?'–':'Rp '+t.est_cost_rp.toLocaleString('en-US'))+'</td></tr>').join('')+
-      '</tbody></table></div>';
+      d.trips.map(t=>{
+        const route=tripRoute(t);
+        const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+        return '<div class="tripcard"><div class="trip-head"><div><div class="trip-date">'+tripDate(t)+'</div>'+
+        (route?'<div class="trip-route">'+route+'</div>':'')+'</div><div class="trip-time">'+tripTime(t)+'</div></div>'+
+        '<div class="trip-stats">'+
+        stat('Distance',fmt(t.distance_km,1)+' <small>km</small>')+
+        stat('Avg speed',t.avg_speed_kmh!=null?fmt(t.avg_speed_kmh,0)+' <small>km/h</small>':'–')+
+        stat('Energy',t.energy_kwh!=null?fmt(t.energy_kwh,1)+' <small>kWh</small>':'–')+
+        stat('Efficiency',t.eff_kwh100!=null?fmt(t.eff_kwh100,1)+' <small>kWh/100km</small>':'–')+
+        stat('Battery',(t.start_batt_pct!=null?fmt(t.start_batt_pct,0)+'%':'–')+' → '+(t.end_batt_pct!=null?fmt(t.end_batt_pct,0)+'%':'–'))+
+        stat('Est. cost',t.est_cost_rp!=null?'Rp '+t.est_cost_rp.toLocaleString('id-ID'):'–')+
+        '</div></div>';
+      }).join('');
   }catch(e){$('serverTrips').innerHTML='';}
 }
 function timeToFull(rt){
@@ -656,6 +849,15 @@ function timeToFull(rt){
 }
 function specRow(r){return '<div><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';}
 function updateSohRow(){const s=window._soh;document.querySelectorAll('#vehBatt>div').forEach(r=>{const k=r.querySelector('.k');if(k&&k.textContent.indexOf('Battery health')===0){r.querySelector('.v').textContent=s?s.soh_pct+'% · '+s.capacity_kwh+' kWh':'Collecting data…';}});}
+function updateRangeTile(){
+  const r=window._range, el=$('rangeEst');
+  if(!el)return;
+  if(!r){el.textContent='–';$('rangeEstSub').textContent='Collecting data…';return;}
+  el.textContent='≈ '+r.range_full_km+' km';
+  $('rangeEstSub').textContent=r.eff_kwh100+' kWh/100 km · '+r.capacity_kwh+' kWh'+(r.capacity_source==='history'?' (measured)':' (rated)');
+  document.querySelectorAll('#vehBatt>div').forEach(row=>{const k=row.querySelector('.k');if(k&&k.textContent.indexOf('Range (your driving)')===0){row.querySelector('.v').textContent='≈ '+r.range_full_km+' km · '+r.eff_kwh100+' kWh/100 km';}});
+  if(!window._charging)$('battStatSub').textContent='≈ '+r.range_now_km+' km';
+}
 function render(d){
   const rt=d.realtime, v=d.vehicle;
   $('carName').textContent=v.alias||v.model_name||'Dolphino';
@@ -674,6 +876,7 @@ function render(d){
   $('vehBatt').innerHTML=[
     ['Level',rt.battery_pct!=null?fmt(rt.battery_pct,0)+'%':'—'],
     ['Range',rt.range_km!=null?fmt(rt.range_km,0)+' km':'—'],
+    ['Range (your driving)',window._range?'≈ '+window._range.range_full_km+' km':'Collecting data…'],
     ['Capacity',(+$('battKwh').value||60.48)+' kWh'],
     ['Efficiency (lifetime)',rt.energy_lifetime_kwh100!=null?fmt(rt.energy_lifetime_kwh100,1)+' kWh / 100 km':'—'],
     ['Battery health (est.)',soh?soh.soh_pct+'% · '+soh.capacity_kwh+' kWh':'Collecting data…'],
@@ -706,8 +909,7 @@ function render(d){
   }
   $('carImg').src='dolphin-atlantis.png';$('carImg').style.display='block';$('carImg').onerror=function(){this.onerror=null;if(v.pic_url)this.src=v.pic_url;};
   if(d.gps&&d.gps.lat){
-    const b=(d.gps.lon-0.02)+','+(d.gps.lat-0.012)+','+(d.gps.lon+0.02)+','+(d.gps.lat+0.012);
-    $('mapFrame').src='https://www.openstreetmap.org/export/embed.html?bbox='+b+'&layer=mapnik&marker='+d.gps.lat+','+d.gps.lon;
+    showCarOnMap(d.gps.lat,d.gps.lon);
     $('gmapsLink').href='https://maps.google.com/?q='+d.gps.lat+','+d.gps.lon;
     $('gpsTime').textContent='GPS '+wib(d.gps.timestamp)+' WIB';
     $('heroLoc').textContent='Cikarang';$('locName').textContent='Cikarang';}
@@ -742,9 +944,11 @@ function render(d){
   // Controls tiles (HomeView-style): white tile = that function is active
   const climOn=hv.status===1;
   window._climOn=climOn; window._locked=allLocked; window._charging=charging;
+  window._hvac=d.hvac||null;
   $('tileClimate').classList.toggle('on',climOn);
   $('ctlClimateState').textContent=climOn?('Cooling to '+fmt(hv.main_setting_temp!=null?hv.main_setting_temp:+$('climTemp').value,0)+'°'):'Off';
   $('ctlClimateBtn').textContent=climOn?'Stop':'Start';
+  syncAcSheet();
   $('tileLock').classList.toggle('on',allLocked);
   $('ctlLockState').textContent=allLocked?'Locked':'Unlocked';
   $('tileCharge').classList.toggle('on',charging);
@@ -752,9 +956,14 @@ function render(d){
   // Home hero: lock button, quick-actions labels, battery stat
   const temp=hv.main_setting_temp!=null?hv.main_setting_temp:+$('climTemp').value;
   $('heroLock').innerHTML=allLocked?LOCK_SVG:UNLOCK_SVG;
+  // Quick-action pills (HomeView room pills): state-aware, one tap from home
+  const qaL=$('qaLock'), qaC=$('qaClimate'), qaG=$('qaCharge');
+  if(qaL){qaL.textContent=allLocked?'🔒 Locked':'🔓 Unlocked';qaL.classList.toggle('on',allLocked);}
+  if(qaC){qaC.textContent=climOn?'❄️ Climate on':'❄️ Climate';qaC.classList.toggle('on',climOn);}
+  if(qaG){qaG.textContent=charging?'⚡ Charging':'⚡ Charge';qaG.classList.toggle('on',charging);}
   $('battStatPct').textContent=fmt(rt.battery_pct,0)+'%';
   const ttf=charging?timeToFull(rt):null;
-  $('battStatSub').textContent=charging?(kw?fmt(kw,1)+' kW'+(ttf?' · ≈ '+ttf+' to full':''):'Charging'):fmt(rt.range_km,0)+' km range';
+  $('battStatSub').textContent=charging?(kw?fmt(kw,1)+' kW'+(ttf?' · ≈ '+ttf+' to full':''):'Charging'):(window._range?'≈ '+window._range.range_now_km+' km':fmt(rt.range_km,0)+' km range');
   const bf=$('battIconFill'), bh=Math.max(0,Math.min(28,(rt.battery_pct||0)/100*28));
   bf.setAttribute('y',37-bh); bf.setAttribute('height',bh);
   bf.setAttribute('fill',rt.battery_pct>=20?'#34c759':'#ff3b30');
@@ -808,7 +1017,7 @@ function toggleMenu(e){e.stopPropagation();$('ctxmenu').classList.toggle('open')
 function menuChangelog(){closeMenu();$('changelogSheet').hidden=false;}
 function closeChangelog(){$('changelogSheet').hidden=true;}
 document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');closeChangelog();closeSettings();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');closeChangelog();closeSettings();closeAc();}});
 function closeMenu(){$('ctxmenu').classList.remove('open');}
 function menuRefresh(){closeMenu();load(true);}
 function menuAuto(){closeMenu();toggleAuto();}
@@ -821,6 +1030,7 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
   document.querySelectorAll('.dock a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+name));
   window.scrollTo(0,0);
+  if(name==='overview'&&window.carMap)setTimeout(()=>window.carMap.invalidateSize(),60);
 }
 function goPage(name){
   if(!PAGES.includes(name))name='overview';
@@ -832,6 +1042,7 @@ document.querySelectorAll('.dock a').forEach(a=>a.addEventListener('click',e=>{
 window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overview'));
 showPage(location.hash.slice(1)||'overview');
 function startTimer(){clearInterval(timer);timer=setInterval(()=>load(false),60000);}
+try{$('greetDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});}catch(e){}
 renderTrips(trips()); load(false); startTimer();
 </script>
 </body>
