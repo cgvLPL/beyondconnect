@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.2.1 — 22 Nov 2026
+
+- Fix: the Vehicle tab's system-health section read fields BYD doesn't report (`get_latest_config` is a feature list, not a health report), and the error broke the whole dashboard so the app opened to a black screen. The section is removed; the battery health estimate from charging/trip history stays. The app version now reads `version.json` so it can't drift from the release again.
+
 ## v1.2.0 — 22 Nov 2026
 
 - Home screen redesigned: "Hey Ray!" greeting, dark hero card with your Atlantis Grey Dolphin photo, Battery + Last trip cards, full-bleed location map, icons-only dock.

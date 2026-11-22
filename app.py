@@ -49,7 +49,11 @@ from pybyd.exceptions import (
 )
 from pybyd.models.control import ClimateStartParams
 
-VERSION = "1.1.0"
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "version.json")) as _vf:
+        VERSION = json.load(_vf)["version"]
+except Exception:
+    VERSION = "1.2.1"
 BASE_URL = os.environ.get("BYD_BASE_URL", "https://dilinkappoversea-id.byd.auto")
 COUNTRY = os.environ.get("BYD_COUNTRY_CODE", "ID")
 TIME_ZONE = os.environ.get("BYD_TIME_ZONE", "Asia/Jakarta")
@@ -150,7 +154,7 @@ async def status(x_app_key: str | None = Header(default=None)):
                     return await coro
                 except Exception:
                     return None
-            rt, gps, ch, en, hv, cfg = await asyncio.gather(
+            rt, gps, ch, en, hv = await asyncio.gather(
                 client.get_vehicle_realtime(vin),
                 # GPS flakes transiently (BYD code 1008) — never let it
                 # take the whole dashboard down.
@@ -158,9 +162,6 @@ async def status(x_app_key: str | None = Header(default=None)):
                 _safe(client.get_charging_status(vin)),
                 _safe(client.get_energy_consumption(vin)),
                 _safe(client.get_hvac_status(vin)),
-                # Vehicle health summary (booleans per system) — BYD
-                # reports no numeric battery SOH anywhere in the API.
-                _safe(client.get_latest_config(vin)),
             )
             if ch is not None:
                 charging = {"soc": ch.soc, "charging_state": ch.charging_state,
@@ -194,17 +195,6 @@ async def status(x_app_key: str | None = Header(default=None)):
                         "main_setting_temp": _temp(hv.main_setting_temp)}
             else:
                 hvac = None
-            if cfg is not None:
-                health = {"battery": cfg.health_battery,
-                          "powertrain": cfg.health_powertrain,
-                          "charging": cfg.health_charging,
-                          "tpms": cfg.health_tpms,
-                          "steering": cfg.health_steering,
-                          "srs": cfg.health_srs,
-                          "braking": cfg.health_braking,
-                          "abs": cfg.health_abs}
-            else:
-                health = None
             return {
                 "ok": True,
                 "version": VERSION,
@@ -263,7 +253,6 @@ async def status(x_app_key: str | None = Header(default=None)):
                 "charging": charging,
                 "energy": energy,
                 "hvac": hvac,
-                "health": health,
             }
         except Exception as e:
             await _reset_client()

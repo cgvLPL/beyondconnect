@@ -492,8 +492,6 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 <div class="muted" style="margin:16px 0 4px">Battery</div>
 <div class="spec" id="vehBatt"></div>
 <div class="muted" style="font-size:13px;margin-top:8px">Estimated from charging sessions (power × time ÷ charge gained) and trips (distance × efficiency ÷ charge used). Needs a charging session of 10%+ before it can calculate.</div>
-<div class="muted" style="margin:16px 0 4px">Health</div>
-<div class="spec" id="vehHealth"></div>
 </div>
 </div>
 </div>
@@ -509,10 +507,14 @@ iframe.map{width:100%;height:260px;border:0;border-radius:20px}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.2.1 — 22 Nov 2026</h3>
+    <ul>
+      <li>Fix: the Vehicle tab's system-health section read fields BYD doesn't report, which broke the whole dashboard (black screen). The section is removed; the battery health estimate stays.</li>
+    </ul>
     <h3>v1.2.0 — 22 Nov 2026</h3>
     <ul>
       <li>Home screen redesigned: greeting, dark hero card with your Atlantis Grey Dolphin photo, Battery + Last trip cards, full-bleed location map.</li>
-      <li>New Vehicle tab: VIN, plate, purchase date, odometer, battery health estimate, and 8 system health checks.</li>
+      <li>New Vehicle tab: VIN, plate, purchase date, odometer, battery health estimate.</li>
       <li>Backgrounds: your five wallpapers (Ember, Dune, Nebula, Silk, Beams) with frosted glass cards; Control PIN moved into Settings.</li>
       <li>Battery corrected to 60.48 kWh (Extended Range).</li>
       <li>Top bar removed; the ••• menu now sits next to the greeting.</li>
@@ -653,7 +655,6 @@ function timeToFull(rt){
   return mins>=60?Math.floor(mins/60)+' h '+String(mins%60).padStart(2,'0')+' min':mins+' min';
 }
 function specRow(r){return '<div><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';}
-function healthOk(b){return b===true?'✓ OK':b===false?'⚠ Check':'–';}
 function updateSohRow(){const s=window._soh;document.querySelectorAll('#vehBatt>div').forEach(r=>{const k=r.querySelector('.k');if(k&&k.textContent.indexOf('Battery health')===0){r.querySelector('.v').textContent=s?s.soh_pct+'% · '+s.capacity_kwh+' kWh':'Collecting data…';}});}
 function render(d){
   const rt=d.realtime, v=d.vehicle;
@@ -677,13 +678,6 @@ function render(d){
     ['Efficiency (lifetime)',rt.energy_lifetime_kwh100!=null?fmt(rt.energy_lifetime_kwh100,1)+' kWh / 100 km':'—'],
     ['Battery health (est.)',soh?soh.soh_pct+'% · '+soh.capacity_kwh+' kWh':'Collecting data…'],
   ].map(specRow).join('');
-  const h=d.health;
-  $('vehHealth').innerHTML=h?[
-    ['Power battery',healthOk(h.battery)],['Powertrain',healthOk(h.powertrain)],
-    ['Charging system',healthOk(h.charging)],['Tyre pressure (TPMS)',healthOk(h.tpms)],
-    ['Steering',healthOk(h.steering)],['Airbags (SRS)',healthOk(h.srs)],
-    ['Braking',healthOk(h.braking)],['ABS',healthOk(h.abs)],
-  ].map(specRow).join(''):'<div class="muted">Health report unavailable.</div>';
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
   const charging=(d.charging&&d.charging.charging_state===1)||rt.charging_state===1||kw>0;
   // Charging scene shows under the hero while charging
