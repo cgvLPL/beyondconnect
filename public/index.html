@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>BEYONDconnect — Dolphino</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.3 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.4 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -37,8 +37,10 @@
 @media (prefers-color-scheme:dark) and (prefers-reduced-transparency:reduce){.glass{background:rgb(0 0 0 / .94)}}
 @media (prefers-color-scheme:dark) and (prefers-contrast:more){.glass{background:#000}}
 *{box-sizing:border-box}
+input,textarea,select{-webkit-user-select:text;user-select:text}
 html{scroll-behavior:smooth}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   background:
     radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .08), transparent 60%),
     radial-gradient(700px 420px at 10% 0%, rgb(0 113 227 / .06), transparent 60%),
@@ -587,6 +589,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.4 — 22 Nov 2026</h3>
+    <ul>
+      <li>The app can't be zoomed or copied now: pinch-zoom is locked, text can't be selected and the long-press copy menu is blocked. Input fields still accept typing and pasting.</li>
+    </ul>
     <h3>v1.3.3 — 22 Nov 2026</h3>
     <ul>
       <li>Tariff and Battery kWh moved into Settings (••• → Settings → Energy &amp; cost). Charging history is on the Energy page, and tapping any trip or charging card opens a detail sheet — Charge Detail has the charging curve chart, Trip details has the GPS route map.</li>
@@ -1198,6 +1204,7 @@ function tripsMenuClear(){$('tripsMenu').classList.remove('open');clearTrips();}
 function menuChangelog(){closeMenu();$('changelogSheet').hidden=false;}
 function closeChangelog(){$('changelogSheet').hidden=true;}
 document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');if(!$('tripsMenu').contains(e.target))$('tripsMenu').classList.remove('open');});
+document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea,select'))e.preventDefault();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');$('tripsMenu').classList.remove('open');closeChangelog();closeSettings();closeAc();}});
 function closeMenu(){$('ctxmenu').classList.remove('open');}
 function menuRefresh(){closeMenu();load(true);}

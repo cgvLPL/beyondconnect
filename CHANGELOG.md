@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.4 — 22 Nov 2026
+
+- The PWA can't be zoomed or copied now: the viewport locks scaling (maximum-scale=1, user-scalable=no), text can't be selected and the long-press copy menu is blocked. Input fields (app key, PIN, tariff, battery kWh) still accept typing and pasting.
+
 ## v1.3.3 — 22 Nov 2026
 
 - Tariff and Battery kWh are now in Settings (••• menu → Settings → Energy & cost) instead of on the Energy page. The Energy page is clean; the adjusters live behind a setting, and the cost tiles still use them.
