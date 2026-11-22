@@ -528,15 +528,23 @@ async def _kv(args: list[str], method: str = "POST") -> dict | None:
 
 
 def _home_location(snaps: list[dict]) -> tuple | None:
-    """The car's home: the median GPS of all snapshots (the car is parked
-    at home most of the time, so the median is a robust home estimate)."""
-    lats = sorted(s["lat"] for s in snaps
-                  if isinstance(s.get("lat"), (int, float)))
-    lons = sorted(s["lon"] for s in snaps
-                  if isinstance(s.get("lon"), (int, float)))
-    if len(lats) < 10:
+    """The car's home: the most common ~1 km grid cell across snapshots,
+    then the median point inside that cell. The car is parked at home most
+    of the time, so the mode is home. (The old median of ALL snapshots
+    lands in the middle of a long drive's route when the snapshots split
+    between two places — after the Cikarang→BSD drive it returned a point
+    ~26 km from either end, so nothing was ever detected as "Home".)"""
+    from collections import Counter
+    pts = [(s["lat"], s["lon"]) for s in snaps
+           if isinstance(s.get("lat"), (int, float))
+           and isinstance(s.get("lon"), (int, float))]
+    if len(pts) < 10:
         return None
-    return (lats[len(lats) // 2], lons[len(lons) // 2])
+    cells = Counter((round(la, 2), round(lo, 2)) for la, lo in pts)
+    cell, _ = cells.most_common(1)[0]
+    in_cell = sorted((la, lo) for la, lo in pts
+                     if (round(la, 2), round(lo, 2)) == cell)
+    return in_cell[len(in_cell) // 2]
 
 
 def _haversine_km(a: tuple, b: tuple) -> float:

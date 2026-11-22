@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.12 — 22 Nov 2026
+
+- Fixed the home detection that v1.3.11's "Home" label depends on. `_home_location` took the median of ALL snapshot latitudes and longitudes separately. After the Cikarang → BSD drive the snapshots split between the two ends plus the route, so the median landed mid-route — live /api/trips returned home `[-6.299905, 106.91652]`, ~26 km from the real home and ~26 km from BSD, so nothing was ever within 0.5 km of "home" and the "Home" label (and trip start/end "Home" places) never triggered. It now takes the most common ~1 km grid cell across snapshots and the median point inside it (the car is parked at home most of the time). Verified on synthetic data matching the real drive: new home is 0.02 km from the real Cikarang home (old median was 21.9 km off).
+
 ## v1.3.11 — 22 Nov 2026
 
 - The location under the car name now updates. It was hardcoded to "Cikarang", so it still said that when the car was in BSD. Now it shows "Home" when the car is within 0.5 km of home (home location from /api/trips, now returned in the response) and the real area name when away, from a Nominatim (OpenStreetMap) reverse geocode of the car's GPS — "BSD City" for the BSD coordinates. Cached per ~1 km so a refresh or a drive doesn't re-fetch. The Location card's name uses the same label.
