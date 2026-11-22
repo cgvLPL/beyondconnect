@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.8 — 22 Nov 2026
+
+- Regenerative braking no longer counts as charging. The charging flag on a snapshot used to be set from charging_state alone, which reads 1 while regenerating (energy flowing back into the battery) — so a drive with heavy regen showed up as a charging session. Now a snapshot only counts as charging when the charging gun is actually plugged in (connect_state > 0, pyBYD's is_connected). The charging-session builder also drops any session where the car drove during it (odometer moved > 0.5 km), which cleans up false sessions from snapshots written before this fix. The live Charging tile uses the same rule, so it won't read "Charging" while braking; when the plug state is unknown it falls back to the old signals.
+
 ## v1.3.7 — 22 Nov 2026
 
 - Trips no longer split when the car sits still briefly mid-drive. The trip detector closed a trip whenever the odometer didn't move for one poll (a traffic light, a quick stop), so a single drive showed up as two trips — e.g. a 1 km leg and a 10 km leg 2 minutes apart. Segments separated by under 10 minutes of standing still are now joined into one trip (distance, duration, battery and route all computed across the join). A real stop — parked 10+ minutes at a destination — still counts as a separate trip.

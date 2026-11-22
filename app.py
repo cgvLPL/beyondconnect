@@ -669,6 +669,16 @@ def _charging_sessions(snaps: list[dict]) -> list[dict]:
         if len(run) < 2:
             return
         first, last = run[0], run[-1]
+        # Regen braking is not charging: if the car drove during this run
+        # (odometer moved), it was regen while driving, not a plug-in
+        # session. Real charging happens with the car parked. This also
+        # drops false sessions from snapshots written before the poll
+        # fix above started requiring the gun to be connected.
+        odo_first = first.get("odo_km")
+        odo_last = last.get("odo_km")
+        if (odo_first is not None and odo_last is not None
+                and odo_last - odo_first > 0.5):
+            return
         dsoc = (last.get("batt_pct") or 0) - (first.get("batt_pct") or 0)
         if dsoc < 1:
             return
@@ -881,7 +891,11 @@ async def poll(
             "batt_pct": _num(rt.elec_percent),
             "lat": _num(gps.latitude) if gps else None,
             "lon": _num(gps.longitude) if gps else None,
-            "charging": bool(ch and ch.charging_state == 1),
+            # Regen braking is not charging: the gun must be plugged in.
+            # charging_state alone reads 1 while regenerating (energy
+            # flowing into the battery), but connect_state is 0 then —
+            # pyBYD's is_connected (connect_state > 0) is the plug state.
+            "charging": bool(ch and ch.charging_state == 1 and ch.is_connected),
             "power_kw": _num(ch.charge_power) if ch else None,
             # The car's own measured efficiency — feeds the trip-side
             # SOH estimate (distance x efficiency / SOC dropped).

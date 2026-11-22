@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.7 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.8 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -623,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.8 — 22 Nov 2026</h3>
+    <ul>
+      <li>Regenerative braking no longer counts as charging. A snapshot only counts as charging when the charging gun is actually plugged in, and a charging session is dropped if the car drove during it. The live Charging tile uses the same rule, so it won't say "Charging" while you're braking.</li>
+    </ul>
     <h3>v1.3.7 — 22 Nov 2026</h3>
     <ul>
       <li>Trips no longer split when the car sits still briefly mid-drive: segments separated by under 10 minutes (traffic light, quick stop) are now joined into one trip. A real stop — parked 10+ minutes — still counts as a separate trip.</li>
@@ -1115,7 +1119,13 @@ function render(d){
   $('bSohSub').textContent=soh?soh.capacity_kwh+' kWh capacity':'';
   $('bCapVal').textContent=(+$('battKwh').value||60.48)+' kWh';
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
-  const charging=(d.charging&&d.charging.charging_state===1)||rt.charging_state===1||kw>0;
+  // Regen braking is not charging: the gun must be connected. The charge
+  // power and charging_state both read positive while regenerating, but
+  // connect_state is 0 then (unplugged). When the plug state is unknown
+  // (charging status unavailable), fall back to the old signals.
+  const connState=d.charging?d.charging.connect_state:null;
+  const pluggedIn=connState==null||connState>0;
+  const charging=pluggedIn&&((d.charging&&d.charging.charging_state===1)||rt.charging_state===1||kw>0);
   // Charging scene shows under the hero while charging
   const cs=$('chargeScene');
   if(charging){
