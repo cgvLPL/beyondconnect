@@ -72,10 +72,7 @@ html.refract .glass{
 .logo{width:38px;height:38px;flex:none;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:-.02em}
 @media (prefers-color-scheme:dark){.logo{background:#f5f5f7;color:#111}}
 .brand{font-weight:700;font-size:17px;letter-spacing:-.02em;white-space:nowrap}
-.tabs{display:flex;gap:4px;margin:0 auto;padding:4px;background:rgb(0 0 0 / .05);border-radius:999px}
-.tabs a{padding:7px 16px;border-radius:999px;text-decoration:none;color:var(--muted);font-size:14px;font-weight:600}
-.tabs a.on{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgb(0 0 0 / .12)}
-.locpill{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap}
+.locpill{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap;margin-left:auto}
 .locpill .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
 .iconbtn{width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-tint);
   -webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
@@ -83,11 +80,57 @@ html.refract .glass{
 button{font:inherit}
 
 /* --- Layout --- */
-.wrap{max-width:1060px;margin:0 auto;padding:20px 16px 64px}
-@media (max-width:700px){.tabs{display:none}.brand{display:none}.topbar{gap:8px}.locpill{margin-left:auto}}
-.rail{position:fixed;left:18px;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:10px}
-.rail a{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;text-decoration:none;font-size:19px;color:var(--text)}
-@media (max-width:1240px){.rail{display:none}}
+.wrap{max-width:1060px;margin:0 auto;padding:20px 16px calc(112px + env(safe-area-inset-bottom, 0px))}
+@media (max-width:700px){.brand{display:none}.topbar{gap:8px}}
+/* --- Pages: one visible at a time, switched by the bottom pill --- */
+.page{display:none}
+.page.active{display:block}
+/* --- Inspo 3: glass context menu (rows, right icons, dividers) --- */
+.menuwrap{position:relative;flex:none}
+.ctxmenu{position:absolute;top:calc(100% + 10px);right:0;min-width:248px;padding:8px;border-radius:22px;z-index:70;display:none;
+  background:rgb(255 255 255 / .78);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
+@media (prefers-color-scheme:dark){.ctxmenu{background:rgb(28 28 30 / .82)}}
+.ctxmenu.open{display:block}
+.ctxmenu button{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:12px 14px;border:0;background:none;color:var(--text);font:inherit;font-size:15px;text-align:left;cursor:pointer;border-radius:12px}
+.ctxmenu button:hover{background:rgb(127 127 127 / .14)}
+.ctxmenu button .mi{color:var(--muted);font-size:16px}
+.ctxmenu .ctxsep{height:1px;background:var(--line);margin:5px 10px}
+.ctxmenu button.danger{color:#ff3b30}.ctxmenu button.danger .mi{color:#ff3b30}
+/* --- Inspo 2: glass pill button, black circular chevron at the right end --- */
+.pillbtn{display:inline-flex;align-items:center;gap:12px;padding:7px 7px 7px 18px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;
+  background:var(--glass-tint);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
+  border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+.pillbtn .chev{width:32px;height:32px;flex:none;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
+@media (prefers-color-scheme:dark){.pillbtn .chev{background:#f5f5f7;color:#111}}
+/* --- Inspo 1: frosted login card — pill field + black circular arrow --- */
+.logincard{max-width:430px;margin:26px auto 0;padding:26px}
+.logincard .lrow{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}
+.logincard .lrow .lbrand{color:var(--muted)}
+.logincard .lrow .lact{font-weight:600}
+.logincard h2{font-size:30px;margin:18px 0 16px;text-transform:none;letter-spacing:-.02em;color:var(--text)}
+.pillfield{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card-soft);border-radius:999px;padding:6px 6px 6px 16px}
+.pillfield svg{flex:none;color:var(--muted)}
+.pillfield input{flex:1;min-width:0;border:0;background:none;padding:10px 0;outline:none;width:auto}
+.pillfield input::placeholder{color:var(--muted)}
+.circlebtn{width:44px;height:44px;flex:none;border-radius:50%;border:0;background:#111;color:#fff;display:grid;place-items:center;cursor:pointer}
+@media (prefers-color-scheme:dark){.circlebtn{background:#f5f5f7;color:#111}}
+.logincard .fine{font-size:12px;color:var(--muted);margin:16px 2px 0;line-height:1.5}
+.keysub{max-width:430px;margin:14px auto 0;background:#111;color:#fff;border-radius:24px;padding:22px}
+.keysub .k1{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.keysub .k2{color:#a1a1aa;margin-top:2px}
+.keysub .k3{text-align:right;margin-top:14px;font-weight:600}
+@media (prefers-color-scheme:dark){.keysub{background:#1c1c1e;border:1px solid #2c2c2e}}
+/* --- Bottom pill navigation (inspo 4): frosted dark pill, icon + label,
+   active item inside a filled rounded capsule. Always visible, all sizes;
+   safe-area aware. --- */
+.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom, 0px));z-index:60;display:flex;
+  gap:2px;padding:8px;border-radius:999px;max-width:calc(100vw - 24px);
+  background:rgb(20 20 22 / .72);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
+  border:1px solid rgb(255 255 255 / .16);box-shadow:0 10px 30px rgb(0 0 0 / .35), inset 0 1px 0 rgb(255 255 255 / .18)}
+.dock a{display:flex;align-items:center;gap:7px;height:46px;padding:0 16px;border-radius:999px;color:#fff;opacity:.7;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap}
+.dock a svg{display:block;flex:none}
+.dock a.on{background:rgb(255 255 255 / .18);opacity:1}
+@media (max-width:480px){.dock a{padding:0 14px}.dock a span{display:none}.dock a svg{width:22px;height:22px}}
 .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:stretch;margin-top:18px}
 @media (max-width:860px){.hero{grid-template-columns:1fr}}
 .hero h1{font-size:44px;line-height:1.05;margin:6px 0 4px;letter-spacing:-.03em}
@@ -112,6 +155,7 @@ img.car{width:100%;max-width:520px;display:block;margin:8px auto 0}
 .btn{background:var(--green);color:#fff;border:0;border-radius:999px;padding:11px 20px;cursor:pointer;font-weight:600}
 .btn.ghost{background:transparent;color:var(--green);border:1px solid var(--line)}
 input{font:inherit;background:var(--card-soft);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:110px}
+select{font:inherit;background:var(--card-soft);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .err{background:#fff1f0;color:#8f1d16;border:1px solid #f5c6c0;border-radius:14px;padding:14px;margin-top:14px}
 @media (prefers-color-scheme:dark){.err{background:#3a1d1b;color:#ffb4ab;border-color:#5c2b28}}
 
@@ -166,7 +210,7 @@ input{font:inherit;background:var(--card-soft);color:var(--text);border:1px soli
 
 /* --- Top-down car view (tyres) --- */
 .carview{position:relative;max-width:380px;margin:6px auto 0}
-.carview svg{width:190px;margin:0 auto;display:block;filter:drop-shadow(0 6px 12px rgb(0 0 0 / .12))}
+.carview img{width:170px;margin:0 auto;display:block;filter:drop-shadow(0 6px 12px rgb(0 0 0 / .12))}
 .tyre-callout{position:absolute;width:88px}
 .tyre-callout .num{font-size:24px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
 .tyre-callout .num span{font-size:14px;font-weight:500;color:var(--muted)}
@@ -207,38 +251,50 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
   </filter>
 </svg>
 
-<nav class="rail" aria-label="Sections">
-  <a class="glass" href="#overview" title="Overview">⌂</a>
-  <a class="glass" href="#location" title="Location">◎</a>
-  <a class="glass" href="#energy" title="Energy &amp; cost">⚡</a>
-  <a class="glass" href="#trips" title="Trips">▦</a>
-</nav>
-
 <header class="glass topbar">
   <div class="logo">B</div>
   <div class="brand">BEYONDconnect</div>
-  <nav class="tabs" aria-label="Sections">
-    <a href="#overview" class="on">Overview</a>
-    <a href="#energy">Energy</a>
-    <a href="#trips">Trips</a>
-  </nav>
   <div class="glass locpill"><span class="dot"></span><span id="locPill">Cikarang</span></div>
   <button class="iconbtn" id="refreshBtn" onclick="load(true)" title="Refresh">↻</button>
+  <div class="menuwrap">
+    <button class="iconbtn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true">•••</button>
+    <div class="glass ctxmenu" id="ctxmenu" role="menu">
+      <button onclick="menuRefresh()">Refresh now <span class="mi">↻</span></button>
+      <div class="ctxsep"></div>
+      <button onclick="menuAuto()"><span id="menuAutoLabel">Auto-refresh: on</span> <span class="mi" id="menuAutoIcon">✓</span></button>
+      <button onclick="menuExport()">Export trips CSV <span class="mi">↓</span></button>
+      <div class="ctxsep"></div>
+      <button class="danger" onclick="menuClear()">Clear trip history <span class="mi">✕</span></button>
+    </div>
+  </div>
 </header>
 
 <div class="wrap">
-<div class="muted" id="updated">Loading…</div>
-<div id="keybox" class="card"><h2>App key</h2>
-<p class="muted">This dashboard is protected by an app key. Enter it once — it stays in this tab only.</p>
-<div class="row"><input id="keyInput" type="password" placeholder="App key" style="width:200px" autocomplete="off">
-<button class="btn" onclick="saveKey()">Unlock</button></div></div>
+<div id="keybox">
+  <div class="glass panel logincard">
+    <div class="lrow"><span class="lbrand">BEYONDconnect</span><span class="lact">Unlock</span></div>
+    <h2>Welcome back</h2>
+    <div class="pillfield">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="14" r="4"/><path d="M11 11l8-8M16 4l3 3M13 7l3 3"/></svg>
+      <input id="keyInput" type="password" placeholder="App key" autocomplete="off" onkeydown="if(event.key==='Enter')saveKey()">
+      <button class="circlebtn" onclick="saveKey()" title="Unlock" aria-label="Unlock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <p class="fine">This dashboard is protected by an app key. Enter it once — it stays in this tab only and is never stored on the server.</p>
+  </div>
+  <div class="keysub">
+    <div class="k1">Dolphino</div>
+    <div class="k2">BYD Dolphin</div>
+    <div class="k3">Live from BYD Indonesia server</div>
+  </div>
+</div>
 <div id="error"></div>
 <div id="app" style="display:none">
 
-<section class="hero" id="overview">
+<div class="page active" id="page-overview">
+<section class="hero">
   <div>
     <h1 id="carName">Dolphino</h1>
-    <div class="sub" id="carline">BYD Dolphin · Fully electric</div>
+    <div class="sub" id="carline">BYD Dolphin</div>
     <div class="chips">
       <span class="glass chip"><span class="gdot"></span><b id="chipBatt">–</b> battery</span>
       <span class="glass chip"><b id="chipRange">–</b> km range</span>
@@ -293,7 +349,7 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
         <div><div class="k">Voltage</div><div class="v">220 V</div></div>
       </div>
     </div>
-    <div class="row"><button class="btn ghost" id="autoBtn" onclick="toggleAuto()">Auto-refresh: on</button></div>
+    <div class="row"><button class="pillbtn" id="autoBtn" onclick="toggleAuto()"><span>Auto-refresh: on</span><span class="chev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span></button></div>
   </div>
 </section>
 
@@ -304,6 +360,24 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
 <div class="row" style="margin-top:10px"><a id="gmapsLink" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
 <span class="muted" id="gpsTime"></span></div></div>
 
+<div class="card"><h2>Tyres</h2>
+<div class="carview" id="tyres">
+  <img src="topview.png" alt="Top view of the car">
+  <div class="tyre-callout fl"><div class="num"><b id="tp-fl">–</b> <span>psi</span></div><div class="line"></div></div>
+  <div class="tyre-callout fr"><div class="num"><b id="tp-fr">–</b> <span>psi</span></div><div class="line"></div></div>
+  <div class="tyre-callout rl"><div class="num"><b id="tp-rl">–</b> <span>psi</span></div><div class="line"></div></div>
+  <div class="tyre-callout rr"><div class="num"><b id="tp-rr">–</b> <span>psi</span></div><div class="line"></div></div>
+</div>
+</div>
+
+<div class="card span2"><h2>Doors · Windows · Locks</h2><div id="locks"></div></div>
+
+<div class="card"><h2>Climate</h2><div class="grid" id="climate"></div></div>
+
+</div>
+</div>
+<div class="page" id="page-energy">
+<div class="sections">
 <div class="card" id="energy"><h2>Energy &amp; cost</h2>
 <div class="grid">
 <div class="tile"><div class="k">Lifetime</div><div class="v" id="eLife">–</div><div class="s">kWh / 100 km</div></div>
@@ -317,42 +391,42 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
 <button class="btn ghost" onclick="saveSettings()">Save</button></div>
 <div class="muted" style="margin-top:8px">Last 7 efficiency readings (kWh/100 km)</div>
 <div class="bars" id="eBars"></div></div>
-
-<div class="card"><h2>Tyres</h2>
-<div class="carview" id="tyres">
-  <svg viewBox="0 0 200 340" aria-label="Top view of the car">
-    <rect x="42" y="66" width="16" height="44" rx="7" fill="#2a2a2e"/>
-    <rect x="142" y="66" width="16" height="44" rx="7" fill="#2a2a2e"/>
-    <rect x="42" y="238" width="16" height="44" rx="7" fill="#2a2a2e"/>
-    <rect x="142" y="238" width="16" height="44" rx="7" fill="#2a2a2e"/>
-    <rect x="38" y="118" width="14" height="10" rx="4" fill="#c9c9cf"/>
-    <rect x="148" y="118" width="14" height="10" rx="4" fill="#c9c9cf"/>
-    <rect x="55" y="10" width="90" height="320" rx="46" fill="#ececef" stroke="#c9c9cf" stroke-width="1.5"/>
-    <rect x="65" y="52" width="70" height="58" rx="18" fill="#1d1d1f"/>
-    <rect x="62" y="122" width="76" height="112" rx="20" fill="#f7f7f9" stroke="#dcdce0"/>
-    <rect x="65" y="248" width="70" height="38" rx="14" fill="#1d1d1f"/>
-  </svg>
-  <div class="tyre-callout fl"><div class="num"><b id="tp-fl">–</b> <span>psi</span></div><div class="line"></div></div>
-  <div class="tyre-callout fr"><div class="num"><b id="tp-fr">–</b> <span>psi</span></div><div class="line"></div></div>
-  <div class="tyre-callout rl"><div class="num"><b id="tp-rl">–</b> <span>psi</span></div><div class="line"></div></div>
-  <div class="tyre-callout rr"><div class="num"><b id="tp-rr">–</b> <span>psi</span></div><div class="line"></div></div>
 </div>
-<div class="muted" style="margin-top:8px">Dolphin placard is about 36 psi (250 kPa) cold — these are live readings, warm tyres read higher.</div></div>
-
-<div class="card span2"><h2>Doors · Windows · Locks</h2><div id="locks"></div></div>
-
-<div class="card"><h2>Climate</h2><div class="grid" id="climate"></div></div>
-
-<div class="card span2" id="trips"><h2>Trips — recorded while this page is open</h2>
-<div class="muted">Each refresh saves a snapshot when the odometer or battery moved. Distance and energy between snapshots are estimated from odometer and battery %.</div>
+</div>
+<div class="page" id="page-trips">
+<div class="sections">
+<div class="card span2" id="trips"><h2>Trips</h2>
+<div id="serverTrips"><div class="muted">Loading automatic trips…</div></div>
 <div style="overflow-x:auto;margin-top:8px"><table><thead><tr><th>Time (WIB)</th><th>Battery</th><th>Odo</th><th>Δ km</th><th>Δ kWh</th><th>Est. cost</th></tr></thead>
 <tbody id="tripRows"></tbody></table></div>
-<div class="row" style="margin-top:10px"><button class="btn ghost" onclick="exportCSV()">Export CSV</button>
+<div class="row" style="margin-top:10px"><button class="pillbtn" onclick="exportCSV()"><span>Export CSV</span><span class="chev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span></button>
 <button class="btn ghost" onclick="clearTrips()">Clear history</button></div></div>
-
-<div class="card span2"><h2>What this is</h2>
-<p class="muted">A free, single-user clone of BYD Connect's live dashboard — no Google sign-in, no subscription, no account system. It talks straight to BYD's Indonesia server for your Dolphin. Read-only in v1: remote lock / climate and scheduled charging need your BYD control PIN, and background trip logging while the page is closed needs a server that polls — both are next, not in this build.</p></div>
 </div>
+</div>
+<div class="page" id="page-controls">
+<div class="sections">
+<div class="card" id="controls"><h2>Controls</h2>
+<div class="muted" style="margin-bottom:10px">Remote commands need your 6-digit BYD control PIN. It stays in this tab only and is sent with each command — never stored on the server.</div>
+<div class="row" style="margin-bottom:12px"><label class="muted" for="pinInput">Control PIN</label>
+<input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="width:96px;text-align:center;letter-spacing:.2em"></div>
+<div class="row"><button class="btn" onclick="doControl('lock')">Lock</button>
+<button class="btn ghost" onclick="doControl('unlock')">Unlock</button></div>
+<div class="row" style="margin-top:12px">
+<input id="climTemp" type="number" min="15" max="31" step="0.5" value="23" style="width:70px"> <span class="muted">°C</span>
+<select id="climDur"><option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="25">25 min</option><option value="30" selected>30 min</option></select>
+<button class="btn" onclick="doControl('climate_start')">Start climate</button>
+<button class="btn ghost" onclick="doControl('climate_stop')">Stop climate</button></div>
+<div class="row" style="margin-top:12px"><button class="btn" onclick="doControl('charge_start')">Start charging</button>
+<span class="muted">Charging can't be stopped from the cloud — use the key fob / door-handle double-unlock.</span></div>
+<div id="ctrlMsg" style="margin-top:10px"></div></div>
+</div>
+</div>
+<nav class="dock" aria-label="Sections">
+  <a href="#overview" class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg><span>Overview</span></a>
+  <a href="#energy"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg><span>Energy</span></a>
+  <a href="#trips"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1" fill="currentColor" stroke="none"/></svg><span>Trips</span></a>
+  <a href="#controls"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg><span>Controls</span></a>
+</nav>
 </div>
 </div>
 <script>
@@ -364,6 +438,7 @@ try{
 const $=id=>document.getElementById(id);
 let auto=true, timer=null, appKey=sessionStorage.getItem('beyondKey')||'', lastPct=null;
 const settings=JSON.parse(localStorage.getItem('beyondSettings')||'{}');
+$('pinInput').value=sessionStorage.getItem('beyondPin')||'';
 if(settings.tariff)$('tariff').value=settings.tariff;
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
 function saveSettings(){localStorage.setItem('beyondSettings',JSON.stringify({tariff:+$('tariff').value,battKwh:+$('battKwh').value}));renderCost(window._last);}
@@ -375,16 +450,55 @@ async function load(manual){
   $('error').innerHTML='';
   try{
     const r=await fetch('/api/status',{headers:appKey?{'X-App-Key':appKey}:{}});
-    if(r.status===401){$('keybox').style.display='block';$('updated').textContent='App key required.';return;}
+    if(r.status===401){$('keybox').style.display='block';return;}
     const d=await r.json();
     if(!d.ok){throw new Error(d.error+(d.detail?': '+d.detail:'')+(d.hint?' — '+d.hint:''));}
     window._last=d; render(d);
     $('app').style.display='block';
-    $('updated').textContent='Updated '+wib(d.fetched_at)+' WIB · live from BYD Indonesia server';
+    loadServerTrips();
   }catch(e){
-    $('updated').textContent='Could not load — '+(manual?'try again in a moment.':'will retry.');
     $('error').innerHTML='<div class="err"><b>Could not reach your car.</b><br>'+String(e.message||e)+'</div>';
   }
+}
+/* --- Remote controls (v1.1) --- */
+async function doControl(action){
+  const pin=$('pinInput').value.trim();
+  if(action!=='charge_start'&&!/^\d{6}$/.test(pin)){
+    $('ctrlMsg').innerHTML='<div class="err">Enter your 6-digit BYD control PIN first.</div>';return;}
+  const labels={lock:'Lock Dolphino?',unlock:'Unlock Dolphino?',
+    climate_start:'Start climate at '+$('climTemp').value+' °C for '+$('climDur').value+' min?',
+    climate_stop:'Stop climate?',charge_start:'Start charging?'};
+  if(!confirm(labels[action]))return;
+  if(/^\d{6}$/.test(pin))sessionStorage.setItem('beyondPin',pin);
+  $('ctrlMsg').innerHTML='<div class="muted">Sending…</div>';
+  try{
+    const r=await fetch('/api/control',{method:'POST',
+      headers:{'Content-Type':'application/json',...(appKey?{'X-App-Key':appKey}:{})},
+      body:JSON.stringify({action,pin,temperature:+$('climTemp').value,duration_min:+$('climDur').value})});
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error+(d.detail?': '+d.detail:''));
+    $('ctrlMsg').innerHTML='<div class="muted" style="color:var(--green)">✓ '+labels[action].replace('?','')+' — sent.</div>';
+    setTimeout(()=>load(false),8000);
+  }catch(e){
+    $('ctrlMsg').innerHTML='<div class="err"><b>Command failed.</b><br>'+String(e.message||e)+'</div>';
+  }
+}
+/* --- Server-side trips (v1.1 background logging) --- */
+async function loadServerTrips(){
+  try{
+    const r=await fetch('/api/trips?tariff='+(settings.tariff||1700),
+      {headers:appKey?{'X-App-Key':appKey}:{}});
+    if(r.status===401)return;
+    const d=await r.json();
+    if(!d.ok||d.source!=='server'){
+      $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
+    if(!d.trips.length){
+      $('serverTrips').innerHTML='<div class="muted">Automatic trips — no trips recorded yet. Background polling snapshots the car every 5 minutes.</div>';return;}
+    $('serverTrips').innerHTML='<div class="muted" style="margin-bottom:6px">Automatic trips (background logging · '+d.snapshots+' snapshots)</div>'+
+      '<div style="overflow-x:auto"><table><thead><tr><th>Start (WIB)</th><th>End</th><th>Distance</th><th>Energy</th><th>Est. cost</th></tr></thead><tbody>'+
+      d.trips.map(t=>'<tr><td>'+wib(t.start_time)+'</td><td>'+wib(t.end_time)+'</td><td>'+t.distance_km+' km</td><td>'+(t.energy_kwh==null?'–':t.energy_kwh+' kWh')+'</td><td>'+(t.est_cost_rp==null?'–':'Rp '+t.est_cost_rp.toLocaleString('en-US'))+'</td></tr>').join('')+
+      '</tbody></table></div>';
+  }catch(e){$('serverTrips').innerHTML='';}
 }
 function timeToFull(rt){
   const h=rt.full_hour, m=rt.full_minute;
@@ -403,7 +517,7 @@ function timeToFull(rt){
 function render(d){
   const rt=d.realtime, v=d.vehicle;
   $('carName').textContent=v.alias||v.model_name||'Dolphino';
-  $('carline').textContent='BYD '+v.model_name+' · Fully electric · '+v.vin_masked+(v.plate?' · '+v.plate:'');
+  $('carline').textContent='BYD '+v.model_name+' · '+v.vin_masked+(v.plate?' · '+v.plate:'');
   $('battPct').textContent=fmt(rt.battery_pct,0)+'%';
   $('ringArc').setAttribute('stroke-dasharray',(rt.battery_pct||0)*3.267+' 326.7');
   $('ringArc').setAttribute('stroke',rt.battery_pct>=20?'#34c759':'#ff3b30');
@@ -518,7 +632,34 @@ function exportCSV(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='beyond-trips.csv'; a.click();
 }
 function clearTrips(){if(confirm('Clear all saved trip snapshots on this device?')){localStorage.removeItem('beyondTrips');renderTrips([]);}}
-function toggleAuto(){auto=!auto;$('autoBtn').textContent='Auto-refresh: '+(auto?'on':'off');if(auto)startTimer();else clearInterval(timer);}
+function toggleAuto(){auto=!auto;$('autoBtn').querySelector('span').textContent='Auto-refresh: '+(auto?'on':'off');
+  $('menuAutoLabel').textContent='Auto-refresh: '+(auto?'on':'off');$('menuAutoIcon').textContent=auto?'✓':'○';
+  if(auto)startTimer();else clearInterval(timer);}
+function toggleMenu(e){e.stopPropagation();$('ctxmenu').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('ctxmenu').classList.remove('open');});
+function closeMenu(){$('ctxmenu').classList.remove('open');}
+function menuRefresh(){closeMenu();load(true);}
+function menuAuto(){closeMenu();toggleAuto();}
+function menuExport(){closeMenu();exportCSV();}
+function menuClear(){closeMenu();clearTrips();}
+/* --- Page router: one page at a time, hash-driven (deep links + back button) --- */
+const PAGES=['overview','energy','trips','controls'];
+function showPage(name){
+  if(!PAGES.includes(name))name='overview';
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+  document.querySelectorAll('.dock a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+name));
+  window.scrollTo(0,0);
+}
+function goPage(name){
+  if(!PAGES.includes(name))name='overview';
+  if(location.hash.slice(1)===name)showPage(name);
+  else location.hash=name; /* hashchange fires showPage; back button works */
+}
+document.querySelectorAll('.dock a').forEach(a=>a.addEventListener('click',e=>{
+  e.preventDefault();goPage(a.getAttribute('href').slice(1));}));
+window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overview'));
+showPage(location.hash.slice(1)||'overview');
 function startTimer(){clearInterval(timer);timer=setInterval(()=>load(false),60000);}
 renderTrips(trips()); load(false); startTimer();
 </script>

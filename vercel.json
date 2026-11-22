@@ -1,1 +1,1 @@
-{"functions":{"app.py":{"includeFiles":"public/**","maxDuration":60}}}
+{"crons":[{"path":"/api/poll","schedule":"0 1 * * *"}],"functions":{"app.py":{"includeFiles":"public/**","maxDuration":60}}}
