@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.14 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.15 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -306,30 +306,39 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .err{background:#fff1f0;color:#8f1d16;border:1px solid #f5c6c0;border-radius:14px;padding:14px;margin-top:14px}
 @media (prefers-color-scheme:dark){.err{background:#3a1d1b;color:#ffb4ab;border-color:#5c2b28}}
 
-/* --- Charging scene (dark card, like the video) --- */
-.charge-scene{background:#17181a;border-radius:18px;padding:16px 16px 14px;color:#f5f5f7;margin-top:14px}
-.cs-top{display:flex;align-items:flex-start;gap:14px}
-.cs-pct{font-size:46px;font-weight:700;line-height:1;letter-spacing:-.03em;color:#fdf6e3}
-.cs-pct .cs-pct-unit{font-size:20px;font-weight:600;margin-left:1px}
+/* --- Charging scene: replaces the hero card while charging (side-view photo, pulsing light bar, charger type) --- */
+.charge-scene{background:linear-gradient(180deg,rgba(38,38,44,.72),rgba(16,16,18,.78));-webkit-backdrop-filter:blur(22px) saturate(180%) brightness(1.06);backdrop-filter:blur(22px) saturate(180%) brightness(1.06);border:1px solid rgba(255,255,255,.16);border-radius:28px;padding:20px 20px 18px;color:#f5f5f7;margin-top:16px;box-shadow:0 8px 32px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.05);overflow:hidden;position:relative}
+.charge-scene::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 28%)}
+.cs-top{display:flex;align-items:flex-start;gap:12px;position:relative}
+.cs-pct{font-size:56px;font-weight:700;line-height:.95;letter-spacing:-.03em;color:#fdf6e3}
+.cs-pct .cs-pct-unit{font-size:26px;font-weight:600;margin-left:1px}
 .cs-meta{padding-top:4px;line-height:1.5}
 .cs-state{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
 .cs-state svg{flex:none}
 .cs-eta{font-size:13px;color:#a1a1aa}
-.cs-svg{width:100%;display:block;margin-top:4px}
-.cs-cable-flow{stroke-dasharray:5 9;animation:cableflow 1s linear infinite}
-@keyframes cableflow{to{stroke-dashoffset:-28}}
-.cs-led{animation:ledpulse 1.6s ease-in-out infinite}
-@keyframes ledpulse{0%,100%{opacity:1}50%{opacity:.35}}
-.cs-range{display:flex;align-items:center;gap:10px;margin-top:2px;font-size:13px;color:#d4d4d8}
+.cs-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.02em;background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.cs-badge.ac{color:#86efac;border:1px solid rgba(74,222,128,.45)}
+.cs-badge.fast{color:#93c5fd;border:1px solid rgba(96,165,250,.5)}
+.cs-badge.ultra{color:#d8b4fe;border:1px solid rgba(192,132,252,.5)}
+.cs-car{width:88%;max-width:460px;display:block;margin:16px auto 0;filter:drop-shadow(0 10px 18px rgb(0 0 0 / .5));position:relative}
+.cs-range{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:13px;color:#d4d4d8;position:relative}
 .cs-range b{color:#f5f5f7;font-size:14px}
-.cs-bar{flex:1;height:8px;border-radius:999px;background:rgb(255 255 255 / .18);overflow:hidden}
-.cs-bar div{height:100%;border-radius:999px;background:linear-gradient(90deg,#22c55e,#86efac);box-shadow:0 0 10px rgb(74 222 128 / .7);transition:width .8s cubic-bezier(.32,.72,0,1)}
-.cs-stats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:12px;border:1px solid rgb(255 255 255 / .14);border-radius:12px;overflow:hidden}
-.cs-stats>div{padding:9px 10px}
-.cs-stats>div+div{border-left:1px solid rgb(255 255 255 / .14)}
+.cs-bar{flex:1;height:10px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden;position:relative;box-shadow:inset 0 1px 2px rgba(0,0,0,.35), inset 0 -1px 0 rgba(255,255,255,.12)}
+.cs-bar div{height:100%;border-radius:999px;position:relative;overflow:hidden;transition:width .8s cubic-bezier(.32,.72,0,1);animation:barpulse 1.8s ease-in-out infinite}
+.cs-bar div::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 55%)}
+.cs-bar div::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:shimmer 1.8s linear infinite}
+@keyframes barpulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+@keyframes shimmer{to{transform:translateX(100%)}}
+.cs-bar.ac div{background:linear-gradient(90deg,#22c55e,#86efac);box-shadow:0 0 12px rgb(74 222 128 / .8)}
+.cs-bar.fast div{background:linear-gradient(90deg,#3b82f6,#93c5fd);box-shadow:0 0 12px rgb(96 165 250 / .8)}
+.cs-bar.ultra div{background:linear-gradient(90deg,#a855f7,#d8b4fe);box-shadow:0 0 12px rgb(192 132 252 / .85)}
+.cs-stats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px;background:rgba(255,255,255,.08);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);border-radius:12px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.18);position:relative}
+.cs-stats>div{padding:9px 10px;text-align:center}
+.cs-stats>div+div{border-left:1px solid rgba(255,255,255,.14)}
 .cs-stats .k{font-size:11px;color:#a1a1aa}
 .cs-stats .v{font-size:16px;font-weight:600;margin-top:1px;white-space:nowrap}
-@media (prefers-reduced-motion:reduce){.cs-cable-flow,.cs-led{animation:none}}
+.cs-stats .v small{font-size:10px;font-weight:500;color:#a1a1aa}
+@media (prefers-reduced-motion:reduce){.cs-bar div,.cs-bar div::after{animation:none}}
 
 /* --- Top-down car view (tyres) --- */
 .carview{position:relative;max-width:380px;margin:6px auto 0}
@@ -450,7 +459,7 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
   <button class="qapill" id="qaClimate" onclick="openAc()">❄️ Climate</button>
   <button class="qapill" id="qaCharge" onclick="tapCharge()">⚡ Charge</button>
 </div>
-<div class="herocard">
+<div class="herocard" id="heroCard">
   <div class="hc-top"><div><div class="hc-name" id="carName">Dolphino</div><div class="hc-loc">📍 <span id="heroLoc">Cikarang</span></div></div>
   <button class="herolock" id="heroLock" onclick="toggleLock()" title="Lock / unlock" aria-label="Lock or unlock"></button></div>
   <img class="car" id="carImg" alt="BYD Dolphin" style="display:none">
@@ -459,31 +468,18 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
   <div class="cs-top">
     <div class="cs-pct"><span id="csPct">–</span><span class="cs-pct-unit">%</span></div>
     <div class="cs-meta">
-      <div class="cs-state"><svg width="15" height="15" viewBox="0 0 24 24" fill="#4ade80"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>Charging</div>
+      <div class="cs-state"><svg id="csBolt" width="15" height="15" viewBox="0 0 24 24" fill="#4ade80"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>Charging</div>
       <div class="cs-eta" id="csEta"></div>
+      <div class="cs-badge ac" id="csBadge">⚡ AC Charger</div>
     </div>
   </div>
-  <svg class="cs-svg" viewBox="0 0 340 150" aria-label="Charging cable from wall box to the car">
-    <ellipse cx="150" cy="128" rx="130" ry="7" fill="rgb(255 255 255 / .05)"/>
-    <ellipse cx="145" cy="92" rx="135" ry="42" fill="rgb(255 255 255 / .045)"/>
-    <rect x="292" y="8" width="40" height="32" rx="9" fill="#262628" stroke="#3f3f42"/>
-    <circle class="cs-led" cx="312" cy="17" r="2.5" fill="#4ade80"/>
-    <rect x="304" y="27" width="16" height="2.5" rx="1.25" fill="#55555a"/>
-    <path d="M20,112 L20,102 C20,96 26,92 36,90 C52,86 64,84 76,82 C92,68 112,62 138,61 C168,60 196,64 216,72 C238,79 254,86 260,94 C264,99 265,104 265,112 Z" fill="#2e2e33" stroke="#4a4a50" stroke-width="1"/>
-    <path d="M82,84 C94,71 112,66 136,65 C160,64 182,68 198,75 L190,84 Z" fill="#4b4b51"/>
-    <path d="M76,82 C92,68 112,62 138,61 C168,60 196,64 216,72" fill="none" stroke="#7a7a80" stroke-width="1.5"/>
-    <circle cx="88" cy="110" r="15" fill="#0a0a0c"/><circle cx="88" cy="110" r="15" fill="none" stroke="#3a3a3c" stroke-width="2"/><circle cx="88" cy="110" r="6" fill="#55555a"/>
-    <circle cx="238" cy="110" r="15" fill="#0a0a0c"/><circle cx="238" cy="110" r="15" fill="none" stroke="#3a3a3c" stroke-width="2"/><circle cx="238" cy="110" r="6" fill="#55555a"/>
-    <path d="M312,40 C312,66 304,74 290,79 C274,85 266,86 262,92 C260,95 258,96 257,96" fill="none" stroke="#2e7d4f" stroke-width="3" stroke-linecap="round" opacity=".55"/>
-    <path class="cs-cable-flow" d="M312,40 C312,66 304,74 290,79 C274,85 266,86 262,92 C260,95 258,96 257,96" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" style="filter:drop-shadow(0 0 5px rgb(74 222 128 / .9))"/>
-    <circle cx="257" cy="96" r="3.5" fill="#4ade80" style="filter:drop-shadow(0 0 6px rgb(74 222 128 / .9))"/>
-  </svg>
-  <div class="cs-range"><b id="csRange">–</b><div class="cs-bar"><div id="csBarFill" style="width:0%"></div></div></div>
+  <img class="cs-car" id="csCarImg" src="dolphin-side.png" alt="BYD Dolphin charging">
+  <div class="cs-range"><b id="csRange">–</b><div class="cs-bar ac" id="csBar"><div id="csBarFill" style="width:0%"></div></div></div>
   <div class="cs-stats">
     <div><div class="k">Power</div><div class="v" id="csKw">–</div></div>
-    <div><div class="k">Speed</div><div class="v" id="csKmh">–</div></div>
+    <div><div class="k">Charged</div><div class="v" id="csKwh">–</div></div>
     <div><div class="k">Current</div><div class="v" id="csAmp">–</div></div>
-    <div><div class="k">Voltage</div><div class="v">220 V</div></div>
+    <div><div class="k">Voltage</div><div class="v" id="csVolt">220 V</div></div>
   </div>
 </div>
 <div class="statrow">
@@ -627,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.15 — 23 Nov 2026</h3>
+    <ul>
+      <li>When the car is charging, the hero card is now replaced by a charging scene: your side-view Dolphin photo, a big battery %, a pulsing glowing progress bar below the car, and the charger type — AC Charger, Fast Charger or Ultra Fast Charger, detected from the live charging power. The stats show Power (kW), Charged (kWh), Current (A) and Voltage (V). No cable, no charge box.</li>
+    </ul>
     <h3>v1.3.14 — 22 Nov 2026</h3>
     <ul>
       <li>The Tyres top-view car is now your photo — the glass-roof top-down Dolphin, with its white background removed and the edges smoothed so the outline isn't jagged. The tyre pressures still point at the right wheels.</li>
@@ -865,6 +865,28 @@ function menuSettings(){closeMenu();$('settingsSheet').hidden=false;}
 function closeSettings(){$('settingsSheet').hidden=true;}
 function saveKey(){appKey=$('keyInput').value.trim();sessionStorage.setItem('beyondKey',appKey);$('keybox').style.display='none';document.body.classList.remove('locked');load(true);}
 function fmt(n,d=1){return n==null||isNaN(n)?'–':Number(n).toFixed(d);}
+// Energy delivered in the current charge, in kWh. Prefers the live session
+// (the backend integrates charge power over time); falls back to the %
+// gained since charging was first seen, tracked in localStorage so a
+// reload mid-charge keeps working.
+function chargedKwhText(pct){
+  const cap=+$('battKwh').value||60.48;
+  const now=Date.now();
+  const sess=(window._sessions||[])[0];
+  if(sess&&sess.energy_kwh!=null&&sess.end_time){
+    const endMs=Date.parse(sess.end_time);
+    if(!isNaN(endMs)&&now-endMs<10*60*1000) return fmt(sess.energy_kwh,1)+' kWh';
+  }
+  try{
+    const raw=localStorage.getItem('beyondChargeStart');
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s&&s.pct!=null&&now-s.t<24*3600*1000&&pct>=s.pct)
+        return fmt((pct-s.pct)/100*cap,1)+' kWh';
+    }
+  }catch(e){}
+  return '–';
+}
 function wib(iso){if(!iso)return'';return new Date(iso).toLocaleString('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 function psiToKpa(p){return p==null?null:p*6.89476;}
 async function load(manual){
@@ -1183,9 +1205,11 @@ function render(d){
   const connState=d.charging?d.charging.connect_state:null;
   const pluggedIn=connState==null||connState>0;
   const charging=pluggedIn&&((d.charging&&d.charging.charging_state===1)||rt.charging_state===1||kw>0);
-  // Charging scene shows under the hero while charging
-  const cs=$('chargeScene');
+  // Charging scene REPLACES the hero card while charging (side-view photo,
+  // pulsing light bar, charger-type badge). Dolphin DC max is 88 kW.
+  const cs=$('chargeScene'), hero=$('heroCard');
   if(charging){
+    hero.style.display='none';
     cs.style.display='block';
     // Count-up % like the video (tween from last shown value)
     const target=rt.battery_pct||0, from=(lastPct==null?0:lastPct);
@@ -1196,16 +1220,35 @@ function render(d){
       $('csPct').textContent=Math.round(from+(target-from)*e);
       if(p<1) requestAnimationFrame(step);
     })(t0);
+    // Charger type from live power: AC ≤ 22 kW, Fast ≤ 60 kW, Ultra Fast
+    // above (Dolphin caps at 88 kW, so a >60 kW draw means a high-power
+    // DC station even though the car can't use the station's full rate).
+    const ctype=kw<=22?'ac':kw<=60?'fast':'ultra';
+    const cLabel={ac:'AC Charger',fast:'Fast Charger',ultra:'Ultra Fast Charger'}[ctype];
+    const cDot={ac:'#4ade80',fast:'#60a5fa',ultra:'#c084fc'}[ctype];
+    const badge=$('csBadge');
+    badge.textContent='⚡ '+cLabel;
+    badge.className='cs-badge '+ctype;
+    $('csBar').className='cs-bar '+ctype;
+    const bolt=$('csBolt'); if(bolt) bolt.setAttribute('fill',cDot);
     const ttf=timeToFull(rt);
     $('csEta').textContent=ttf?('≈ '+ttf+' to full'):(kw?'Charging at '+fmt(kw,1)+' kW':'Charging');
     $('csRange').textContent=fmt(rt.range_km,0)+' km';
     $('csBarFill').style.width=Math.max(0,Math.min(100,target))+'%';
     $('csKw').textContent=fmt(kw,1)+' kW';
-    const eff=(d.energy&&d.energy.recent_kwh_100km)||(d.energy&&d.energy.lifetime_kwh_100km)||13.2;
-    $('csKmh').textContent=kw&&eff?fmt(kw/eff*100,0)+' km/h':'–';
-    $('csAmp').textContent=kw?fmt(kw*1000/220,0)+' A':'–';
+    $('csKwh').textContent=chargedKwhText(target);
+    const volt=ctype==='ac'?220:400;
+    $('csAmp').textContent=kw?fmt(kw*1000/volt,0)+' A':'–';
+    $('csVolt').textContent=volt+' V';
+    // Remember where this charge started (for the Charged kWh fallback).
+    try{
+      const raw=localStorage.getItem('beyondChargeStart');
+      const s=raw?JSON.parse(raw):null;
+      if(!s||Date.now()-s.t>24*3600*1000) localStorage.setItem('beyondChargeStart',JSON.stringify({pct:target,t:Date.now()}));
+    }catch(e){}
   }else{
-    cs.style.display='none'; lastPct=null;
+    hero.style.display=''; cs.style.display='none'; lastPct=null;
+    try{localStorage.removeItem('beyondChargeStart');}catch(e){}
   }
   $('carImg').src='dolphin-atlantis.png';$('carImg').style.display='block';$('carImg').onerror=function(){this.onerror=null;if(v.pic_url)this.src=v.pic_url;};
   if(d.gps&&d.gps.lat){

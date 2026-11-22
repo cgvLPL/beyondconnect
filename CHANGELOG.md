@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.15 — 23 Nov 2026
+
+- When the car is charging, the hero card is now replaced by a charging scene (the old separate charge card below the hero — SVG silhouette, wall box and dashed cable — is gone). The scene uses Ray's own side-view Dolphin photo (public/dolphin-side.png, the smoothed-edges shot from the mockup, facing left), a big battery % with a count-up tween, a pulsing glowing progress bar directly below the car (the bar breathes and a bright shimmer sweeps along it), and a charger-type badge detected from the live charging power: AC Charger (≤ 22 kW), Fast Charger (≤ 60 kW), Ultra Fast Charger (above 60 kW — the Dolphin caps at 88 kW DC, so a >60 kW draw means a high-power DC station). The bar and badge change colour with the type (green / blue / purple). Stats are Power (kW), Charged (kWh — from the live charging session's integrated energy, falling back to the % gained since the charge started), Current (A — from power ÷ 220 V AC or 400 V DC) and Voltage (V). Liquid Glass throughout (translucent card, blur, top sheen), same 16 px spacing scale and 88% car width as the hero so nothing shifts when the scene swaps in. Note: dolphin-side.png is a binary, so it goes up via the GitHub web upload, not the text push.
+
 ## v1.3.14 — 22 Nov 2026
 
 - The Tyres top-view car image is now Ray's own photo — the glass-roof top-down Dolphin (the second photo he sent, showing the seats through the panoramic roof), white background removed and edges smoothed with a Gaussian feather so the outline isn't jagged, resized to 397 px wide, replacing public/topview-atlantis.png. The tyre pressure callouts still point at the right wheels (verified in the rig). Note: the PNG is a binary, so it goes up via the GitHub web upload, not the text push — v1.3.13 (the density home fix below) was never pushed on its own, so it ships inside v1.3.14.
