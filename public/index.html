@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.2 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.3 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -274,6 +274,7 @@ body.lightbg .qapill.on{background:#111;color:#fff;border-color:#111}
 .loc-foot .muted{color:rgb(255 255 255 / .75);text-shadow:0 1px 8px rgb(0 0 0 / .6)}
 .card{background:color-mix(in srgb, var(--card) 58%, transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:16px;box-shadow:0 1px 2px rgb(0 0 0 / .04)}
 .card h2{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0 0 16px;color:var(--text)}
+.cardhead{display:flex;justify-content:space-between;align-items:flex-start;margin:0 0 16px}.cardhead h2{margin:0}
 .muted{color:var(--muted);font-size:13px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -341,7 +342,18 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .bars{display:flex;gap:6px;align-items:flex-end;height:64px}
 .bars div{flex:1;background:var(--green);border-radius:4px 4px 0 0;opacity:.85}
 /* --- Trip cards (server trip history, detailed) --- */
-.tripcard{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--card-soft);margin-top:10px}
+.tripcard{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--card-soft);margin-top:10px;cursor:pointer}
+.card h3{font-size:17px;font-weight:700;margin:18px 0 8px}
+/* --- History detail sheet (charge + trip, bydconnect-style) --- */
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dtitle{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.dsub{color:var(--muted);font-size:13px;margin-top:3px}
+.dsub .acc{color:var(--accent)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.dsec{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.dmap{height:220px;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.dlegend{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:8px}
+.dlegend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 .trip-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .trip-date{font-size:17px;font-weight:700;letter-spacing:-.01em}
 .trip-route{font-size:14px;color:var(--muted);margin-top:2px}
@@ -505,28 +517,24 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div class="sections">
 <div class="card" id="energy"><h2>Energy &amp; cost</h2>
 <div class="grid">
-<div class="tile"><div class="k">Lifetime</div><div class="v" id="eLife">–</div><div class="s">kWh / 100 km</div></div>
-<div class="tile"><div class="k">Recent 50 km</div><div class="v" id="eRecent">–</div><div class="s">kWh / 100 km</div></div>
+<div class="tile"><div class="k">Lifetime</div><div class="v" id="eLife">–</div><div class="s" id="eLifeSub">kWh / 100 km</div></div>
+<div class="tile"><div class="k">Recent 50 km</div><div class="v" id="eRecent">–</div><div class="s" id="eRecentSub">kWh / 100 km</div></div>
 <div class="tile"><div class="k">Cost per km</div><div class="v" id="costKm">–</div><div class="s">at your tariff</div></div>
 <div class="tile"><div class="k">Full charge (0–100%)</div><div class="v" id="costFull">–</div><div class="s">at your tariff</div></div>
 <div class="tile"><div class="k">Range (your driving)</div><div class="v" id="rangeEst">–</div><div class="s" id="rangeEstSub">from trip + charging history</div></div>
 </div>
-<div class="row" style="margin-top:12px">
-<label class="muted">Tariff Rp/kWh <input id="tariff" type="number" value="1700" min="0" step="1"></label>
-<label class="muted">Battery kWh <input id="battKwh" type="number" value="60.48" min="1" step="0.1"></label>
-<button class="btn ghost" onclick="saveSettings()">Save</button></div>
-<div class="muted" style="margin-top:8px">Last 7 efficiency readings (kWh/100 km)</div>
-<div class="bars" id="eBars"></div></div>
+<div class="muted" style="margin-top:8px" id="eBarsLabel">Last 7 efficiency readings (kWh/100 km)</div>
+<div class="bars" id="eBars"></div>
+<h3>Charging history</h3>
+<div id="chargeHistory"></div></div>
 </div>
 </div>
 <div class="page" id="page-trips">
 <div class="sections">
-<div class="card span2" id="trips"><h2>Trips</h2>
+<div class="card span2" id="trips"><div class="cardhead"><h2>Trips</h2><div class="menuwrap"><button class="iconbtn" onclick="toggleTripsMenu(event)" title="Trips menu" aria-haspopup="true">•••</button><div class="glass ctxmenu" id="tripsMenu" role="menu"><button onclick="tripsMenuExport()">Export CSV <span class="mi">↓</span></button><button class="danger" onclick="tripsMenuClear()">Clear history <span class="mi">✕</span></button></div></div></div>
 <div id="serverTrips"><div class="muted">Loading automatic trips…</div></div>
 <div style="overflow-x:auto;margin-top:8px"><table><thead><tr><th>Time (WIB)</th><th>Battery</th><th>Odo</th><th>Δ km</th><th>Δ kWh</th><th>Est. cost</th></tr></thead>
-<tbody id="tripRows"></tbody></table></div>
-<div class="row" style="margin-top:10px"><button class="pillbtn" onclick="exportCSV()"><span>Export CSV</span><span class="chev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span></button>
-<button class="btn ghost" onclick="clearTrips()">Clear history</button></div></div>
+<tbody id="tripRows"></tbody></table></div></div>
 </div>
 </div>
 <div class="page" id="page-controls">
@@ -579,6 +587,12 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.3 — 22 Nov 2026</h3>
+    <ul>
+      <li>Tariff and Battery kWh moved into Settings (••• → Settings → Energy &amp; cost). Charging history is on the Energy page, and tapping any trip or charging card opens a detail sheet — Charge Detail has the charging curve chart, Trip details has the GPS route map.</li>
+      <li>Efficiency unit option in Settings: kWh/100km or km/kWh, everywhere at once (Energy, trips, Vehicle). Saved on this device.</li>
+      <li>Trips tab: Export CSV and Clear history moved into a ••• menu at the top right of the Trips card.</li>
+    </ul>
     <h3>v1.3.2 — 22 Nov 2026</h3>
     <ul>
       <li>New app icon, from your photo: the orange-to-pink gradient square with the white star. It's now the login logo, the favicon, and the Add to Home Screen icon — replacing the green B.</li>
@@ -643,7 +657,20 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
       <button type="button" data-bg="beams" onclick="setBg('beams')">Beams</button>
     </div>
     <div class="muted" style="font-size:13px;margin-top:6px">The wallpapers you sent. Dune is the light one; the rest are dark.</div>
+    <h3>Energy &amp; cost</h3>
+    <div class="row"><label class="muted" for="tariff">Tariff Rp/kWh</label>
+    <input id="tariff" type="number" value="1700" min="0" step="1" style="width:96px;text-align:right"></div>
+    <div class="row" style="margin-top:8px"><label class="muted" for="battKwh">Battery kWh</label>
+    <input id="battKwh" type="number" value="60.48" min="1" step="0.1" style="width:96px;text-align:right"></div>
+    <div class="row" style="margin-top:10px"><button class="btn ghost" onclick="saveSettings()">Save</button></div>
+    <div class="muted" style="font-size:13px;margin-top:6px">Used for the cost estimates on the Energy page and in trip and charging history.</div>
+    <div class="row" style="margin-top:10px"><label class="muted">Efficiency</label>
+    <div class="seg" id="effSeg"><button type="button" data-u="kwh100" class="on" onclick="setEffUnit('kwh100')">kWh/100km</button><button type="button" data-u="kmkwh" onclick="setEffUnit('kmkwh')">km/kWh</button></div></div>
+    <div class="muted" style="font-size:13px;margin-top:6px">How efficiency is shown — energy used per 100 km, or distance per kWh. Applies everywhere: Energy page, trips, and the Vehicle tab.</div>
   </div>
+</div>
+<div id="detailSheet" class="sheet" hidden onclick="if(event.target===this)closeDetail()">
+  <div class="glass sheetcard"><div id="detailBody"></div></div>
 </div>
 <div id="acSheet" class="sheet" hidden onclick="if(event.target===this)closeAc()">
   <div class="glass sheetcard">
@@ -705,12 +732,25 @@ const settings=JSON.parse(localStorage.getItem('beyondSettings')||'{}');
 $('pinInput').value=sessionStorage.getItem('beyondPin')||'';
 if(settings.tariff)$('tariff').value=settings.tariff;
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
+if(settings.effUnit==='kmkwh')document.querySelectorAll('#effSeg button').forEach(b=>b.classList.toggle('on',b.dataset.u==='kmkwh'));
 const BGS=['system','ember','dune','nebula','silk','beams'];
 const BG_DARK={ember:1,nebula:1,silk:1,beams:1};
 function applyBg(name){if(!BGS.includes(name))name='system';document.body.classList.remove(...BGS.map(b=>'bg-'+b));document.body.classList.remove('darkbg','lightbg');if(name&&name!=='system'){document.body.classList.add('bg-'+name);document.body.classList.add(BG_DARK[name]?'darkbg':'lightbg');}document.querySelectorAll('#bgOpts button').forEach(b=>b.classList.toggle('on',b.dataset.bg===(name||'system')));}
 function setBg(name){settings.background=name;settings.tariff=+$('tariff').value||settings.tariff;settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
 applyBg(settings.background||'system');
 function saveSettings(){settings.tariff=+$('tariff').value;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);}
+// Efficiency unit: kWh/100km (default) or km/kWh. All efficiency displays
+// go through fmtEff so the choice applies everywhere at once.
+function effVal(kwh100){if(kwh100==null||kwh100<=0)return null;return settings.effUnit==='kmkwh'?100/kwh100:kwh100;}
+function effUnit(){return settings.effUnit==='kmkwh'?'km/kWh':'kWh/100km';}
+function effUnitSpaced(){return settings.effUnit==='kmkwh'?'km / kWh':'kWh / 100 km';}
+function fmtEff(kwh100){const v=effVal(kwh100);return v==null?'–':fmt(v,1);}
+function setEffUnit(u){
+  settings.effUnit=u;localStorage.setItem('beyondSettings',JSON.stringify(settings));
+  document.querySelectorAll('#effSeg button').forEach(b=>b.classList.toggle('on',b.dataset.u===u));
+  if(window._last)render(window._last);
+  loadServerTrips();
+}
 function menuSettings(){closeMenu();$('settingsSheet').hidden=false;}
 function closeSettings(){$('settingsSheet').hidden=true;}
 function saveKey(){appKey=$('keyInput').value.trim();sessionStorage.setItem('beyondKey',appKey);$('keybox').style.display='none';document.body.classList.remove('locked');load(true);}
@@ -816,24 +856,157 @@ async function loadServerTrips(){
     if(!d.ok||d.source!=='server'){
       $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
     window._soh=d.soh||null; window._range=d.range||null; updateSohRow(); updateRangeTile();
+    window._trips=d.trips||[]; window._sessions=d.charging_sessions||[];
     window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
+    // Charging history (Energy page) — blank until a session exists
+    $('chargeHistory').innerHTML=window._sessions.map((s,i)=>{
+      const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+      return '<div class="tripcard" onclick="openChargeDetail('+i+')"><div class="trip-head"><div><div class="trip-date">'+tripDate(s)+'</div>'+
+      '<div class="trip-route">'+(s.place||'Charging')+'</div></div><div class="trip-time">'+tripTime(s)+'</div></div>'+
+      '<div class="trip-stats">'+
+      stat('Energy',fmt(s.energy_kwh,1)+' <small>kWh</small>')+
+      stat('Battery',(s.start_batt_pct!=null?fmt(s.start_batt_pct,0)+'%':'–')+' → '+(s.end_batt_pct!=null?fmt(s.end_batt_pct,0)+'%':'–'))+
+      stat('Est. cost',s.est_cost_rp!=null?'Rp '+s.est_cost_rp.toLocaleString('id-ID'):'–')+
+      '</div></div>';
+    }).join('');
     if(!d.trips.length){$('serverTrips').innerHTML='';return;}
     $('serverTrips').innerHTML='<div class="muted" style="margin-bottom:6px">Automatic trips (background logging · '+d.snapshots+' snapshots)</div>'+
-      d.trips.map(t=>{
+      d.trips.map((t,i)=>{
         const route=tripRoute(t);
         const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
-        return '<div class="tripcard"><div class="trip-head"><div><div class="trip-date">'+tripDate(t)+'</div>'+
+        return '<div class="tripcard" onclick="openTripDetail('+i+')"><div class="trip-head"><div><div class="trip-date">'+tripDate(t)+'</div>'+
         (route?'<div class="trip-route">'+route+'</div>':'')+'</div><div class="trip-time">'+tripTime(t)+'</div></div>'+
         '<div class="trip-stats">'+
         stat('Distance',fmt(t.distance_km,1)+' <small>km</small>')+
         stat('Avg speed',t.avg_speed_kmh!=null?fmt(t.avg_speed_kmh,0)+' <small>km/h</small>':'–')+
         stat('Energy',t.energy_kwh!=null?fmt(t.energy_kwh,1)+' <small>kWh</small>':'–')+
-        stat('Efficiency',t.eff_kwh100!=null?fmt(t.eff_kwh100,1)+' <small>kWh/100km</small>':'–')+
+        stat('Efficiency',t.eff_kwh100!=null?fmtEff(t.eff_kwh100)+' <small>'+effUnit()+'</small>':'–')+
         stat('Battery',(t.start_batt_pct!=null?fmt(t.start_batt_pct,0)+'%':'–')+' → '+(t.end_batt_pct!=null?fmt(t.end_batt_pct,0)+'%':'–'))+
         stat('Est. cost',t.est_cost_rp!=null?'Rp '+t.est_cost_rp.toLocaleString('id-ID'):'–')+
         '</div></div>';
       }).join('');
-  }catch(e){$('serverTrips').innerHTML='';}
+  }catch(e){$('serverTrips').innerHTML='';$('chargeHistory').innerHTML='';}
+}
+// --- History detail sheets (tap a trip or charging card) ---
+let detailMap=null;
+function closeDetail(){
+  if(detailMap){detailMap.remove();detailMap=null;}
+  $('detailSheet').hidden=true;
+}
+function chargerType(peakKw){
+  if(peakKw==null)return '–';
+  if(peakKw<=7)return 'Granny charger';
+  if(peakKw<=22)return 'AC charger';
+  return 'DC fast charger';
+}
+function chargeCurveSVG(pts){
+  // Dual-line chart: charge power (teal) + battery (amber) over time.
+  const W=340,H=190,PL=34,PR=34,PT=10,PB=22;
+  const pPts=pts.filter(p=>p.power_kw!=null);
+  const bPts=pts.filter(p=>p.batt_pct!=null);
+  if(pts.length<2||!pPts.length)return '<div class="muted">Not enough data for a curve.</div>';
+  const peak=Math.max(...pPts.map(p=>p.power_kw));
+  const pMax=peak>0?Math.ceil(peak/2)*2||2:2;
+  const bMin=bPts.length?Math.min(...bPts.map(p=>p.batt_pct)):0;
+  const bMax=bPts.length?Math.max(...bPts.map(p=>p.batt_pct)):100;
+  const bLo=Math.max(0,Math.floor((bMin-3)/5)*5), bHi=Math.min(100,Math.ceil((bMax+3)/5)*5);
+  const t0=new Date(pts[0].t).getTime(), t1=new Date(pts[pts.length-1].t).getTime();
+  const X=t=>PL+(W-PL-PR)*((new Date(t).getTime()-t0)/Math.max(1,t1-t0));
+  const Yp=v=>PT+(H-PT-PB)*(1-v/pMax);
+  const Yb=v=>PT+(H-PT-PB)*(1-(v-bLo)/Math.max(1,bHi-bLo));
+  const line=(arr,yf,vf)=>arr.map((p,i)=>(i?'L':'M')+X(p.t).toFixed(1)+' '+yf(vf(p)).toFixed(1)).join(' ');
+  const pPath=line(pPts,Yp,p=>p.power_kw), bPath=bPts.length?line(bPts,Yb,p=>p.batt_pct):'';
+  const area=(path,arr,yBase)=>path+' L'+X(arr[arr.length-1].t).toFixed(1)+' '+yBase+' L'+X(arr[0].t).toFixed(1)+' '+yBase+' Z';
+  const hm=iso=>new Date(iso).toLocaleTimeString('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit'});
+  const mid=pts[Math.floor(pts.length/2)].t;
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="Charging curve">'+
+  [0,0.5,1].map(f=>'<line x1="'+PL+'" y1="'+(PT+(H-PT-PB)*(1-f)).toFixed(1)+'" x2="'+(W-PR)+'" y2="'+(PT+(H-PT-PB)*(1-f)).toFixed(1)+'" stroke="var(--line)" stroke-width="1"/>').join('')+
+  '<text x="4" y="'+(Yp(pMax)+4)+'" font-size="11" fill="var(--muted)">'+fmt(pMax,0)+' kW</text>'+
+  '<text x="4" y="'+(Yp(pMax/2)+4)+'" font-size="11" fill="var(--muted)">'+fmt(pMax/2,1)+' kW</text>'+
+  '<text x="4" y="'+(Yp(0)+4)+'" font-size="11" fill="var(--muted)">0 kW</text>'+
+  '<text x="'+(W-PR+4)+'" y="'+(Yb(bHi)+4)+'" font-size="11" fill="var(--muted)">'+bHi+'%</text>'+
+  '<text x="'+(W-PR+4)+'" y="'+(Yb(bLo)+4)+'" font-size="11" fill="var(--muted)">'+bLo+'%</text>'+
+  '<path d="'+area(pPath,pPts,Yp(0))+'" fill="#2dd4bf" opacity=".12"/>'+
+  (bPath?'<path d="'+area(bPath,bPts,Yb(bLo))+'" fill="#f59e0b" opacity=".12"/>':'')+
+  '<path d="'+pPath+'" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linejoin="round"/>'+
+  (bPath?'<path d="'+bPath+'" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round"/>':'')+
+  '<text x="'+PL+'" y="'+(H-6)+'" font-size="11" fill="var(--muted)">'+hm(pts[0].t)+'</text>'+
+  '<text x="'+(W/2-14)+'" y="'+(H-6)+'" font-size="11" fill="var(--muted)">'+hm(mid)+'</text>'+
+  '<text x="'+(W-PR-30)+'" y="'+(H-6)+'" font-size="11" fill="var(--muted)">'+hm(pts[pts.length-1].t)+'</text>'+
+  '</svg>'+
+  '<div class="dlegend"><span><i style="background:#2dd4bf"></i>Power</span><span><i style="background:#f59e0b"></i>Battery</span></div>';
+}
+function openChargeDetail(i){
+  const s=(window._sessions||[])[i]; if(!s)return;
+  const pts=(s.points||[]).filter(p=>p.power_kw!=null||p.batt_pct!=null);
+  const pw=pts.map(p=>p.power_kw).filter(v=>v!=null);
+  const peak=pw.length?Math.max(...pw):null;
+  const avg=(s.energy_kwh!=null&&s.duration_min)?(s.energy_kwh/(s.duration_min/60)):null;
+  const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+  $('detailBody').innerHTML=
+  '<div class="dhead"><div><div class="dtitle">Charge Detail</div>'+
+  '<div class="dsub">'+wib(s.start_time)+' · '+(s.place||'Charging')+'</div>'+
+  '<div class="dsub"><span class="acc">DiLink · estimated from SoC</span></div></div>'+
+  '<button class="iconbtn" onclick="closeDetail()" title="Close">✕</button></div>'+
+  '<div class="dgrid">'+
+  '<div class="tile"><div class="k">Added to battery</div><div class="v">'+fmt(s.energy_kwh,2)+' <small>kWh</small></div></div>'+
+  '<div class="tile"><div class="k">Total cost</div><div class="v">'+(s.est_cost_rp!=null?'Rp '+s.est_cost_rp.toLocaleString('id-ID'):'–')+'</div><div class="s">Estimated</div></div>'+
+  '</div>'+
+  '<div class="dsec">Energy Analysis</div>'+
+  '<div class="spec"><div><span class="k">Charger Type</span><span class="v">'+chargerType(peak)+'</span></div>'+
+  '<div><span class="k">Peak power</span><span class="v">'+(peak!=null?fmt(peak,1)+' kW':'–')+'</span></div></div>'+
+  '<div class="dsec">Charging curve'+(avg!=null?' · '+fmt(avg,1)+' kW avg':'')+'</div>'+
+  chargeCurveSVG(pts)+
+  '<div class="dsec">Additional details</div>'+
+  '<div class="spec">'+
+  '<div><span class="k">Odometer</span><span class="v">'+(s.start_odo_km!=null?fmt(s.start_odo_km,0)+' km':'–')+'</span></div>'+
+  '<div><span class="k">Price/kWh</span><span class="v">Rp '+(settings.tariff||1700).toLocaleString('id-ID')+'</span></div>'+
+  '<div><span class="k">Start %</span><span class="v">'+(s.start_batt_pct!=null?fmt(s.start_batt_pct,0)+'%':'–')+'</span></div>'+
+  '<div><span class="k">End %</span><span class="v">'+(s.end_batt_pct!=null?fmt(s.end_batt_pct,0)+'%':'–')+'</span></div>'+
+  '</div>';
+  $('detailSheet').hidden=false;
+}
+function openTripDetail(i){
+  const t=(window._trips||[])[i]; if(!t)return;
+  const others=(window._trips||[]).filter((_,j)=>j!==i&&_.eff_kwh100!=null);
+  // Compared to your average, in the displayed unit (higher km/kWh is better)
+  const avgDisp=others.length?others.reduce((a,b)=>a+effVal(b.eff_kwh100),0)/others.length:null;
+  const te=effVal(t.eff_kwh100);
+  const cmp=(avgDisp&&te!=null)?((te-avgDisp)/avgDisp*100):null;
+  const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+  const route=tripRoute(t);
+  $('detailBody').innerHTML=
+  '<div class="dhead"><div><div class="dtitle">Trip details</div>'+
+  '<div class="dsub">'+wib(t.start_time)+'</div></div>'+
+  '<button class="iconbtn" onclick="closeDetail()" title="Close">✕</button></div>'+
+  '<div class="dgrid">'+
+  '<div class="tile"><div class="k">Distance</div><div class="v">'+fmt(t.distance_km,1)+' <small>km</small></div></div>'+
+  '<div class="tile"><div class="k">Duration</div><div class="v">'+(t.duration_min!=null?t.duration_min+' <small>min</small>':'–')+'</div></div>'+
+  '<div class="tile"><div class="k">Consumption</div><div class="v">'+(t.energy_kwh!=null?fmt(t.energy_kwh,2)+' <small>kWh</small>':'–')+'</div></div>'+
+  '<div class="tile"><div class="k">Efficiency</div><div class="v">'+fmtEff(t.eff_kwh100)+' <small>'+effUnit()+'</small></div></div>'+
+  '</div>'+
+  (route?'<div class="dsec">Route</div><div class="muted">'+route+'</div>':'')+
+  '<div class="dsec">GPS route</div><div class="dmap" id="detailMap"></div>'+
+  '<div class="dsec">Summary</div>'+
+  '<div class="spec">'+
+  '<div><span class="k">Avg speed</span><span class="v">'+(t.avg_speed_kmh!=null?fmt(t.avg_speed_kmh,1)+' km/h':'–')+'</span></div>'+
+  '<div><span class="k">Compared to your average</span><span class="v">'+(cmp!=null?(cmp>0?'+':'')+fmt(cmp,1)+'%':'–')+'</span></div>'+
+  '<div><span class="k">Battery</span><span class="v">'+(t.start_batt_pct!=null?fmt(t.start_batt_pct,0)+'%':'–')+' → '+(t.end_batt_pct!=null?fmt(t.end_batt_pct,0)+'%':'–')+'</span></div>'+
+  '<div><span class="k">Estimated cost</span><span class="v">'+(t.est_cost_rp!=null?'Rp '+t.est_cost_rp.toLocaleString('id-ID'):'–')+'</span></div>'+
+  '</div>';
+  $('detailSheet').hidden=false;
+  // Route map (Leaflet, same tiles as the Overview map)
+  if(window.L&&(t.points||[]).length>=2){
+    const pts=t.points.map(p=>[p.lat,p.lon]);
+    detailMap=L.map('detailMap',{zoomControl:false,scrollWheelZoom:false}).fitBounds(pts,{padding:[16,16]});
+    L.tileLayer(mapTileUrl(),{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(detailMap);
+    L.polyline(pts,{color:'#2dd4bf',weight:3}).addTo(detailMap);
+    L.circleMarker(pts[0],{radius:6,color:'#fff',weight:2,fillColor:'#0ea5e9',fillOpacity:1}).addTo(detailMap);
+    L.circleMarker(pts[pts.length-1],{radius:6,color:'#fff',weight:2,fillColor:'#ef4444',fillOpacity:1}).addTo(detailMap);
+    setTimeout(()=>{if(detailMap)detailMap.invalidateSize();},60);
+  }else{
+    const m=$('detailMap'); if(m)m.innerHTML='<div class="muted" style="padding:16px">No route points recorded for this trip.</div>';
+  }
 }
 function timeToFull(rt){
   const h=rt.full_hour, m=rt.full_minute;
@@ -856,8 +1029,8 @@ function updateRangeTile(){
   if(!el)return;
   if(!r){el.textContent='–';$('rangeEstSub').textContent='Collecting data…';return;}
   el.textContent='≈ '+r.range_full_km+' km';
-  $('rangeEstSub').textContent=r.eff_kwh100+' kWh/100 km · '+r.capacity_kwh+' kWh'+(r.capacity_source==='history'?' (measured)':' (rated)');
-  document.querySelectorAll('#vehBatt>div').forEach(row=>{const k=row.querySelector('.k');if(k&&k.textContent.indexOf('Range (your driving)')===0){row.querySelector('.v').textContent='≈ '+r.range_full_km+' km · '+r.eff_kwh100+' kWh/100 km';}});
+  $('rangeEstSub').textContent=fmtEff(r.eff_kwh100)+' '+effUnitSpaced()+' · '+r.capacity_kwh+' kWh'+(r.capacity_source==='history'?' (measured)':' (rated)');
+  document.querySelectorAll('#vehBatt>div').forEach(row=>{const k=row.querySelector('.k');if(k&&k.textContent.indexOf('Range (your driving)')===0){row.querySelector('.v').textContent='≈ '+r.range_full_km+' km · '+fmtEff(r.eff_kwh100)+' '+effUnitSpaced();}});
   if(!window._charging)$('battStatSub').textContent='≈ '+r.range_now_km+' km';
 }
 function render(d){
@@ -880,7 +1053,7 @@ function render(d){
     ['Range',rt.range_km!=null?fmt(rt.range_km,0)+' km':'—'],
     ['Range (your driving)',window._range?'≈ '+window._range.range_full_km+' km':'Collecting data…'],
     ['Capacity',(+$('battKwh').value||60.48)+' kWh'],
-    ['Efficiency (lifetime)',rt.energy_lifetime_kwh100!=null?fmt(rt.energy_lifetime_kwh100,1)+' kWh / 100 km':'—'],
+    ['Efficiency (lifetime)',rt.energy_lifetime_kwh100!=null?fmtEff(rt.energy_lifetime_kwh100)+' '+effUnitSpaced():'—'],
     ['Battery health (est.)',soh?soh.soh_pct+'% · '+soh.capacity_kwh+' kWh':'Collecting data…'],
   ].map(specRow).join('');
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
@@ -970,11 +1143,14 @@ function render(d){
   bf.setAttribute('y',37-bh); bf.setAttribute('height',bh);
   bf.setAttribute('fill',rt.battery_pct>=20?'#34c759':'#ff3b30');
   updateLastTrip();
-  $('eLife').textContent=fmt(rt.energy_lifetime_kwh100,1);
-  $('eRecent').textContent=fmt(rt.energy_recent_kwh100,1);
+  $('eLife').textContent=fmtEff(rt.energy_lifetime_kwh100);
+  $('eLifeSub').textContent=effUnitSpaced();
+  $('eRecent').textContent=fmtEff(rt.energy_recent_kwh100);
+  $('eRecentSub').textContent=effUnitSpaced();
+  $('eBarsLabel').textContent='Last 7 efficiency readings ('+effUnitSpaced()+')';
   renderCost(d);
   const g=(d.energy&&d.energy.self_graph)||[];
-  $('eBars').innerHTML=g.length?g.map(x=>'<div style="height:'+Math.max(8,Math.min(100,x/20*100))+'%" title="'+x+' kWh/100km"></div>').join(''):'<div class="muted">No graph data</div>';
+  $('eBars').innerHTML=g.length?g.map(x=>{const v=effVal(x);const h=settings.effUnit==='kmkwh'?v/10*100:x/20*100;return '<div style="height:'+Math.max(8,Math.min(100,h))+'%" title="'+fmt(v,1)+' '+effUnit()+'"></div>';}).join(''):'<div class="muted">No graph data</div>';
   saveTrip(d);
 }
 function renderCost(d){
@@ -1015,11 +1191,14 @@ function stepTemp(d){const v=Math.min(31,Math.max(15,(parseFloat($('climTemp').v
 function toggleClimate(){doControl(window._climOn?'climate_stop':'climate_start');}
 function toggleLock(){doControl(window._locked?'unlock':'lock');}
 function tapCharge(){if(window._charging){ctrlSay('<div class="muted">Already charging — stop it with the key fob / door-handle double-unlock.</div>');return;}doControl('charge_start');}
-function toggleMenu(e){e.stopPropagation();$('ctxmenu').classList.toggle('open');}
+function toggleMenu(e){e.stopPropagation();$('tripsMenu').classList.remove('open');$('ctxmenu').classList.toggle('open');}
+function toggleTripsMenu(e){e.stopPropagation();$('ctxmenu').classList.remove('open');$('tripsMenu').classList.toggle('open');}
+function tripsMenuExport(){$('tripsMenu').classList.remove('open');exportCSV();}
+function tripsMenuClear(){$('tripsMenu').classList.remove('open');clearTrips();}
 function menuChangelog(){closeMenu();$('changelogSheet').hidden=false;}
 function closeChangelog(){$('changelogSheet').hidden=true;}
-document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');closeChangelog();closeSettings();closeAc();}});
+document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');if(!$('tripsMenu').contains(e.target))$('tripsMenu').classList.remove('open');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');$('tripsMenu').classList.remove('open');closeChangelog();closeSettings();closeAc();}});
 function closeMenu(){$('ctxmenu').classList.remove('open');}
 function menuRefresh(){closeMenu();load(true);}
 function menuAuto(){closeMenu();toggleAuto();}

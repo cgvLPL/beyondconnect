@@ -1,5 +1,13 @@
 # BEYONDconnect changelog
 
+## v1.3.3 — 22 Nov 2026
+
+- Tariff and Battery kWh are now in Settings (••• menu → Settings → Energy & cost) instead of on the Energy page. The Energy page is clean; the adjusters live behind a setting, and the cost tiles still use them.
+- Charging history is on the Energy & cost tab: every charging session from the background snapshots is a card (date, time, place, energy, battery start → end, estimated cost).
+- History cards expand into a detail sheet when tapped, like bydconnect.com. Charge Detail: Added to battery, Total cost, Energy Analysis (charger type inferred from peak power — ≤7 kW is a Granny charger — and peak power), a charging curve chart (power + battery over time, with average power), and additional details (odometer, price/kWh, start/end %). Trip details: distance, duration, consumption, efficiency, route, a GPS route map (Leaflet, start/end pins), average speed, compared to your average, battery and estimated cost. No Delete/Edit — sessions and trips are derived from the background snapshots, not stored records.
+- Efficiency unit option (Settings → Energy & cost): kWh/100km or km/kWh. It applies everywhere — Energy tiles and bars, trip cards, trip detail (including the "compared to your average" comparison, which flips direction in km/kWh), the range estimate, and the Vehicle tab. Saved on this device; kWh/100km is the default. Cost per km is unchanged — it doesn't depend on the display unit.
+- Trips tab: Export CSV and Clear history now live in a ••• menu at the top right of the Trips card, instead of two buttons at the bottom of the table.
+
 ## v1.3.2 — 22 Nov 2026
 
 - New app icon, from Ray's photo: the orange-to-pink gradient rounded square with the white star glyph. It replaces the green B everywhere — login logo (shown as the rounded square, not a circle), favicon and Add to Home Screen icon. The icon was cropped from the photo (491×491) with its own corner radius kept and transparent corners, so it reads cleanly on light and dark.

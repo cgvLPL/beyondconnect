@@ -596,22 +596,23 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dic
             "start_lat": first.get("lat"), "start_lon": first.get("lon"),
             "end_lat": last.get("lat"), "end_lon": last.get("lon"),
             "start_place": place(first), "end_place": place(last),
+            "points": [{"t": s.get("t"), "lat": s.get("lat"),
+                        "lon": s.get("lon"), "batt_pct": s.get("batt_pct")}
+                       for s in snaps
+                       if first["t"] <= s.get("t", "") <= last["t"]
+                       and isinstance(s.get("lat"), (int, float))
+                       and isinstance(s.get("lon"), (int, float))],
         })
     return list(reversed(out))  # newest first
 
 
-def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
-    """Implied full usable capacity (kWh) from history, as a list of
-    (capacity_kwh, weight, kind) — shared by the SOH and range estimates.
-
-    Derived two ways, both implying the full usable capacity:
-    - Charging sessions: integrate charge power over time (trapezoid rule
-      on the 5-minute snapshots) and divide by the SOC gained.
-    - Trips: distance x the car's own measured efficiency (kWh/100 km,
-      stored per snapshot) divided by the SOC dropped.
-    Only sessions with >= 10 points of SOC change (>= 5 for trips) and an
-    implied capacity in a sane 30-60 kWh band count.
-    """
+def _charging_sessions(snaps: list[dict]) -> list[dict]:
+    """Charging sessions: runs of charging snapshots (gaps < 30 min).
+    Energy is charge power integrated over time (trapezoid rule on the
+    5-minute snapshots). A session counts when it has >= 2 points, the
+    battery actually gained (>= 1%) and energy > 0 — short top-ups count
+    too. Newest first. The capacity estimate (below) applies stricter
+    filters to the same list, so its math is unchanged."""
     def _dt(a, b):
         try:
             return (datetime.fromisoformat(b["t"]) -
@@ -619,16 +620,15 @@ def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
         except Exception:
             return None
 
-    estimates = []  # (capacity_kwh, weight, kind)
-    # --- charging sessions: runs of charging snapshots, gaps < 30 min ---
+    sessions: list[dict] = []
     run: list[dict] = []
 
     def flush(run):
-        if len(run) < 4:
+        if len(run) < 2:
             return
         first, last = run[0], run[-1]
         dsoc = (last.get("batt_pct") or 0) - (first.get("batt_pct") or 0)
-        if dsoc < 10:
+        if dsoc < 1:
             return
         energy = 0.0
         for a, b in zip(run, run[1:]):
@@ -641,9 +641,26 @@ def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
             energy += (pa + pb) / 2 * dt_h
         if energy <= 0:
             return
+        try:
+            dur = round((datetime.fromisoformat(last["t"]) -
+                         datetime.fromisoformat(first["t"])).total_seconds() / 60)
+        except Exception:
+            dur = None
         cap = energy / (dsoc / 100)
-        if 30 <= cap <= 60:
-            estimates.append((cap, dsoc, "charge"))
+        sessions.append({
+            "start_time": first.get("t"), "end_time": last.get("t"),
+            "duration_min": dur,
+            "start_batt_pct": first.get("batt_pct"),
+            "end_batt_pct": last.get("batt_pct"),
+            "energy_kwh": round(energy, 2),
+            "n_points": len(run),
+            "dsoc": dsoc,
+            "capacity_kwh": cap if 30 <= cap <= 60 else None,
+            "start_odo_km": first.get("odo_km"),
+            "lat": first.get("lat"), "lon": first.get("lon"),
+            "points": [{"t": s.get("t"), "power_kw": s.get("power_kw"),
+                        "batt_pct": s.get("batt_pct")} for s in run],
+        })
 
     prev = None
     for s in snaps:
@@ -663,6 +680,27 @@ def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
             run = []
         prev = s
     flush(run)
+    return list(reversed(sessions))  # newest first
+
+
+def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
+    """Implied full usable capacity (kWh) from history, as a list of
+    (capacity_kwh, weight, kind) — shared by the SOH and range estimates.
+
+    Derived two ways, both implying the full usable capacity:
+    - Charging sessions: integrate charge power over time (trapezoid rule
+      on the 5-minute snapshots) and divide by the SOC gained.
+    - Trips: distance x the car's own measured efficiency (kWh/100 km,
+      stored per snapshot) divided by the SOC dropped.
+    Only sessions with >= 10 points of SOC change (>= 5 for trips) and an
+    implied capacity in a sane 30-60 kWh band count.
+    """
+    estimates = []  # (capacity_kwh, weight, kind)
+    # --- charging sessions: the strict subset of _charging_sessions ---
+    for s in _charging_sessions(snaps):
+        if (s["n_points"] >= 4 and s["dsoc"] >= 10
+                and s["capacity_kwh"] is not None):
+            estimates.append((s["capacity_kwh"], s["dsoc"], "charge"))
     # --- trips: distance x measured efficiency / SOC dropped ---
     for t in trips:
         drop = (t.get("start_batt_pct") or 0) - (t.get("end_batt_pct") or 0)
@@ -827,6 +865,7 @@ async def trips(
     _require_app_key(x_app_key)
     if not KV_URL or not KV_TOKEN:
         return {"ok": True, "source": "none", "trips": [], "snapshots": 0,
+                "charging_sessions": [],
                 "note": "Background logging is off — no Vercel KV store "
                         "linked. Browser-local trips still work."}
     res = await _kv(["lrange", KV_SNAPS_KEY, "0", str(KV_MAX_SNAPS - 1)],
@@ -840,8 +879,28 @@ async def trips(
                 pass
     snaps.sort(key=lambda s: s.get("t", ""))
     trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH)
+    t = tariff or TARIFF_RPKWH
+    home = _home_location(snaps)
+    sessions = []
+    for s in _charging_sessions(snaps):
+        place = None
+        lat, lon = s.get("lat"), s.get("lon")
+        if home is not None and isinstance(lat, (int, float)) \
+                and isinstance(lon, (int, float)):
+            place = "Home" if _haversine_km(home, (lat, lon)) < 0.5 else None
+        sessions.append({
+            "start_time": s["start_time"], "end_time": s["end_time"],
+            "duration_min": s["duration_min"],
+            "start_batt_pct": s["start_batt_pct"],
+            "end_batt_pct": s["end_batt_pct"],
+            "energy_kwh": s["energy_kwh"],
+            "est_cost_rp": round(s["energy_kwh"] * t),
+            "start_odo_km": s.get("start_odo_km"),
+            "place": place,
+            "points": s["points"],
+        })
     return {"ok": True, "source": "server", "trips": trips,
-            "snapshots": len(snaps),
+            "snapshots": len(snaps), "charging_sessions": sessions,
             "soh": _estimate_soh(snaps, trips, BATTERY_KWH),
             "range": _estimate_range(snaps, trips, BATTERY_KWH)}
 
