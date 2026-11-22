@@ -966,6 +966,7 @@ async def trips(
         })
     return {"ok": True, "source": "server", "trips": trips,
             "snapshots": len(snaps), "charging_sessions": sessions,
+            "home": list(home) if home else None,
             "soh": _estimate_soh(snaps, trips, BATTERY_KWH),
             "range": _estimate_range(snaps, trips, BATTERY_KWH)}
 

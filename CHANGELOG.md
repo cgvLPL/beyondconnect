@@ -1,5 +1,10 @@
 # BEYONDconnect changelog
 
+## v1.3.11 — 22 Nov 2026
+
+- The location under the car name now updates. It was hardcoded to "Cikarang", so it still said that when the car was in BSD. Now it shows "Home" when the car is within 0.5 km of home (home location from /api/trips, now returned in the response) and the real area name when away, from a Nominatim (OpenStreetMap) reverse geocode of the car's GPS — "BSD City" for the BSD coordinates. Cached per ~1 km so a refresh or a drive doesn't re-fetch. The Location card's name uses the same label.
+- The 6-digit BYD control PIN is now remembered on this device. It was stored in sessionStorage, which is cleared when the tab closes, so it had to be re-entered every session. It now lives in localStorage too and is auto-filled when you unlock with the app key — enter it once and you won't have to re-enter it for every action. It is stored only in this browser, never sent to the server (the app key still gates the app each session).
+
 ## v1.3.10 — 22 Nov 2026
 
 - The scrollbar is hidden while scrolling. The page, the detail sheets and the trips table still scroll exactly as before — the bar just never renders (scrollbar-width: none + ::-webkit-scrollbar hidden, the same pattern the quick-action pills row already used).

@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.10 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.11 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -627,6 +627,11 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.11 — 22 Nov 2026</h3>
+    <ul>
+      <li>The location under the car name now updates. It was hardcoded to "Cikarang" — now it shows "Home" when the car is at home and the real area name (e.g. "BSD City") when it's away, from a reverse geocode of the car's GPS, cached so it doesn't re-fetch on every refresh.</li>
+      <li>The 6-digit BYD control PIN is now remembered on this device. Enter it once and it's auto-filled next time you unlock with the app key — no more re-entering it for every action. It's stored only in this browser, never sent to the server.</li>
+    </ul>
     <h3>v1.3.10 — 22 Nov 2026</h3>
     <ul>
       <li>The scrollbar is hidden while scrolling — the page, the sheets and the trips table still scroll, the bar just never shows. Same pattern the quick-action pills already used.</li>
@@ -713,7 +718,7 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <div class="lrow"><span class="lbrand">Settings</span><button class="iconbtn" onclick="closeSettings()" title="Close">✕</button></div>
     <h3>Control PIN</h3>
     <div class="row"><label class="muted" for="pinInput">6-digit BYD control PIN</label>
-    <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="width:96px;text-align:center;letter-spacing:.2em" onchange="sessionStorage.setItem('beyondPin',this.value)"></div>
+    <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="width:96px;text-align:center;letter-spacing:.2em" onchange="localStorage.setItem('beyondPin',this.value);sessionStorage.setItem('beyondPin',this.value)"></div>
     <div class="muted" style="font-size:13px;margin-top:6px">Needed for lock, unlock and climate. It stays in this tab only and is sent with each command — never stored on the server.</div>
     <h3>Background</h3>
     <div class="bgopts" id="bgOpts">
@@ -789,6 +794,30 @@ function showCarOnMap(lat,lon){
   }
   setTimeout(()=>{if(carMap)carMap.invalidateSize();},60);
 }
+// Location name under the car name: "Home" when the car is at home
+// (within 0.5 km of the home location from /api/trips), otherwise the
+// area name from a reverse geocode (Nominatim / OSM, cached per ~1 km
+// so a refresh or a drive doesn't re-fetch). Replaces the old hardcoded
+// 'Cikarang', which never updated when the car moved.
+let _locCache={key:null,name:null};
+function _haversineKm(a,b){
+  const R=6371, dLa=(b[0]-a[0])*Math.PI/180, dLo=(b[1]-a[1])*Math.PI/180;
+  const la1=a[0]*Math.PI/180, la2=b[0]*Math.PI/180;
+  const h=Math.sin(dLa/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function setLocLabel(name){$('heroLoc').textContent=name;$('locName').textContent=name;}
+async function updateLocName(lat,lon){
+  if(window._home&&Array.isArray(window._home)&&_haversineKm(window._home,[lat,lon])<0.5){setLocLabel('Home');return;}
+  const key=lat.toFixed(2)+','+lon.toFixed(2);
+  if(_locCache.key===key&&_locCache.name){setLocLabel(_locCache.name);return;}
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon+'&zoom=14&addressdetails=1');
+    const j=await r.json(); const a=j.address||{};
+    const name=a.city||a.town||a.city_district||a.suburb||a.village||a.county||a.state||null;
+    if(name){_locCache={key,name};setLocLabel(name);}
+  }catch(e){/* keep the previous label */}
+}
 // Chromium-only refraction: detect via userAgentData, never @supports (it lies).
 try{
   const brands=(navigator.userAgentData&&navigator.userAgentData.brands||[]).map(b=>b.brand);
@@ -797,7 +826,11 @@ try{
 const $=id=>document.getElementById(id);
 let auto=true, timer=null, appKey=sessionStorage.getItem('beyondKey')||'', lastPct=null;
 const settings=JSON.parse(localStorage.getItem('beyondSettings')||'{}');
-$('pinInput').value=sessionStorage.getItem('beyondPin')||'';
+// The control PIN is remembered on this device (localStorage, so it
+// survives closing the app) and auto-filled once you unlock with the app
+// key — enter it once and you won't have to re-enter it every time.
+// It is stored only in this browser, never sent to the server.
+$('pinInput').value=localStorage.getItem('beyondPin')||sessionStorage.getItem('beyondPin')||'';
 if(settings.tariff)$('tariff').value=settings.tariff;
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
 if(settings.effUnit==='kmkwh')document.querySelectorAll('#effSeg button').forEach(b=>b.classList.toggle('on',b.dataset.u==='kmkwh'));
@@ -859,7 +892,7 @@ async function doControl(action,extra){
     open_trunk:'Open the trunk?',close_trunk:'Close the trunk?'};
   const noConfirm=action==='seat_climate'||(action==='climate_start'&&extra&&extra.adjust);
   if(!noConfirm&&!confirm(labels[action]||'Send command?'))return false;
-  if(/^\d{6}$/.test(pin))sessionStorage.setItem('beyondPin',pin);
+  if(/^\d{6}$/.test(pin)){localStorage.setItem('beyondPin',pin);sessionStorage.setItem('beyondPin',pin);}
   ctrlSay('<div class="muted">Sending…</div>');
   try{
     const r=await fetch('/api/control',{method:'POST',
@@ -928,6 +961,9 @@ async function loadServerTrips(){
       $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
     window._soh=d.soh||null; window._range=d.range||null; updateSohRow(); updateRangeTile();
     window._trips=d.trips||[]; window._sessions=d.charging_sessions||[];
+    // Home location: re-evaluate the hero location label now that home is
+    // known (render() may have run before this fetch completed).
+    if(d.home){window._home=d.home; if(window._last&&window._last.gps&&window._last.gps.lat)updateLocName(window._last.gps.lat,window._last.gps.lon);}
     window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
     // Charging history (Energy page) — blank until a session exists
     $('chargeHistory').innerHTML=window._sessions.map((s,i)=>{
@@ -1167,7 +1203,7 @@ function render(d){
     showCarOnMap(d.gps.lat,d.gps.lon);
     $('gmapsLink').href='https://maps.google.com/?q='+d.gps.lat+','+d.gps.lon;
     $('gpsTime').textContent='GPS '+wib(d.gps.timestamp)+' WIB';
-    $('heroLoc').textContent='Cikarang';$('locName').textContent='Cikarang';}
+    updateLocName(d.gps.lat,d.gps.lon);}
   // Tyres: top-down car view, pressure at each corner
   const tp={fl:rt.tyres_psi.fl,fr:rt.tyres_psi.fr,rl:rt.tyres_psi.rl,rr:rt.tyres_psi.rr};
   for(const k of ['fl','fr','rl','rr']){
