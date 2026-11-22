@@ -1,0 +1,14 @@
+# BEYONDconnect background poll — the 5-minute scheduler.
+name: BEYONDconnect background poll
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Snapshot car state
+        run: |
+          curl -s -f -H "X-App-Key: ${{ secrets.BEYOND_PASSWORD }}" \
+            https://beyondconnect.vercel.app/api/poll
