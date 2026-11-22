@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.12 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.14 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -627,9 +627,14 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.14 — 22 Nov 2026</h3>
+    <ul>
+      <li>The Tyres top-view car is now your photo — the glass-roof top-down Dolphin, with its white background removed and the edges smoothed so the outline isn't jagged. The tyre pressures still point at the right wheels.</li>
+      <li>Home detection, corrected. The most-common-grid-cell approach still returned BSD live — your home longitude (107.15) sits exactly on a grid boundary, so GPS jitter split home across two cells and BSD won the count. Home is now the densest 1 km spot across snapshots (no grid, so no boundary to split on), which lands back in Cikarang.</li>
+    </ul>
     <h3>v1.3.12 — 22 Nov 2026</h3>
     <ul>
-      <li>Fixed the home detection that v1.3.11's "Home" label depends on. It took the median of all snapshots, which after your Cikarang → BSD drive landed in the middle of the route (~26 km from either end), so nothing was ever "Home". It now takes the most common ~1 km area instead — the car is parked at home most of the time — so home is back in Cikarang. This also fixes trip start/end places showing "Home".</li>
+      <li>Fixed the home detection that v1.3.11's "Home" label depends on. It took the median of all snapshots, which after your Cikarang → BSD drive landed in the middle of the route (~26 km from either end), so nothing was ever "Home". It now takes the densest 1 km spot across snapshots — the car is parked at home most of the time — so home is back in Cikarang. This also fixes trip start/end places showing "Home".</li>
     </ul>
     <h3>v1.3.11 — 22 Nov 2026</h3>
     <ul>

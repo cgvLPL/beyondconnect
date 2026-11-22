@@ -528,23 +528,25 @@ async def _kv(args: list[str], method: str = "POST") -> dict | None:
 
 
 def _home_location(snaps: list[dict]) -> tuple | None:
-    """The car's home: the most common ~1 km grid cell across snapshots,
-    then the median point inside that cell. The car is parked at home most
-    of the time, so the mode is home. (The old median of ALL snapshots
-    lands in the middle of a long drive's route when the snapshots split
-    between two places — after the Cikarang→BSD drive it returned a point
-    ~26 km from either end, so nothing was ever detected as "Home".)"""
-    from collections import Counter
+    """The car's home: the densest 1 km spot across snapshots, then the
+    median point inside it. The car is parked at home most of the time,
+    so the densest spot is home. Density-based on purpose, not a grid:
+    a grid splits home across neighbouring cells whenever the home
+    coordinate sits near a cell boundary (Cikarang's 107.15 sits on the
+    1-decimal boundary, so jitter split it and BSD won the count), and
+    the old median of ALL snapshots landed mid-route after a long drive."""
     pts = [(s["lat"], s["lon"]) for s in snaps
            if isinstance(s.get("lat"), (int, float))
            and isinstance(s.get("lon"), (int, float))]
     if len(pts) < 10:
         return None
-    cells = Counter((round(la, 2), round(lo, 2)) for la, lo in pts)
-    cell, _ = cells.most_common(1)[0]
-    in_cell = sorted((la, lo) for la, lo in pts
-                     if (round(la, 2), round(lo, 2)) == cell)
-    return in_cell[len(in_cell) // 2]
+    best, best_n = None, -1
+    for p in pts:
+        n = sum(1 for q in pts if _haversine_km(p, q) < 1.0)
+        if n > best_n:
+            best, best_n = p, n
+    near = sorted(q for q in pts if _haversine_km(best, q) < 1.0)
+    return near[len(near) // 2]
 
 
 def _haversine_km(a: tuple, b: tuple) -> float:
