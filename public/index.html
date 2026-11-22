@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.8 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.9 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -623,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.9 — 22 Nov 2026</h3>
+    <ul>
+      <li>Range is now calculated from the car's own measured efficiency (recent 50 km from its energy meter) instead of deriving efficiency from battery-% drops. The old way read 10.1 kWh/100km off a single short trip and gave 599 km full — the car's own meter says 14.1, which gives 429 km full, 403 km at 94%.</li>
+    </ul>
     <h3>v1.3.8 — 22 Nov 2026</h3>
     <ul>
       <li>Regenerative braking no longer counts as charging. A snapshot only counts as charging when the charging gun is actually plugged in, and a charging session is dropped if the car drove during it. The live Charging tile uses the same rule, so it won't say "Charging" while you're braking.</li>

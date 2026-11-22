@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.9 — 22 Nov 2026
+
+- Range calculation fixed: it now uses the car's own measured efficiency (recent 50 km, from the car's energy meter in the latest snapshot) instead of deriving efficiency from battery-% drops. The old way was wrong because the battery % is an integer — on a short trip a 1% rounding error swings the efficiency by a third. A single 18 km trip read 10.1 kWh/100km and produced a 599 km full range (563 km at 94%), while the car's own meter says 14.1 kWh/100km, giving 429 km full and 403 km at 94%. The trip-derived figure is now only a fallback when the car gives no efficiency reading.
+
 ## v1.3.8 — 22 Nov 2026
 
 - Regenerative braking no longer counts as charging. The charging flag on a snapshot used to be set from charging_state alone, which reads 1 while regenerating (energy flowing back into the battery) — so a drive with heavy regen showed up as a charging session. Now a snapshot only counts as charging when the charging gun is actually plugged in (connect_state > 0, pyBYD's is_connected). The charging-session builder also drops any session where the car drove during it (odometer moved > 0.5 km), which cleans up false sessions from snapshots written before this fix. The live Charging tile uses the same rule, so it won't read "Charging" while braking; when the plug state is unknown it falls back to the old signals.

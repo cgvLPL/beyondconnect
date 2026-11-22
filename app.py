@@ -795,10 +795,10 @@ def _estimate_range(snaps: list[dict], trips: list[dict],
     implied usable capacity (from charging sessions + trips, else the
     nominal pack) divided by the efficiency the car actually drove at.
 
-    Efficiency comes from the trips first (energy / distance, weighted
-    by distance), falling back to the car's own recent 50 km figure in
-    the latest snapshot. Returns None until at least one efficiency
-    reading exists. range_now_km is the range at the latest battery %."""
+    Efficiency comes from the car's own meter first (recent 50 km in the
+    latest snapshot), falling back to the trips only when the car gives
+    no reading. Returns None until at least one efficiency reading
+    exists. range_now_km is the range at the latest battery %."""
     estimates = _capacity_estimates(snaps, trips)
     if estimates:
         wsum = sum(w for _, w, _ in estimates)
@@ -807,25 +807,34 @@ def _estimate_range(snaps: list[dict], trips: list[dict],
     else:
         cap = batt_kwh
         cap_source = "nominal"
-    eff_num = eff_den = 0.0
-    for t in trips:
-        e = t.get("eff_kwh100")
-        d = t.get("distance_km") or 0
-        if e and d > 0:
-            eff_num += e * d
-            eff_den += d
-    if eff_den > 0:
-        eff = eff_num / eff_den
-        eff_source = "trips"
-    else:
-        eff = None
-        for s in reversed(snaps):
-            if s.get("eff_kwh100"):
-                eff = s["eff_kwh100"]
-                break
-        if eff is None:
-            return None
+    # Efficiency: prefer the car's own measured figure (recent 50 km,
+    # from the latest snapshot) — it comes from the car's energy meter
+    # and is precise. Trip-derived efficiency (battery-% drop x nominal
+    # pack / distance) is coarse: the battery % is an integer, so on a
+    # short trip a 1% rounding error swings the efficiency by a third
+    # and the range with it (a single 18 km trip read 10.1 kWh/100km
+    # and gave 599 km full, vs the car's own 14.1 -> 429 km). Only fall
+    # back to the trips when the car gives no efficiency reading.
+    eff = None
+    for s in reversed(snaps):
+        if s.get("eff_kwh100"):
+            eff = s["eff_kwh100"]
+            break
+    if eff is not None:
         eff_source = "car"
+    else:
+        eff_num = eff_den = 0.0
+        for t in trips:
+            e = t.get("eff_kwh100")
+            d = t.get("distance_km") or 0
+            if e and d > 0:
+                eff_num += e * d
+                eff_den += d
+        if eff_den > 0:
+            eff = eff_num / eff_den
+            eff_source = "trips"
+        else:
+            return None
     batt_now = None
     for s in reversed(snaps):
         if s.get("batt_pct") is not None:
