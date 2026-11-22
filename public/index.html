@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.5 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.6 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -189,6 +189,13 @@ body.lightbg .bgopts button.on{background:#111;color:#fff;border-color:#111}
 .spec>div:last-child{border-bottom:0}
 .spec .k{color:var(--muted);flex:none}
 .spec .v{font-weight:600;text-align:right;overflow-wrap:anywhere}
+/* --- Vehicle tab: bento tiles --- */
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bento .tile{border-radius:28px;padding:18px}
+.bento .tile.wide{grid-column:span 2}
+.bento .tile.hero .v{font-size:34px}
+.bbar{height:6px;border-radius:999px;background:rgb(127 127 127 / .2);margin-top:10px;overflow:hidden}
+.bbar i{display:block;height:100%;border-radius:999px;background:#34c759}
 .vehimg{width:100%;height:auto;display:block;margin:2px 0 6px}
 /* --- What's new sheet --- */
 .sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;background:rgb(0 0 0 / .35);padding:16px}
@@ -590,9 +597,16 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div class="sections">
 <div class="card" id="vehicle"><h2>Vehicle</h2>
 <img id="vehImg" class="vehimg" alt="BYD Dolphin">
-<div class="spec" id="vehSpec"></div>
-<div class="muted" style="margin:16px 0 4px">Battery</div>
-<div class="spec" id="vehBatt"></div>
+<div class="bento">
+  <div class="tile hero wide"><div class="k">Battery</div><div class="v" id="bBattVal">—</div><div class="bbar"><i id="bBattBar"></i></div><div class="s" id="bBattSub"></div></div>
+  <div class="tile"><div class="k">Range</div><div class="v" id="bRangeVal">—</div></div>
+  <div class="tile"><div class="k">Range · your driving</div><div class="v" id="bRangeYouVal">—</div></div>
+  <div class="tile"><div class="k">Odometer</div><div class="v" id="bOdoVal">—</div></div>
+  <div class="tile"><div class="k">Efficiency · lifetime</div><div class="v" id="bEffVal">—</div><div class="s" id="bEffSub"></div></div>
+  <div class="tile"><div class="k">Battery health · est.</div><div class="v" id="bSohVal">—</div><div class="s" id="bSohSub"></div></div>
+  <div class="tile"><div class="k">Capacity</div><div class="v" id="bCapVal">—</div></div>
+  <div class="tile wide"><div class="k">Vehicle</div><div class="spec" id="bId"></div></div>
+</div>
 <div class="muted" style="font-size:13px;margin-top:8px">Estimated from charging sessions (power × time ÷ charge gained) and trips (distance × efficiency ÷ charge used). Needs a charging session of 10%+ before it can calculate.</div>
 </div>
 </div>
@@ -609,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.6 — 22 Nov 2026</h3>
+    <ul>
+      <li>Vehicle tab is now bento tiles: a wide Battery hero (big %, green bar, ≈ range), then Range, Range · your driving, Odometer, Efficiency · lifetime, Battery health · est., Capacity, and a wide Vehicle identity tile (Model, Nickname, VIN, Plate, Purchased). Your-driving range and battery health show "Collecting…" until there's enough history.</li>
+    </ul>
     <h3>v1.3.5 — 22 Nov 2026</h3>
     <ul>
       <li>Controls tab: four new functions — Find car (horn + lights), Flash lights, Windows (tap to vent ~10% or close, shows Open/Closed) and Trunk (tap to open/close, shows Open/Closed). All need the 6-digit control PIN and ask first. The Climate tile is fixed too: the big temperature no longer clips at the tile edge, and the −/+ steppers are dark on white now.</li>
@@ -1072,23 +1090,26 @@ function render(d){
   // Vehicle tab
   $('vehImg').src='dolphin-atlantis.png';$('vehImg').onerror=function(){this.onerror=null;if(v.pic_url)this.src=v.pic_url;};
   const bought=v.bought?new Date(v.bought):null;
-  $('vehSpec').innerHTML=[
+  $('bId').innerHTML=[
     ['Model','BYD '+(v.model_name||'—')],
     ['Nickname',v.alias||'—'],
     ['VIN',v.vin||v.vin_masked||'—'],
     ['License plate',v.plate||'—'],
     ['Purchased',bought?bought.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—'],
-    ['Odometer',rt.odometer_km!=null?fmt(rt.odometer_km,0)+' km':'—'],
   ].map(specRow).join('');
   const soh=window._soh;
-  $('vehBatt').innerHTML=[
-    ['Level',rt.battery_pct!=null?fmt(rt.battery_pct,0)+'%':'—'],
-    ['Range',rt.range_km!=null?fmt(rt.range_km,0)+' km':'—'],
-    ['Range (your driving)',window._range?'≈ '+window._range.range_full_km+' km':'Collecting data…'],
-    ['Capacity',(+$('battKwh').value||60.48)+' kWh'],
-    ['Efficiency (lifetime)',rt.energy_lifetime_kwh100!=null?fmtEff(rt.energy_lifetime_kwh100)+' '+effUnitSpaced():'—'],
-    ['Battery health (est.)',soh?soh.soh_pct+'% · '+soh.capacity_kwh+' kWh':'Collecting data…'],
-  ].map(specRow).join('');
+  $('bBattVal').textContent=rt.battery_pct!=null?fmt(rt.battery_pct,0)+'%':'—';
+  const bb=$('bBattBar'); bb.style.width=Math.max(0,Math.min(100,rt.battery_pct||0))+'%';
+  bb.style.background=(rt.battery_pct||0)>=20?'#34c759':'#ff3b30';
+  $('bBattSub').textContent=rt.range_km!=null?('≈ '+fmt(rt.range_km,0)+' km range'):'';
+  $('bRangeVal').textContent=rt.range_km!=null?fmt(rt.range_km,0)+' km':'—';
+  $('bRangeYouVal').textContent=window._range?'≈ '+window._range.range_full_km+' km':'Collecting…';
+  $('bOdoVal').textContent=rt.odometer_km!=null?fmt(rt.odometer_km,0)+' km':'—';
+  $('bEffVal').textContent=rt.energy_lifetime_kwh100!=null?fmtEff(rt.energy_lifetime_kwh100):'—';
+  $('bEffSub').textContent=rt.energy_lifetime_kwh100!=null?effUnitSpaced():'';
+  $('bSohVal').textContent=soh?soh.soh_pct+'%':'Collecting…';
+  $('bSohSub').textContent=soh?soh.capacity_kwh+' kWh capacity':'';
+  $('bCapVal').textContent=(+$('battKwh').value||60.48)+' kWh';
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
   const charging=(d.charging&&d.charging.charging_state===1)||rt.charging_state===1||kw>0;
   // Charging scene shows under the hero while charging

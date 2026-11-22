@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.6 — 22 Nov 2026
+
+- Vehicle tab is now bento tiles instead of two spec lists: a wide Battery hero tile (big %, green/red bar, "≈ 490 km range" subline), then Range, Range · your driving, Odometer, Efficiency · lifetime, Battery health · est., Capacity, and a wide Vehicle identity tile (Model / Nickname / VIN / Plate / Purchased as compact rows). Your-driving range and battery health show "Collecting…" until the background snapshots have enough history to estimate them.
+
 ## v1.3.5 — 22 Nov 2026
 
 - Controls tab: four new functions — Find car (horn + lights), Flash lights, Windows and Trunk. Windows and Trunk are toggles: the tile shows Open/Closed from the car's live state, tap to open/close. Opening the windows vents them to a ~10% crack (BYD's native vent behaviour, not a full drop). Trunk open/close is gated on the car's config (functionNo 1020/1021) — if the Dolphin doesn't support it the app will say so instead of failing silently. All four need the 6-digit control PIN and ask for confirmation first.
