@@ -10,13 +10,13 @@
    pills, rail, dock). Content cards stay opaque. Refraction is a
    Chromium-only progressive enhancement over the blur fallback. */
 :root{
-  --bg:#e9e9ec; --text:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea;
+  --bg:#f4f4f6; --text:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea;
   --card:#ffffff; --card-soft:#f5f5f7;
-  --green:#00a651; --green-soft:#e6f7ee;
+  --green:#00a651; --green-soft:#e6f7ee; --lime:#d3f34f;
   --glass-tint:rgb(255 255 255 / .42);
   --glass-border:rgb(255 255 255 / .55);
   --glass-shadow:0 8px 24px rgb(0 0 0 / .10), inset 0 1px 0 rgb(255 255 255 / .7), inset 0 -1px 0 rgb(0 0 0 / .05);
-  --radius:24px;
+  --radius:28px;
 }
 @media (prefers-color-scheme:dark){
   /* OLED dark: pure black background so pixels turn off; cards/glass stay
@@ -36,14 +36,31 @@
 html{scroll-behavior:smooth}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
   background:
-    radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .10), transparent 60%),
-    radial-gradient(700px 420px at 10% 0%, rgb(0 113 227 / .08), transparent 60%),
-    linear-gradient(180deg,#ececef,#e4e4e8 40%,#e9e9ec);
+    radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .08), transparent 60%),
+    radial-gradient(700px 420px at 10% 0%, rgb(0 113 227 / .06), transparent 60%),
+    #f4f4f6;
   min-height:100vh}
 @media (prefers-color-scheme:dark){body{background:
     radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .07), transparent 60%),
     radial-gradient(700px 420px at 10% 0%, rgb(10 132 255 / .05), transparent 60%),
     #000;}}
+/* --- Background wallpapers (Ray's images in public/backgrounds/) --- */
+body.bg-ember,body.bg-dune,body.bg-nebula,body.bg-silk,body.bg-beams{background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}
+body.bg-ember{background-image:url(backgrounds/ember.jpg)}
+body.bg-dune{background-image:url(backgrounds/dune.jpg)}
+body.bg-nebula{background-image:url(backgrounds/nebula.jpg)}
+body.bg-silk{background-image:url(backgrounds/silk.jpg)}
+body.bg-beams{background-image:url(backgrounds/beams.jpg)}
+/* A dark background forces dark UI colours (and vice versa), whatever the system says. */
+body.darkbg{color-scheme:dark;--bg:#000;--text:#f5f5f7;--muted:#9a9aa0;--line:#232326;--card:#0c0c0c;--card-soft:#141414;--green-soft:#0d2b18;--glass-tint:rgb(18 18 18 / .55);--glass-border:rgb(255 255 255 / .14);--glass-shadow:0 8px 24px rgb(0 0 0 / .6), inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -1px 0 rgb(0 0 0 / .2)}
+body.darkbg .glass::before{background:radial-gradient(120% 70% at 25% 0%, rgb(255 255 255 / .14), transparent 55%)}
+body.darkbg .tabs{background:rgb(255 255 255 / .06)}
+body.darkbg .pill.off{background:#161616}
+body.darkbg .charge-scene{background:#0b0b0b}
+body.darkbg .map{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
+body.darkbg .seg button.on{background:#f5f5f7;color:#111}
+body.lightbg{color-scheme:light;--bg:#f4f4f6;--text:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--card:#ffffff;--card-soft:#f5f5f7;--green-soft:#e6f7ee;--glass-tint:rgb(255 255 255 / .42);--glass-border:rgb(255 255 255 / .55);--glass-shadow:0 8px 24px rgb(0 0 0 / .10), inset 0 1px 0 rgb(255 255 255 / .7), inset 0 -1px 0 rgb(0 0 0 / .05)}
+body.lightbg .map{filter:none}
 
 /* --- Liquid Glass (chrome only) --- */
 .glass{
@@ -66,14 +83,6 @@ html.refract .glass{
 @media (prefers-reduced-transparency:reduce){.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgb(255 255 255 / .94);}}
 @media (prefers-contrast:more){.glass{background:#fff;border-color:#0b1220;}}
 
-/* --- Top bar --- */
-.topbar{position:sticky;top:12px;z-index:50;display:flex;align-items:center;gap:10px;
-  max-width:1060px;margin:12px auto 0;padding:8px 10px;}
-.logo{width:38px;height:38px;flex:none;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:-.02em}
-@media (prefers-color-scheme:dark){.logo{background:#f5f5f7;color:#111}}
-.brand{font-weight:700;font-size:17px;letter-spacing:-.02em;white-space:nowrap}
-.locpill{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap;margin-left:auto}
-.locpill .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
 .iconbtn{width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-tint);
   -webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
   display:grid;place-items:center;cursor:pointer;font-size:17px;color:var(--text);box-shadow:var(--glass-shadow)}
@@ -81,7 +90,6 @@ button{font:inherit}
 
 /* --- Layout --- */
 .wrap{max-width:1060px;margin:0 auto;padding:20px 16px calc(112px + env(safe-area-inset-bottom, 0px))}
-@media (max-width:700px){.brand{display:none}.topbar{gap:8px}}
 /* --- Pages: one visible at a time, switched by the bottom pill --- */
 .page{display:none}
 .page.active{display:block}
@@ -91,18 +99,61 @@ button{font:inherit}
   background:rgb(255 255 255 / .78);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
 @media (prefers-color-scheme:dark){.ctxmenu{background:rgb(28 28 30 / .82)}}
 .ctxmenu.open{display:block}
-.ctxmenu button{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:12px 14px;border:0;background:none;color:var(--text);font:inherit;font-size:15px;text-align:left;cursor:pointer;border-radius:12px}
+.ctxmenu button{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;padding:13px 14px;border:0;background:none;color:var(--text);font:inherit;font-size:16px;text-align:left;cursor:pointer;border-radius:12px}
 .ctxmenu button:hover{background:rgb(127 127 127 / .14)}
 .ctxmenu button .mi{color:var(--muted);font-size:16px}
 .ctxmenu .ctxsep{height:1px;background:var(--line);margin:5px 10px}
 .ctxmenu button.danger{color:#ff3b30}.ctxmenu button.danger .mi{color:#ff3b30}
+/* --- HomeView: iOS switch (black on in light, green on in OLED dark) --- */
+.switch{width:52px;height:32px;flex:none;border-radius:999px;background:#e5e5ea;position:relative;transition:background .2s}
+.switch.on{background:#111}
+.switch .knob{position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgb(0 0 0 / .25);transition:left .2s}
+.switch.on .knob{left:22px}
+@media (prefers-color-scheme:dark){.switch{background:#3a3a3c}.switch.on{background:#30d158}}
+/* --- HomeView: segmented control (grey track, black active pill) --- */
+.seg{display:flex;width:100%;background:var(--card-soft);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px}
+.seg button{flex:1;min-width:0;border:0;background:none;padding:9px 4px;border-radius:999px;font:inherit;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.seg button.on{background:#111;color:#fff}
+@media (prefers-color-scheme:dark){.seg button.on{background:#f5f5f7;color:#111}}
+/* --- Controls tiles (HomeView device-tile language, adapted for the car) --- */
+.ctlgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ctltile{border-radius:28px;padding:18px;background:var(--card-soft);border:1px solid var(--line);min-height:132px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;min-width:0}
+.ctltile.big{grid-row:span 2;min-height:276px;cursor:default;justify-content:flex-start}
+.ctltile.big .btn{width:100%}
+.ctltile.big .seg{margin-top:12px}
+.ctlicon{width:56px;height:56px;border-radius:50%;background:rgb(127 127 127 / .16);display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--text)}
+.ctlname{font-size:19px;font-weight:600}
+.ctlstate{color:var(--muted);font-size:15px;margin-top:2px}
+.ctltile.on{background:#fff;color:#111;border-color:transparent}
+.ctltile.on .ctlstate{color:#8e8e93}
+.ctltile.on .ctlicon{background:rgb(0 0 0 / .08);color:#111}
+.ctltile.on .seg{background:rgb(0 0 0 / .06);border-color:transparent}
+.ctlbigrow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ctlbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.ctltile.on .ctlbig{color:#0a84ff}
+.ctlstep{display:flex;flex-direction:column;gap:8px}
+.ctlstep button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:20px;font-weight:600;line-height:1;cursor:pointer}
+.ctltile.on .ctlstep button{background:#fff}
+/* --- Settings sheet: background option pills --- */
+.bgopts{display:flex;flex-wrap:wrap;gap:8px}
+.bgopts button{border:1px solid var(--line);background:var(--card-soft);color:var(--text);border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.bgopts button.on{background:#111;color:#fff;border-color:#111}
+@media (prefers-color-scheme:dark){.bgopts button.on{background:#f5f5f7;color:#111;border-color:#f5f5f7}}
+body.darkbg .bgopts button.on{background:#f5f5f7;color:#111;border-color:#f5f5f7}
+body.lightbg .bgopts button.on{background:#111;color:#fff;border-color:#111}
+/* --- Vehicle tab: spec-sheet rows --- */
+.spec>div{display:flex;justify-content:space-between;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.spec>div:last-child{border-bottom:0}
+.spec .k{color:var(--muted);flex:none}
+.spec .v{font-weight:600;text-align:right;overflow-wrap:anywhere}
+.vehimg{width:100%;height:auto;display:block;margin:2px 0 6px}
 /* --- What's new sheet --- */
 .sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;background:rgb(0 0 0 / .35);padding:16px}
 .sheet[hidden]{display:none}
 .sheetcard{width:100%;max-width:560px;max-height:82vh;overflow:auto;padding:20px 22px;border-radius:24px}
-.sheetcard h3{margin:18px 0 6px;font-size:15px}
+.sheetcard h3{margin:18px 0 6px;font-size:17px;font-weight:700}
 .sheetcard h3:first-of-type{margin-top:12px}
-.sheetcard ul{margin:0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--text)}
+.sheetcard ul{margin:0;padding-left:18px;font-size:15px;line-height:1.55;color:var(--text)}
 .sheetcard ul li{margin:4px 0}
 .sheetcard .lrow{display:flex;justify-content:space-between;align-items:center}
 /* --- Inspo 2: glass pill button, black circular chevron at the right end --- */
@@ -116,16 +167,16 @@ button{font:inherit}
 .logincard .lrow{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}
 .logincard .lrow .lbrand{color:var(--muted)}
 .logincard .lrow .lact{font-weight:600}
-.logincard h2{font-size:30px;margin:18px 0 16px;text-transform:none;letter-spacing:-.02em;color:var(--text)}
-.pillfield{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card-soft);border-radius:999px;padding:6px 6px 6px 16px}
+.logincard h2{font-size:34px;font-weight:800;margin:18px 0 16px;text-transform:none;letter-spacing:-.02em;color:var(--text)}
+.pillfield{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:var(--card-soft);border-radius:999px;padding:8px 8px 8px 16px}
 .pillfield svg{flex:none;color:var(--muted)}
-.pillfield input{flex:1;min-width:0;border:0;background:none;padding:10px 0;outline:none;width:auto}
+.pillfield input{flex:1;min-width:0;border:0;background:none;padding:14px 0;outline:none;width:auto;font-size:17px}
 .pillfield input::placeholder{color:var(--muted)}
-.circlebtn{width:44px;height:44px;flex:none;border-radius:50%;border:0;background:#111;color:#fff;display:grid;place-items:center;cursor:pointer}
+.circlebtn{width:48px;height:48px;flex:none;border-radius:50%;border:0;background:#111;color:#fff;display:grid;place-items:center;cursor:pointer}
 @media (prefers-color-scheme:dark){.circlebtn{background:#f5f5f7;color:#111}}
 .logincard .fine{font-size:12px;color:var(--muted);margin:16px 2px 0;line-height:1.5}
 .keysub{max-width:430px;margin:14px auto 0;background:#111;color:#fff;border-radius:24px;padding:22px}
-.keysub .k1{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.keysub .k1{font-size:28px;font-weight:700;letter-spacing:-.02em}
 .keysub .k2{color:#a1a1aa;margin-top:2px}
 .keysub .k3{text-align:right;margin-top:14px;font-weight:600}
 @media (prefers-color-scheme:dark){.keysub{background:#1c1c1e;border:1px solid #2c2c2e}}
@@ -133,67 +184,63 @@ button{font:inherit}
    active item inside a filled rounded capsule. Always visible, all sizes;
    safe-area aware. --- */
 .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom, 0px));z-index:60;display:flex;
-  gap:2px;padding:8px;border-radius:999px;max-width:calc(100vw - 24px);
+  align-items:center;gap:4px;padding:7px 12px;border-radius:999px;max-width:calc(100vw - 24px);
   background:rgb(20 20 22 / .72);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
   border:1px solid rgb(255 255 255 / .16);box-shadow:0 10px 30px rgb(0 0 0 / .35), inset 0 1px 0 rgb(255 255 255 / .18)}
-.dock a{display:flex;align-items:center;gap:7px;height:46px;padding:0 16px;border-radius:999px;color:#fff;opacity:.7;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap}
+.dock a{display:flex;align-items:center;justify-content:center;width:48px;height:46px;border-radius:999px;color:#fff;opacity:.7;text-decoration:none}
 .dock a svg{display:block;flex:none}
 .dock a.on{background:rgb(255 255 255 / .18);opacity:1}
-@media (max-width:480px){.dock a{padding:0 14px}.dock a span{display:none}.dock a svg{width:22px;height:22px}}
-.hero{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:stretch;margin-top:18px}
-@media (max-width:860px){.hero{grid-template-columns:1fr}}
-.hero h1{font-size:44px;line-height:1.05;margin:6px 0 4px;letter-spacing:-.03em}
-.hero .sub{color:var(--muted);font-size:16px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.chip{padding:7px 13px;font-size:13px;font-weight:600}
-.chip b{color:var(--green)}
-.chip .gdot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px}
-img.car{width:100%;max-width:520px;display:block;margin:8px auto 0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-top:16px;box-shadow:0 2px 12px rgb(0 0 0 / .04)}
-.card h2{font-size:13px;margin:0 0 14px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+/* --- Home screen (Volvo EX90 ref): greeting, dark hero car card, stat cards --- */
+.greet{display:flex;align-items:center;gap:12px;margin-top:18px}
+.gavatar{flex:none;width:46px;height:46px;border-radius:50%;background:#1c1c1e;border:1px solid var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
+.gtext{flex:1;line-height:1.25}
+.ghey{font-size:16px;font-weight:600}
+.gname{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.herocard{background:linear-gradient(180deg,#1e1e23,#0e0e10);border-radius:28px;padding:22px 22px 20px;margin-top:16px;color:#f5f5f7;box-shadow:0 8px 32px rgb(0 0 0 / .25)}
+.hc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.hc-name{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.hc-loc{color:rgb(255 255 255 / .6);font-size:15px;font-weight:500;margin-top:4px}
+.herolock{flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .10);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.herocard img.car{width:100%;max-width:520px;display:block;margin:6px auto 0}
+.statrow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card.statcard{padding:18px;cursor:pointer}
+.statcard .sc-label{font-size:15px;font-weight:600}
+.statcard .sc-body{display:flex;gap:12px;align-items:center;margin-top:12px}
+.statcard .sc-batt{width:30px;height:42px;flex:none;color:var(--text)}
+.statcard .sc-trip{width:30px;height:30px;flex:none;color:var(--muted)}
+.statcard .sc-val{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.statcard .sc-sub{font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
+/* --- Location card: map fills the card, labels float on top --- */
+.card.loccard{position:relative;padding:0;overflow:hidden}
+.loccard .map{height:230px;border-radius:0;margin:0;display:block}
+.loc-ov{position:absolute;top:0;left:0;right:0;padding:18px 20px 44px;pointer-events:none;background:linear-gradient(180deg,rgb(0 0 0 / .45),transparent)}
+.loc-ov .loc-title{font-size:20px;font-weight:700;color:#fff}
+.loc-ov .loc-name{font-size:15px;font-weight:500;color:rgb(255 255 255 / .85);margin-top:2px}
+.loc-foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:36px 20px 14px;background:linear-gradient(0deg,rgb(0 0 0 / .45),transparent)}
+.loc-foot a{color:#fff;font-weight:600;text-shadow:0 1px 8px rgb(0 0 0 / .6)}
+.loc-foot .muted{color:rgb(255 255 255 / .75);text-shadow:0 1px 8px rgb(0 0 0 / .6)}
+.card{background:color-mix(in srgb, var(--card) 58%, transparent);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px;margin-top:16px;box-shadow:0 8px 32px rgb(0 0 0 / .12)}
+.card h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 16px;color:var(--text)}
 .muted{color:var(--muted);font-size:13px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.tile{border:1px solid var(--line);border-radius:16px;padding:13px;background:var(--card-soft)}
-.tile .k{font-size:12px;color:var(--muted)}
-.tile .v{font-size:19px;font-weight:600;margin-top:2px}
+.tile{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--card-soft)}
+.tile .k{font-size:13px;font-weight:600;color:var(--muted)}
+.tile .v{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
 .tile .s{font-size:12px;color:var(--muted)}
 .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600;background:var(--green-soft);color:#0a7a3a}
 .pill.off{background:#f2f2f7;color:var(--muted)}
 @media (prefers-color-scheme:dark){.pill.off{background:#2c2c2e}}
-.btn{background:var(--green);color:#fff;border:0;border-radius:999px;padding:11px 20px;cursor:pointer;font-weight:600}
+.btn{background:var(--green);color:#fff;border:0;border-radius:999px;padding:13px 24px;min-height:50px;cursor:pointer;font-weight:700;font-size:16px}
 .btn.ghost{background:transparent;color:var(--green);border:1px solid var(--line)}
-input{font:inherit;background:var(--card-soft);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:110px}
-select{font:inherit;background:var(--card-soft);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+input{font:inherit;background:var(--card-soft);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:110px;font-size:15px}
+#climTemp{width:84px;height:52px;font-size:24px;font-weight:700;text-align:center;padding:6px}
+select{font:inherit;background:var(--card-soft);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .err{background:#fff1f0;color:#8f1d16;border:1px solid #f5c6c0;border-radius:14px;padding:14px;margin-top:14px}
 @media (prefers-color-scheme:dark){.err{background:#3a1d1b;color:#ffb4ab;border-color:#5c2b28}}
 
-/* --- Battery ring + lightbar (hero glass panel) --- */
-.statuspanel{padding:22px;display:flex;flex-direction:column;gap:14px}
-.ringrow{display:flex;gap:18px;align-items:center}
-.ring{width:118px;height:118px;flex:none}
-.ring .pct{font-size:27px;font-weight:700;fill:var(--text)}
-.ring .lbl{font-size:11px;fill:var(--muted)}
-.bigstat{font-size:15px;line-height:1.55}
-.bigstat b{font-size:21px}
-.lightbar{margin-top:2px}
-.lightbar .track{position:relative;height:14px;border-radius:999px;background:rgb(0 0 0 / .10);overflow:hidden}
-@media (prefers-color-scheme:dark){.lightbar .track{background:rgb(255 255 255 / .12)}}
-.lightbar .fill{position:absolute;inset:0 auto 0 0;border-radius:999px;
-  background:linear-gradient(90deg,#34c759,#00a651 60%,#7ee2a8);
-  box-shadow:0 0 12px rgb(0 166 81 / .55);transition:width .8s cubic-bezier(.32,.72,0,1)}
-.lightbar .pulse{position:absolute;top:0;bottom:0;width:46px;border-radius:999px;
-  background:linear-gradient(90deg,transparent,rgb(255 255 255 / .95),transparent);
-  filter:blur(1px);opacity:0;pointer-events:none}
-.lightbar.charging .pulse{opacity:1;animation:sweep 2.2s ease-in-out infinite}
-.lightbar.charging .fill{animation:glow 2.2s ease-in-out infinite}
-@keyframes sweep{0%{left:-12%}50%{left:calc(100% - 34px)}100%{left:-12%}}
-@keyframes glow{0%,100%{box-shadow:0 0 8px rgb(0 166 81 / .4)}50%{box-shadow:0 0 18px rgb(0 166 81 / .85)}}
-.lightbar .cap{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:7px}
-@media (prefers-reduced-motion:reduce){.lightbar.charging .pulse,.lightbar.charging .fill{animation:none;opacity:.6}}
-
 /* --- Charging scene (dark card, like the video) --- */
-.charge-scene{background:#17181a;border-radius:18px;padding:16px 16px 14px;color:#f5f5f7;margin-top:2px}
+.charge-scene{background:#17181a;border-radius:18px;padding:16px 16px 14px;color:#f5f5f7;margin-top:14px}
 .cs-top{display:flex;align-items:flex-start;gap:14px}
 .cs-pct{font-size:46px;font-weight:700;line-height:1;letter-spacing:-.03em;color:#fdf6e3}
 .cs-pct .cs-pct-unit{font-size:20px;font-weight:600;margin-left:1px}
@@ -233,9 +280,9 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .tyre-callout.fr .line::after,.tyre-callout.rr .line::after{left:0}
 .tyre-callout .sub{font-size:12px;color:var(--muted);margin-top:5px}
 /* --- Summary rows (doors / windows) --- */
-.sumrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:15px 2px;border-bottom:1px solid var(--line);font-size:19px}
+.sumrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:16px 2px;border-bottom:1px solid var(--line);font-size:19px}
 .sumrow:last-child{border-bottom:0}
-.sumrow .lab{font-weight:500}
+.sumrow .lab{font-weight:600}
 .sumrow .val{color:#8e8e93;text-align:right}
 .sumrow .val.alert{color:#ff3b30}
 .bars{display:flex;gap:6px;align-items:flex-end;height:64px}
@@ -243,9 +290,12 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase}
-iframe.map{width:100%;height:260px;border:0;border-radius:16px}
+iframe.map{width:100%;height:260px;border:0;border-radius:20px}
+.stat{font-size:17px;font-weight:600;letter-spacing:-.01em}
+#gmapsLink{color:var(--text);font-weight:600}
 #keybox{display:none}
 .sections{display:grid;grid-template-columns:1fr;gap:0 18px}
+.sections>*{min-width:0}
 @media (min-width:860px){.sections{grid-template-columns:repeat(3,1fr)}}
 @media (min-width:860px){.sections .card.span2{grid-column:span 2}}
 </style>
@@ -259,25 +309,6 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
     <feDisplacementMap in="SourceGraphic" in2="b" scale="40" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
-
-<header class="glass topbar">
-  <div class="logo">B</div>
-  <div class="brand">BEYONDconnect</div>
-  <div class="glass locpill"><span class="dot"></span><span id="locPill">Cikarang</span></div>
-  <button class="iconbtn" id="refreshBtn" onclick="load(true)" title="Refresh">↻</button>
-  <div class="menuwrap">
-    <button class="iconbtn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true">•••</button>
-    <div class="glass ctxmenu" id="ctxmenu" role="menu">
-      <button onclick="menuRefresh()">Refresh now <span class="mi">↻</span></button>
-      <div class="ctxsep"></div>
-      <button onclick="menuAuto()"><span id="menuAutoLabel">Auto-refresh: on</span> <span class="mi" id="menuAutoIcon">✓</span></button>
-      <button onclick="menuExport()">Export trips CSV <span class="mi">↓</span></button>
-      <button onclick="menuChangelog()">What's new <span class="mi">✦</span></button>
-      <div class="ctxsep"></div>
-      <button class="danger" onclick="menuClear()">Clear trip history <span class="mi">✕</span></button>
-    </div>
-  </div>
-</header>
 
 <div class="wrap">
 <div id="keybox">
@@ -301,78 +332,87 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
 <div id="app" style="display:none">
 
 <div class="page active" id="page-overview">
-<section class="hero">
-  <div>
-    <h1 id="carName">Dolphino</h1>
-    <div class="sub" id="carline">BYD Dolphin</div>
-    <div class="chips">
-      <span class="glass chip"><span class="gdot"></span><b id="chipBatt">–</b> battery</span>
-      <span class="glass chip"><b id="chipRange">–</b> km range</span>
-      <span class="glass chip"><b id="chipOdo">–</b> km</span>
+<div class="greet">
+  <div class="gavatar">R</div>
+  <div class="gtext"><div class="ghey">Hey 👋</div><div class="gname">Ray!</div></div>
+  <button class="iconbtn gbell" onclick="menuChangelog()" title="What's new" aria-label="What's new"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></button>
+  <div class="menuwrap">
+    <button class="iconbtn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true">•••</button>
+    <div class="glass ctxmenu" id="ctxmenu" role="menu">
+      <button onclick="menuRefresh()">Refresh now <span class="mi">↻</span></button>
+      <div class="ctxsep"></div>
+      <button onclick="menuAuto()"><span id="menuAutoLabel">Auto-refresh</span> <span class="switch on" id="menuAutoSwitch"><span class="knob"></span></span></button>
+      <button onclick="menuExport()">Export trips CSV <span class="mi">↓</span></button>
+      <button onclick="menuChangelog()">What's new <span class="mi">✦</span></button>
+      <button onclick="menuSettings()">Settings <span class="mi">›</span></button>
+      <div class="ctxsep"></div>
+      <button class="danger" onclick="menuClear()">Clear trip history <span class="mi">✕</span></button>
     </div>
-    <img class="car" id="carImg" alt="BYD Dolphin" style="display:none">
   </div>
-
-  <div class="glass panel statuspanel">
-    <div class="ringrow">
-      <svg class="ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="10"/>
-      <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="#34c759" stroke-width="10" stroke-linecap="round" transform="rotate(-90 60 60)"/>
-      <text x="60" y="58" text-anchor="middle" class="pct" id="battPct">–</text>
-      <text x="60" y="76" text-anchor="middle" class="lbl">battery</text></svg>
-      <div class="bigstat"><div><b id="rangeKm">–</b> km range</div>
-      <div>Odometer <b id="odoKm">–</b> km</div>
-      <div id="chargeLine">Not charging</div>
-      <div class="muted" id="onlineLine"></div></div>
+</div>
+<div class="herocard">
+  <div class="hc-top"><div><div class="hc-name" id="carName">Dolphino</div><div class="hc-loc">📍 <span id="heroLoc">Cikarang</span></div></div>
+  <button class="herolock" id="heroLock" onclick="toggleLock()" title="Lock / unlock" aria-label="Lock or unlock"></button></div>
+  <img class="car" id="carImg" alt="BYD Dolphin" style="display:none">
+</div>
+<div class="charge-scene" id="chargeScene" style="display:none">
+  <div class="cs-top">
+    <div class="cs-pct"><span id="csPct">–</span><span class="cs-pct-unit">%</span></div>
+    <div class="cs-meta">
+      <div class="cs-state"><svg width="15" height="15" viewBox="0 0 24 24" fill="#4ade80"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>Charging</div>
+      <div class="cs-eta" id="csEta"></div>
     </div>
-    <div class="lightbar" id="lightbar">
-      <div class="track"><div class="fill" id="lbFill" style="width:0%"></div><div class="pulse"></div></div>
-      <div class="cap"><span id="lbLabel">Not charging</span><span id="lbPct">–</span></div>
-    </div>
-    <div class="charge-scene" id="chargeScene" style="display:none">
-      <div class="cs-top">
-        <div class="cs-pct"><span id="csPct">–</span><span class="cs-pct-unit">%</span></div>
-        <div class="cs-meta">
-          <div class="cs-state"><svg width="15" height="15" viewBox="0 0 24 24" fill="#4ade80"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>Charging</div>
-          <div class="cs-eta" id="csEta"></div>
-        </div>
-      </div>
-      <svg class="cs-svg" viewBox="0 0 340 150" aria-label="Charging cable from wall box to the car">
-        <ellipse cx="150" cy="128" rx="130" ry="7" fill="rgb(255 255 255 / .05)"/>
-        <ellipse cx="145" cy="92" rx="135" ry="42" fill="rgb(255 255 255 / .045)"/>
-        <rect x="292" y="8" width="40" height="32" rx="9" fill="#262628" stroke="#3f3f42"/>
-        <circle class="cs-led" cx="312" cy="17" r="2.5" fill="#4ade80"/>
-        <rect x="304" y="27" width="16" height="2.5" rx="1.25" fill="#55555a"/>
-        <path d="M20,112 L20,102 C20,96 26,92 36,90 C52,86 64,84 76,82 C92,68 112,62 138,61 C168,60 196,64 216,72 C238,79 254,86 260,94 C264,99 265,104 265,112 Z" fill="#2e2e33" stroke="#4a4a50" stroke-width="1"/>
-        <path d="M82,84 C94,71 112,66 136,65 C160,64 182,68 198,75 L190,84 Z" fill="#4b4b51"/>
-        <path d="M76,82 C92,68 112,62 138,61 C168,60 196,64 216,72" fill="none" stroke="#7a7a80" stroke-width="1.5"/>
-        <circle cx="88" cy="110" r="15" fill="#0a0a0c"/><circle cx="88" cy="110" r="15" fill="none" stroke="#3a3a3c" stroke-width="2"/><circle cx="88" cy="110" r="6" fill="#55555a"/>
-        <circle cx="238" cy="110" r="15" fill="#0a0a0c"/><circle cx="238" cy="110" r="15" fill="none" stroke="#3a3a3c" stroke-width="2"/><circle cx="238" cy="110" r="6" fill="#55555a"/>
-        <path d="M312,40 C312,66 304,74 290,79 C274,85 266,86 262,92 C260,95 258,96 257,96" fill="none" stroke="#2e7d4f" stroke-width="3" stroke-linecap="round" opacity=".55"/>
-        <path class="cs-cable-flow" d="M312,40 C312,66 304,74 290,79 C274,85 266,86 262,92 C260,95 258,96 257,96" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" style="filter:drop-shadow(0 0 5px rgb(74 222 128 / .9))"/>
-        <circle cx="257" cy="96" r="3.5" fill="#4ade80" style="filter:drop-shadow(0 0 6px rgb(74 222 128 / .9))"/>
-      </svg>
-      <div class="cs-range"><b id="csRange">–</b><div class="cs-bar"><div id="csBarFill" style="width:0%"></div></div></div>
-      <div class="cs-stats">
-        <div><div class="k">Power</div><div class="v" id="csKw">–</div></div>
-        <div><div class="k">Speed</div><div class="v" id="csKmh">–</div></div>
-        <div><div class="k">Current</div><div class="v" id="csAmp">–</div></div>
-        <div><div class="k">Voltage</div><div class="v">220 V</div></div>
-      </div>
-    </div>
-    <div class="row"><button class="pillbtn" id="autoBtn" onclick="toggleAuto()"><span>Auto-refresh: on</span><span class="chev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span></button></div>
   </div>
-</section>
+  <svg class="cs-svg" viewBox="0 0 340 150" aria-label="Charging cable from wall box to the car">
+    <ellipse cx="150" cy="128" rx="130" ry="7" fill="rgb(255 255 255 / .05)"/>
+    <ellipse cx="145" cy="92" rx="135" ry="42" fill="rgb(255 255 255 / .045)"/>
+    <rect x="292" y="8" width="40" height="32" rx="9" fill="#262628" stroke="#3f3f42"/>
+    <circle class="cs-led" cx="312" cy="17" r="2.5" fill="#4ade80"/>
+    <rect x="304" y="27" width="16" height="2.5" rx="1.25" fill="#55555a"/>
+    <path d="M20,112 L20,102 C20,96 26,92 36,90 C52,86 64,84 76,82 C92,68 112,62 138,61 C168,60 196,64 216,72 C238,79 254,86 260,94 C264,99 265,104 265,112 Z" fill="#2e2e33" stroke="#4a4a50" stroke-width="1"/>
+    <path d="M82,84 C94,71 112,66 136,65 C160,64 182,68 198,75 L190,84 Z" fill="#4b4b51"/>
+    <path d="M76,82 C92,68 112,62 138,61 C168,60 196,64 216,72" fill="none" stroke="#7a7a80" stroke-width="1.5"/>
+    <circle cx="88" cy="110" r="15" fill="#0a0a0c"/><circle cx="88" cy="110" r="15" fill="none" stroke="#3a3a3c" stroke-width="2"/><circle cx="88" cy="110" r="6" fill="#55555a"/>
+    <circle cx="238" cy="110" r="15" fill="#0a0a0c"/><circle cx="238" cy="110" r="15" fill="none" stroke="#3a3a3c" stroke-width="2"/><circle cx="238" cy="110" r="6" fill="#55555a"/>
+    <path d="M312,40 C312,66 304,74 290,79 C274,85 266,86 262,92 C260,95 258,96 257,96" fill="none" stroke="#2e7d4f" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    <path class="cs-cable-flow" d="M312,40 C312,66 304,74 290,79 C274,85 266,86 262,92 C260,95 258,96 257,96" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" style="filter:drop-shadow(0 0 5px rgb(74 222 128 / .9))"/>
+    <circle cx="257" cy="96" r="3.5" fill="#4ade80" style="filter:drop-shadow(0 0 6px rgb(74 222 128 / .9))"/>
+  </svg>
+  <div class="cs-range"><b id="csRange">–</b><div class="cs-bar"><div id="csBarFill" style="width:0%"></div></div></div>
+  <div class="cs-stats">
+    <div><div class="k">Power</div><div class="v" id="csKw">–</div></div>
+    <div><div class="k">Speed</div><div class="v" id="csKmh">–</div></div>
+    <div><div class="k">Current</div><div class="v" id="csAmp">–</div></div>
+    <div><div class="k">Voltage</div><div class="v">220 V</div></div>
+  </div>
+</div>
+<div class="statrow">
+  <div class="card statcard" onclick="goPage('energy')" role="button" tabindex="0">
+    <div class="sc-label">Battery</div>
+    <div class="sc-body">
+      <svg class="sc-batt" viewBox="0 0 30 42" aria-hidden="true"><rect x="1.5" y="5.5" width="27" height="35" rx="7" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="11" y="1.5" width="8" height="4" rx="2" fill="currentColor" opacity=".45"/><rect id="battIconFill" x="5" y="9" width="20" height="28" rx="4" fill="#34c759"/></svg>
+      <div><div class="sc-val"><span id="battStatPct">–</span></div><div class="sc-sub" id="battStatSub">–</div></div>
+    </div>
+  </div>
+  <div class="card statcard" onclick="goPage('trips')" role="button" tabindex="0">
+    <div class="sc-label">Last trip</div>
+    <div class="sc-body">
+      <svg class="sc-trip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <div><div class="sc-val"><span id="lastTripVal">–</span></div><div class="sc-sub" id="lastTripSub">No trips yet</div></div>
+    </div>
+  </div>
+</div>
+<div class="card loccard" id="location">
+  <iframe class="map" id="mapFrame" loading="lazy"></iframe>
+  <div class="loc-ov"><div class="loc-title">Location</div><div class="loc-name" id="locName">Cikarang</div></div>
+  <div class="loc-foot"><a id="gmapsLink" href="#" target="_blank" rel="noopener">Open in Google Maps</a><span class="muted" id="gpsTime"></span></div>
+</div>
 
 <div class="sections">
-<div class="card span2" id="location"><h2>My Location</h2>
-<div class="stat" id="locText">–</div>
-<iframe class="map" id="mapFrame" loading="lazy" style="margin-top:10px"></iframe>
-<div class="row" style="margin-top:10px"><a id="gmapsLink" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
-<span class="muted" id="gpsTime"></span></div></div>
 
 <div class="card"><h2>Tyres</h2>
 <div class="carview" id="tyres">
-  <img src="topview.png" alt="Top view of the car">
+  <img src="topview-atlantis.png" alt="Top view of the car">
   <div class="tyre-callout fl"><div class="num"><b id="tp-fl">–</b> <span>psi</span></div><div class="line"></div></div>
   <div class="tyre-callout fr"><div class="num"><b id="tp-fr">–</b> <span>psi</span></div><div class="line"></div></div>
   <div class="tyre-callout rl"><div class="num"><b id="tp-rl">–</b> <span>psi</span></div><div class="line"></div></div>
@@ -397,7 +437,7 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
 </div>
 <div class="row" style="margin-top:12px">
 <label class="muted">Tariff Rp/kWh <input id="tariff" type="number" value="1700" min="0" step="1"></label>
-<label class="muted">Battery kWh <input id="battKwh" type="number" value="44.9" min="1" step="0.1"></label>
+<label class="muted">Battery kWh <input id="battKwh" type="number" value="60.48" min="1" step="0.1"></label>
 <button class="btn ghost" onclick="saveSettings()">Save</button></div>
 <div class="muted" style="margin-top:8px">Last 7 efficiency readings (kWh/100 km)</div>
 <div class="bars" id="eBars"></div></div>
@@ -416,32 +456,67 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
 <div class="page" id="page-controls">
 <div class="sections">
 <div class="card" id="controls"><h2>Controls</h2>
-<div class="muted" style="margin-bottom:10px">Remote commands need your 6-digit BYD control PIN. It stays in this tab only and is sent with each command — never stored on the server.</div>
-<div class="row" style="margin-bottom:12px"><label class="muted" for="pinInput">Control PIN</label>
-<input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="width:96px;text-align:center;letter-spacing:.2em"></div>
-<div class="row"><button class="btn" onclick="doControl('lock')">Lock</button>
-<button class="btn ghost" onclick="doControl('unlock')">Unlock</button></div>
-<div class="row" style="margin-top:12px">
-<input id="climTemp" type="number" min="15" max="31" step="0.5" value="23" style="width:70px"> <span class="muted">°C</span>
-<select id="climDur"><option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="25">25 min</option><option value="30" selected>30 min</option></select>
-<button class="btn" onclick="doControl('climate_start')">Start climate</button>
-<button class="btn ghost" onclick="doControl('climate_stop')">Stop climate</button></div>
-<div class="row" style="margin-top:12px"><button class="btn" onclick="doControl('charge_start')">Start charging</button>
-<span class="muted">Charging can't be stopped from the cloud — use the key fob / door-handle double-unlock.</span></div>
+<div class="muted" style="margin-bottom:10px">Remote commands need your 6-digit BYD control PIN — set it in Settings (••• menu). It stays in this tab only and is sent with each command — never stored on the server.</div>
+<div class="ctlgrid">
+  <div class="ctltile big" id="tileClimate">
+    <div class="ctlbigrow"><span class="ctlbig" id="ctlTempBig">23°</span>
+      <span class="ctlstep"><button type="button" onclick="stepTemp(-0.5)" aria-label="Cooler">−</button><button type="button" onclick="stepTemp(0.5)" aria-label="Warmer">+</button></span></div>
+    <div class="ctlname">Climate</div>
+    <div class="ctlstate" id="ctlClimateState">Off</div>
+    <input type="hidden" id="climTemp" value="23">
+    <input type="hidden" id="climDur" value="30">
+    <button class="btn" id="ctlClimateBtn" style="margin-top:12px" onclick="toggleClimate()">Start</button>
+  </div>
+  <div class="ctltile" id="tileLock" role="button" tabindex="0" onclick="toggleLock()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();toggleLock();}">
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
+    <div class="ctlname">Locks</div>
+    <div class="ctlstate" id="ctlLockState">Locked</div>
+  </div>
+  <div class="ctltile" id="tileCharge" role="button" tabindex="0" onclick="tapCharge()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapCharge();}">
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg></div>
+    <div class="ctlname">Charging</div>
+    <div class="ctlstate" id="ctlChargeState">Not charging</div>
+  </div>
+</div>
+<div class="seg" id="durSeg" role="group" aria-label="Climate duration" style="margin-top:12px">
+<button type="button" data-dur="10" onclick="setDur(10)">10 min</button><button type="button" data-dur="15" onclick="setDur(15)">15 min</button><button type="button" data-dur="20" onclick="setDur(20)">20 min</button><button type="button" data-dur="25" onclick="setDur(25)">25 min</button><button type="button" data-dur="30" class="on" onclick="setDur(30)">30 min</button></div>
+<div class="muted" style="margin-top:12px">Charging can't be stopped from the cloud — use the key fob / door-handle double-unlock.</div>
 <div id="ctrlMsg" style="margin-top:10px"></div></div>
 </div>
 </div>
+<div class="page" id="page-vehicle">
+<div class="sections">
+<div class="card" id="vehicle"><h2>Vehicle</h2>
+<img id="vehImg" class="vehimg" alt="BYD Dolphin">
+<div class="spec" id="vehSpec"></div>
+<div class="muted" style="margin:16px 0 4px">Battery</div>
+<div class="spec" id="vehBatt"></div>
+<div class="muted" style="font-size:13px;margin-top:8px">Estimated from charging sessions (power × time ÷ charge gained) and trips (distance × efficiency ÷ charge used). Needs a charging session of 10%+ before it can calculate.</div>
+<div class="muted" style="margin:16px 0 4px">Health</div>
+<div class="spec" id="vehHealth"></div>
+</div>
+</div>
+</div>
 <nav class="dock" aria-label="Sections">
-  <a href="#overview" class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg><span>Overview</span></a>
-  <a href="#energy"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg><span>Energy</span></a>
-  <a href="#trips"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1" fill="currentColor" stroke="none"/></svg><span>Trips</span></a>
-  <a href="#controls"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg><span>Controls</span></a>
+  <a href="#overview" class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg></a>
+  <a href="#energy"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg></a>
+  <a href="#trips"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></a>
+  <a href="#controls"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></a>
+  <a href="#vehicle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V7.5L5.6 5.4A2 2 0 017.3 4.5h9.4a2 2 0 011.7.9L20 7.5V16"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.7"/><circle cx="16.5" cy="16.5" r="1.7"/></svg></a>
 </nav>
 </div>
 </div>
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.2.0 — 22 Nov 2026</h3>
+    <ul>
+      <li>Home screen redesigned: greeting, dark hero card with your Atlantis Grey Dolphin photo, Battery + Last trip cards, full-bleed location map.</li>
+      <li>New Vehicle tab: VIN, plate, purchase date, odometer, battery health estimate, and 8 system health checks.</li>
+      <li>Backgrounds: your five wallpapers (Ember, Dune, Nebula, Silk, Beams) with frosted glass cards; Control PIN moved into Settings.</li>
+      <li>Battery corrected to 60.48 kWh (Extended Range).</li>
+      <li>Top bar removed; the ••• menu now sits next to the greeting.</li>
+    </ul>
     <h3>v1.1.0 — 22 Nov 2026</h3>
     <ul>
       <li>Remote controls: lock / unlock, climate start/stop (temp + duration), start charging. 6-digit control PIN, once per tab, never stored.</li>
@@ -459,6 +534,25 @@ iframe.map{width:100%;height:260px;border:0;border-radius:16px}
     </ul>
   </div>
 </div>
+<div id="settingsSheet" class="sheet" hidden onclick="if(event.target===this)closeSettings()">
+  <div class="glass sheetcard">
+    <div class="lrow"><span class="lbrand">Settings</span><button class="iconbtn" onclick="closeSettings()" title="Close">✕</button></div>
+    <h3>Control PIN</h3>
+    <div class="row"><label class="muted" for="pinInput">6-digit BYD control PIN</label>
+    <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="width:96px;text-align:center;letter-spacing:.2em" onchange="sessionStorage.setItem('beyondPin',this.value)"></div>
+    <div class="muted" style="font-size:13px;margin-top:6px">Needed for lock, unlock and climate. It stays in this tab only and is sent with each command — never stored on the server.</div>
+    <h3>Background</h3>
+    <div class="bgopts" id="bgOpts">
+      <button type="button" data-bg="system" onclick="setBg('system')">System</button>
+      <button type="button" data-bg="ember" onclick="setBg('ember')">Ember</button>
+      <button type="button" data-bg="dune" onclick="setBg('dune')">Dune</button>
+      <button type="button" data-bg="nebula" onclick="setBg('nebula')">Nebula</button>
+      <button type="button" data-bg="silk" onclick="setBg('silk')">Silk</button>
+      <button type="button" data-bg="beams" onclick="setBg('beams')">Beams</button>
+    </div>
+    <div class="muted" style="font-size:13px;margin-top:6px">The wallpapers you sent. Dune is the light one; the rest are dark.</div>
+  </div>
+</div>
 <script>
 // Chromium-only refraction: detect via userAgentData, never @supports (it lies).
 try{
@@ -471,7 +565,14 @@ const settings=JSON.parse(localStorage.getItem('beyondSettings')||'{}');
 $('pinInput').value=sessionStorage.getItem('beyondPin')||'';
 if(settings.tariff)$('tariff').value=settings.tariff;
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
-function saveSettings(){localStorage.setItem('beyondSettings',JSON.stringify({tariff:+$('tariff').value,battKwh:+$('battKwh').value}));renderCost(window._last);}
+const BGS=['system','ember','dune','nebula','silk','beams'];
+const BG_DARK={ember:1,nebula:1,silk:1,beams:1};
+function applyBg(name){if(!BGS.includes(name))name='system';document.body.classList.remove(...BGS.map(b=>'bg-'+b));document.body.classList.remove('darkbg','lightbg');if(name&&name!=='system'){document.body.classList.add('bg-'+name);document.body.classList.add(BG_DARK[name]?'darkbg':'lightbg');}document.querySelectorAll('#bgOpts button').forEach(b=>b.classList.toggle('on',b.dataset.bg===(name||'system')));}
+function setBg(name){settings.background=name;settings.tariff=+$('tariff').value||settings.tariff;settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
+applyBg(settings.background||'system');
+function saveSettings(){settings.tariff=+$('tariff').value;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);}
+function menuSettings(){closeMenu();$('settingsSheet').hidden=false;}
+function closeSettings(){$('settingsSheet').hidden=true;}
 function saveKey(){appKey=$('keyInput').value.trim();sessionStorage.setItem('beyondKey',appKey);$('keybox').style.display='none';load(true);}
 function fmt(n,d=1){return n==null||isNaN(n)?'–':Number(n).toFixed(d);}
 function wib(iso){if(!iso)return'';return new Date(iso).toLocaleString('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
@@ -490,27 +591,32 @@ async function load(manual){
     $('error').innerHTML='<div class="err"><b>Could not reach your car.</b><br>'+String(e.message||e)+'</div>';
   }
 }
+function ctrlSay(h){const c=$('ctrlMsg');if(c)c.innerHTML=h;const q=$('qaMsg');if(q)q.innerHTML=h;}
+const LOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>';
+const UNLOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 017.7-1.5"/></svg>';
+function ago(ts){const s=Math.floor((Date.now()-new Date(ts).getTime())/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' h ago';const d=Math.floor(s/86400);return d===1?'Yesterday':d+' days ago';}
+function updateLastTrip(){const t=window._lastTrip,v=$('lastTripVal'),s=$('lastTripSub');if(!v)return;if(!t){v.textContent='—';s.textContent='No trips yet';return;}v.textContent=fmt(t.distance_km,1)+' km';s.textContent=ago(t.end_time||t.start_time);}
 /* --- Remote controls (v1.1) --- */
 async function doControl(action){
   const pin=$('pinInput').value.trim();
   if(action!=='charge_start'&&!/^\d{6}$/.test(pin)){
-    $('ctrlMsg').innerHTML='<div class="err">Enter your 6-digit BYD control PIN first.</div>';return;}
+    ctrlSay('<div class="err">Enter your 6-digit BYD control PIN first.</div>');return;}
   const labels={lock:'Lock Dolphino?',unlock:'Unlock Dolphino?',
     climate_start:'Start climate at '+$('climTemp').value+' °C for '+$('climDur').value+' min?',
     climate_stop:'Stop climate?',charge_start:'Start charging?'};
   if(!confirm(labels[action]))return;
   if(/^\d{6}$/.test(pin))sessionStorage.setItem('beyondPin',pin);
-  $('ctrlMsg').innerHTML='<div class="muted">Sending…</div>';
+  ctrlSay('<div class="muted">Sending…</div>');
   try{
     const r=await fetch('/api/control',{method:'POST',
       headers:{'Content-Type':'application/json',...(appKey?{'X-App-Key':appKey}:{})},
       body:JSON.stringify({action,pin,temperature:+$('climTemp').value,duration_min:+$('climDur').value})});
     const d=await r.json();
     if(!d.ok)throw new Error(d.error+(d.detail?': '+d.detail:''));
-    $('ctrlMsg').innerHTML='<div class="muted" style="color:var(--green)">✓ '+labels[action].replace('?','')+' — sent.</div>';
+    ctrlSay('<div class="muted" style="color:var(--green)">✓ '+labels[action].replace('?','')+' — sent.</div>');
     setTimeout(()=>load(false),8000);
   }catch(e){
-    $('ctrlMsg').innerHTML='<div class="err"><b>Command failed.</b><br>'+String(e.message||e)+'</div>';
+    ctrlSay('<div class="err"><b>Command failed.</b><br>'+String(e.message||e)+'</div>');
   }
 }
 /* --- Server-side trips (v1.1 background logging) --- */
@@ -522,6 +628,8 @@ async function loadServerTrips(){
     const d=await r.json();
     if(!d.ok||d.source!=='server'){
       $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
+    window._soh=d.soh||null; updateSohRow();
+    window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
     if(!d.trips.length){
       $('serverTrips').innerHTML='<div class="muted">Automatic trips — no trips recorded yet. Background polling snapshots the car every 5 minutes.</div>';return;}
     $('serverTrips').innerHTML='<div class="muted" style="margin-bottom:6px">Automatic trips (background logging · '+d.snapshots+' snapshots)</div>'+
@@ -539,35 +647,49 @@ function timeToFull(rt){
   // BYD rarely reports a time — estimate from remaining energy / live power
   const kw=rt.charge_power_kw||0, pct=rt.battery_pct;
   if(!kw||pct==null) return null;
-  const remKwh=(100-pct)/100*(settings.battKwh||44.9);
+  const remKwh=(100-pct)/100*(settings.battKwh||60.48);
   const mins=Math.round(remKwh/kw*60);
   if(mins<1) return '< 1 min';
   return mins>=60?Math.floor(mins/60)+' h '+String(mins%60).padStart(2,'0')+' min':mins+' min';
 }
+function specRow(r){return '<div><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';}
+function healthOk(b){return b===true?'✓ OK':b===false?'⚠ Check':'–';}
+function updateSohRow(){const s=window._soh;document.querySelectorAll('#vehBatt>div').forEach(r=>{const k=r.querySelector('.k');if(k&&k.textContent.indexOf('Battery health')===0){r.querySelector('.v').textContent=s?s.soh_pct+'% · '+s.capacity_kwh+' kWh':'Collecting data…';}});}
 function render(d){
   const rt=d.realtime, v=d.vehicle;
   $('carName').textContent=v.alias||v.model_name||'Dolphino';
-  $('carline').textContent='BYD '+v.model_name+' · '+v.vin_masked+(v.plate?' · '+v.plate:'');
-  $('battPct').textContent=fmt(rt.battery_pct,0)+'%';
-  $('ringArc').setAttribute('stroke-dasharray',(rt.battery_pct||0)*3.267+' 326.7');
-  $('ringArc').setAttribute('stroke',rt.battery_pct>=20?'#34c759':'#ff3b30');
-  $('rangeKm').textContent=fmt(rt.range_km,0);
-  $('odoKm').textContent=fmt(rt.odometer_km,0);
-  $('chipBatt').textContent=fmt(rt.battery_pct,0)+'%';
-  $('chipRange').textContent=fmt(rt.range_km,0);
-  $('chipOdo').textContent=fmt(rt.odometer_km,0);
-  // Charging truth: the dedicated charging endpoint is reliable; realtime
-  // charging_state is often -1 (unknown) even while charging at 3.8 kW.
+  // Vehicle tab
+  $('vehImg').src='dolphin-atlantis.png';$('vehImg').onerror=function(){this.onerror=null;if(v.pic_url)this.src=v.pic_url;};
+  const bought=v.bought?new Date(v.bought):null;
+  $('vehSpec').innerHTML=[
+    ['Model','BYD '+(v.model_name||'—')],
+    ['Nickname',v.alias||'—'],
+    ['VIN',v.vin||v.vin_masked||'—'],
+    ['License plate',v.plate||'—'],
+    ['Purchased',bought?bought.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—'],
+    ['Odometer',rt.odometer_km!=null?fmt(rt.odometer_km,0)+' km':'—'],
+  ].map(specRow).join('');
+  const soh=window._soh;
+  $('vehBatt').innerHTML=[
+    ['Level',rt.battery_pct!=null?fmt(rt.battery_pct,0)+'%':'—'],
+    ['Range',rt.range_km!=null?fmt(rt.range_km,0)+' km':'—'],
+    ['Capacity',(+$('battKwh').value||60.48)+' kWh'],
+    ['Efficiency (lifetime)',rt.energy_lifetime_kwh100!=null?fmt(rt.energy_lifetime_kwh100,1)+' kWh / 100 km':'—'],
+    ['Battery health (est.)',soh?soh.soh_pct+'% · '+soh.capacity_kwh+' kWh':'Collecting data…'],
+  ].map(specRow).join('');
+  const h=d.health;
+  $('vehHealth').innerHTML=h?[
+    ['Power battery',healthOk(h.battery)],['Powertrain',healthOk(h.powertrain)],
+    ['Charging system',healthOk(h.charging)],['Tyre pressure (TPMS)',healthOk(h.tpms)],
+    ['Steering',healthOk(h.steering)],['Airbags (SRS)',healthOk(h.srs)],
+    ['Braking',healthOk(h.braking)],['ABS',healthOk(h.abs)],
+  ].map(specRow).join(''):'<div class="muted">Health report unavailable.</div>';
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
   const charging=(d.charging&&d.charging.charging_state===1)||rt.charging_state===1||kw>0;
-  $('chargeLine').innerHTML=charging?'<span class="pill">Charging'+(kw?' · '+fmt(kw,1)+' kW':'')+'</span>':'<span class="pill off">Not charging</span>';
-  $('onlineLine').textContent=rt.online_state===1?'Car online':'Car status: '+(rt.online_state===0?'offline':'unknown');
-  // Pulsing lightbar = charging progress; charging scene replaces it while charging
-  const lb=$('lightbar'), cs=$('chargeScene');
-  $('lbFill').style.width=Math.max(0,Math.min(100,rt.battery_pct||0))+'%';
-  $('lbPct').textContent=fmt(rt.battery_pct,0)+'%';
+  // Charging scene shows under the hero while charging
+  const cs=$('chargeScene');
   if(charging){
-    lb.style.display='none'; cs.style.display='block';
+    cs.style.display='block';
     // Count-up % like the video (tween from last shown value)
     const target=rt.battery_pct||0, from=(lastPct==null?0:lastPct);
     lastPct=target;
@@ -586,17 +708,15 @@ function render(d){
     $('csKmh').textContent=kw&&eff?fmt(kw/eff*100,0)+' km/h':'–';
     $('csAmp').textContent=kw?fmt(kw*1000/220,0)+' A':'–';
   }else{
-    lb.style.display='block'; cs.style.display='none'; lastPct=null;
-    lb.classList.remove('charging');
-    $('lbLabel').textContent='Not charging · '+fmt(rt.range_km,0)+' km range';
+    cs.style.display='none'; lastPct=null;
   }
-  if(v.pic_url){$('carImg').src=v.pic_url;$('carImg').style.display='block';}
-  if(d.gps&&d.gps.lat){$('locText').textContent=d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)+(d.gps.speed_kmh?' · '+fmt(d.gps.speed_kmh,0)+' km/h':'');
+  $('carImg').src='dolphin-atlantis.png';$('carImg').style.display='block';$('carImg').onerror=function(){this.onerror=null;if(v.pic_url)this.src=v.pic_url;};
+  if(d.gps&&d.gps.lat){
     const b=(d.gps.lon-0.02)+','+(d.gps.lat-0.012)+','+(d.gps.lon+0.02)+','+(d.gps.lat+0.012);
     $('mapFrame').src='https://www.openstreetmap.org/export/embed.html?bbox='+b+'&layer=mapnik&marker='+d.gps.lat+','+d.gps.lon;
     $('gmapsLink').href='https://maps.google.com/?q='+d.gps.lat+','+d.gps.lon;
     $('gpsTime').textContent='GPS '+wib(d.gps.timestamp)+' WIB';
-    $('locPill').textContent='Cikarang';}
+    $('heroLoc').textContent='Cikarang';$('locName').textContent='Cikarang';}
   // Tyres: top-down car view, pressure at each corner
   const tp={fl:rt.tyres_psi.fl,fr:rt.tyres_psi.fr,rl:rt.tyres_psi.rl,rr:rt.tyres_psi.rr};
   for(const k of ['fl','fr','rl','rr']){
@@ -625,6 +745,26 @@ function render(d){
     [['Inside',rt.temp_in_car!=null?fmt(rt.temp_in_car,0)+' °C':'–'],['Outside',hv.temp_out_car!=null?fmt(hv.temp_out_car,0)+' °C':'–'],
      ['Set temp',hv.main_setting_temp!=null?fmt(hv.main_setting_temp,0)+' °C':'–'],['AC',hv.status===1?'On':hv.status===2?'Off':'–']]
     .map(([k,vv])=>'<div class="tile"><div class="k">'+k+'</div><div class="v">'+vv+'</div></div>').join('');
+  // Controls tiles (HomeView-style): white tile = that function is active
+  const climOn=hv.status===1;
+  window._climOn=climOn; window._locked=allLocked; window._charging=charging;
+  $('tileClimate').classList.toggle('on',climOn);
+  $('ctlClimateState').textContent=climOn?('Cooling to '+fmt(hv.main_setting_temp!=null?hv.main_setting_temp:+$('climTemp').value,0)+'°'):'Off';
+  $('ctlClimateBtn').textContent=climOn?'Stop':'Start';
+  $('tileLock').classList.toggle('on',allLocked);
+  $('ctlLockState').textContent=allLocked?'Locked':'Unlocked';
+  $('tileCharge').classList.toggle('on',charging);
+  $('ctlChargeState').textContent=charging?(kw?fmt(kw,1)+' kW':'Charging'):'Not charging';
+  // Home hero: lock button, quick-actions labels, battery stat
+  const temp=hv.main_setting_temp!=null?hv.main_setting_temp:+$('climTemp').value;
+  $('heroLock').innerHTML=allLocked?LOCK_SVG:UNLOCK_SVG;
+  $('battStatPct').textContent=fmt(rt.battery_pct,0)+'%';
+  const ttf=charging?timeToFull(rt):null;
+  $('battStatSub').textContent=charging?(kw?fmt(kw,1)+' kW'+(ttf?' · ≈ '+ttf+' to full':''):'Charging'):fmt(rt.range_km,0)+' km range';
+  const bf=$('battIconFill'), bh=Math.max(0,Math.min(28,(rt.battery_pct||0)/100*28));
+  bf.setAttribute('y',37-bh); bf.setAttribute('height',bh);
+  bf.setAttribute('fill',rt.battery_pct>=20?'#34c759':'#ff3b30');
+  updateLastTrip();
   $('eLife').textContent=fmt(rt.energy_lifetime_kwh100,1);
   $('eRecent').textContent=fmt(rt.energy_recent_kwh100,1);
   renderCost(d);
@@ -634,7 +774,7 @@ function render(d){
 }
 function renderCost(d){
   if(!d)return;
-  const tariff=+$('tariff').value||0, kwh=+$('battKwh').value||44.9;
+  const tariff=+$('tariff').value||0, kwh=+$('battKwh').value||60.48;
   const cons=d.realtime.energy_recent_kwh100||d.realtime.energy_lifetime_kwh100;
   $('costKm').textContent=tariff&&cons?'Rp '+Math.round(cons*tariff/100).toLocaleString('id-ID'):'–';
   $('costFull').textContent=tariff?'Rp '+Math.round(kwh*tariff).toLocaleString('id-ID'):'–';
@@ -648,7 +788,7 @@ function saveTrip(d){
   localStorage.setItem('beyondTrips',JSON.stringify(list)); renderTrips(list);
 }
 function renderTrips(list){
-  const tariff=+$('tariff').value||0, kwh=+$('battKwh').value||44.9;
+  const tariff=+$('tariff').value||0, kwh=+$('battKwh').value||60.48;
   $('tripRows').innerHTML=list.slice().reverse().map((s,i,arr)=>{
     const prev=arr[i+1];
     const dk=prev?(s.odo-prev.odo):null, db=prev?(prev.batt-s.batt):null;
@@ -662,21 +802,26 @@ function exportCSV(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='beyond-trips.csv'; a.click();
 }
 function clearTrips(){if(confirm('Clear all saved trip snapshots on this device?')){localStorage.removeItem('beyondTrips');renderTrips([]);}}
-function toggleAuto(){auto=!auto;$('autoBtn').querySelector('span').textContent='Auto-refresh: '+(auto?'on':'off');
-  $('menuAutoLabel').textContent='Auto-refresh: '+(auto?'on':'off');$('menuAutoIcon').textContent=auto?'✓':'○';
+function toggleAuto(){auto=!auto;const ab=$('autoBtn');if(ab)ab.querySelector('span').textContent='Auto-refresh: '+(auto?'on':'off');
+  $('menuAutoSwitch').classList.toggle('on',auto);
   if(auto)startTimer();else clearInterval(timer);}
+function setDur(m){$('climDur').value=m;document.querySelectorAll('#durSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.dur===m));}
+function stepTemp(d){const v=Math.min(31,Math.max(15,(parseFloat($('climTemp').value)||23)+d));$('climTemp').value=v;$('ctlTempBig').textContent=(v%1?v.toFixed(1):v)+'°';}
+function toggleClimate(){doControl(window._climOn?'climate_stop':'climate_start');}
+function toggleLock(){doControl(window._locked?'unlock':'lock');}
+function tapCharge(){if(window._charging){ctrlSay('<div class="muted">Already charging — stop it with the key fob / door-handle double-unlock.</div>');return;}doControl('charge_start');}
 function toggleMenu(e){e.stopPropagation();$('ctxmenu').classList.toggle('open');}
 function menuChangelog(){closeMenu();$('changelogSheet').hidden=false;}
 function closeChangelog(){$('changelogSheet').hidden=true;}
 document.addEventListener('click',e=>{if(!$('ctxmenu').contains(e.target))$('ctxmenu').classList.remove('open');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');closeChangelog();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');closeChangelog();closeSettings();}});
 function closeMenu(){$('ctxmenu').classList.remove('open');}
 function menuRefresh(){closeMenu();load(true);}
 function menuAuto(){closeMenu();toggleAuto();}
 function menuExport(){closeMenu();exportCSV();}
 function menuClear(){closeMenu();clearTrips();}
 /* --- Page router: one page at a time, hash-driven (deep links + back button) --- */
-const PAGES=['overview','energy','trips','controls'];
+const PAGES=['overview','energy','trips','controls','vehicle'];
 function showPage(name){
   if(!PAGES.includes(name))name='overview';
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));

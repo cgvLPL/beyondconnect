@@ -1,5 +1,14 @@
 # BEYONDconnect changelog
 
+## v1.2.0 — 22 Nov 2026
+
+- Home screen redesigned: "Hey Ray!" greeting, dark hero card with your Atlantis Grey Dolphin photo, Battery + Last trip cards, full-bleed location map, icons-only dock.
+- New Vehicle tab: VIN, plate, purchase date, odometer, battery health estimate from your charging sessions and trips, and 8 system health checks.
+- Backgrounds: your five wallpapers (Ember, Dune, Nebula, Silk, Beams) with frosted glass cards; Control PIN moved into Settings.
+- Controls rebuilt as HomeView-style tiles; the car is now shown in Atlantis Grey.
+- Battery corrected to 60.48 kWh (Extended Range) — full-charge cost and trip energy now use the right size.
+- Top bar removed; the ••• menu now sits next to the greeting.
+
 ## v1.1.0 — 22 Nov 2026
 
 - Remote controls: lock / unlock, climate start/stop (temperature + duration), start charging. 6-digit BYD control PIN, entered once per tab, never stored.

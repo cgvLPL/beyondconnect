@@ -29,7 +29,7 @@ Env vars:
                                Vercel Cron's Bearer token; otherwise it
                                accepts the X-App-Key header)
   TARIFF_RPKWH                (default 1700 — used for trip cost estimates)
-  BYD_BATTERY_KWH             (default 44.9 — used for trip energy estimates)
+  BYD_BATTERY_KWH             (default 60.48 — used for trip energy estimates)
 """
 import asyncio
 import json
@@ -150,7 +150,7 @@ async def status(x_app_key: str | None = Header(default=None)):
                     return await coro
                 except Exception:
                     return None
-            rt, gps, ch, en, hv = await asyncio.gather(
+            rt, gps, ch, en, hv, cfg = await asyncio.gather(
                 client.get_vehicle_realtime(vin),
                 # GPS flakes transiently (BYD code 1008) — never let it
                 # take the whole dashboard down.
@@ -158,6 +158,9 @@ async def status(x_app_key: str | None = Header(default=None)):
                 _safe(client.get_charging_status(vin)),
                 _safe(client.get_energy_consumption(vin)),
                 _safe(client.get_hvac_status(vin)),
+                # Vehicle health summary (booleans per system) — BYD
+                # reports no numeric battery SOH anywhere in the API.
+                _safe(client.get_latest_config(vin)),
             )
             if ch is not None:
                 charging = {"soc": ch.soc, "charging_state": ch.charging_state,
@@ -191,11 +194,23 @@ async def status(x_app_key: str | None = Header(default=None)):
                         "main_setting_temp": _temp(hv.main_setting_temp)}
             else:
                 hvac = None
+            if cfg is not None:
+                health = {"battery": cfg.health_battery,
+                          "powertrain": cfg.health_powertrain,
+                          "charging": cfg.health_charging,
+                          "tpms": cfg.health_tpms,
+                          "steering": cfg.health_steering,
+                          "srs": cfg.health_srs,
+                          "braking": cfg.health_braking,
+                          "abs": cfg.health_abs}
+            else:
+                health = None
             return {
                 "ok": True,
                 "version": VERSION,
                 "fetched_at": datetime.now(timezone.utc).isoformat(),
                 "vehicle": {
+                    "vin": vin,
                     "vin_masked": _mask_vin(vin),
                     "model_name": v.model_name,
                     "alias": v.auto_alias,
@@ -248,6 +263,7 @@ async def status(x_app_key: str | None = Header(default=None)):
                 "charging": charging,
                 "energy": energy,
                 "hvac": hvac,
+                "health": health,
             }
         except Exception as e:
             await _reset_client()
@@ -387,7 +403,7 @@ KV_SNAPS_KEY = "beyond:snaps"
 KV_MAX_SNAPS = 3000  # ~10 days at a 5-minute cadence
 CRON_SECRET = os.environ.get("CRON_SECRET", "")
 TARIFF_RPKWH = float(os.environ.get("TARIFF_RPKWH", "1700") or 1700)
-BATTERY_KWH = float(os.environ.get("BYD_BATTERY_KWH", "44.9") or 44.9)
+BATTERY_KWH = float(os.environ.get("BYD_BATTERY_KWH", "60.48") or 60.48)
 
 
 async def _kv(args: list[str], method: str = "POST") -> dict | None:
@@ -459,6 +475,98 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dic
     return list(reversed(out))  # newest first
 
 
+def _estimate_soh(snaps: list[dict], trips: list[dict],
+                  batt_kwh: float) -> dict | None:
+    """Estimate battery state-of-health from trip + charging history.
+
+    The BYD API reports no SOH number, so it is derived two ways, both
+    implying the full usable capacity, then averaged weighted by |dSOC|:
+    - Charging sessions: integrate charge power over time (trapezoid rule
+      on the 5-minute snapshots) and divide by the SOC gained.
+    - Trips: distance x the car's own measured efficiency (kWh/100 km,
+      stored per snapshot) divided by the SOC dropped.
+    Only sessions with >= 10 points of SOC change (>= 5 for trips) and an
+    implied capacity in a sane 30-60 kWh band count. Returns None when
+    there is no usable history yet (e.g. no charging session recorded).
+    """
+    def _dt(a, b):
+        try:
+            return (datetime.fromisoformat(b["t"]) -
+                    datetime.fromisoformat(a["t"])).total_seconds() / 3600
+        except Exception:
+            return None
+
+    estimates = []  # (capacity_kwh, weight, kind)
+    # --- charging sessions: runs of charging snapshots, gaps < 30 min ---
+    run: list[dict] = []
+
+    def flush(run):
+        if len(run) < 4:
+            return
+        first, last = run[0], run[-1]
+        dsoc = (last.get("batt_pct") or 0) - (first.get("batt_pct") or 0)
+        if dsoc < 10:
+            return
+        energy = 0.0
+        for a, b in zip(run, run[1:]):
+            pa, pb = a.get("power_kw"), b.get("power_kw")
+            dt_h = _dt(a, b)
+            if pa is None or pb is None or dt_h is None:
+                continue
+            if dt_h <= 0 or dt_h > 0.5:
+                continue
+            energy += (pa + pb) / 2 * dt_h
+        if energy <= 0:
+            return
+        cap = energy / (dsoc / 100)
+        if 30 <= cap <= 60:
+            estimates.append((cap, dsoc, "charge"))
+
+    prev = None
+    for s in snaps:
+        if s.get("charging"):
+            if prev is not None and prev.get("charging"):
+                try:
+                    gap = (datetime.fromisoformat(s["t"]) -
+                           datetime.fromisoformat(prev["t"])).total_seconds() / 60
+                except Exception:
+                    gap = None
+                if gap is not None and gap >= 30:
+                    flush(run)
+                    run = []
+            run.append(s)
+        else:
+            flush(run)
+            run = []
+        prev = s
+    flush(run)
+    # --- trips: distance x measured efficiency / SOC dropped ---
+    for t in trips:
+        drop = (t.get("start_batt_pct") or 0) - (t.get("end_batt_pct") or 0)
+        if drop < 5 or (t.get("distance_km") or 0) < 5:
+            continue
+        effs = [s.get("eff_kwh100") for s in snaps
+                if t["start_time"] <= s.get("t", "") <= t["end_time"]
+                and s.get("eff_kwh100")]
+        if not effs:
+            continue
+        eff = sum(effs) / len(effs)
+        cap = t["distance_km"] * eff / 100 / (drop / 100)
+        if 30 <= cap <= 60:
+            estimates.append((cap, drop, "trip"))
+    if not estimates:
+        return None
+    wsum = sum(w for _, w, _ in estimates)
+    cap_avg = sum(c * w for c, w, _ in estimates) / wsum
+    return {
+        "soh_pct": round(100 * cap_avg / batt_kwh, 1),
+        "capacity_kwh": round(cap_avg, 1),
+        "nominal_kwh": batt_kwh,
+        "charge_sessions": sum(1 for _, _, k in estimates if k == "charge"),
+        "trip_estimates": sum(1 for _, _, k in estimates if k == "trip"),
+    }
+
+
 @app.get("/api/poll")
 async def poll(
     request: Request,
@@ -505,6 +613,9 @@ async def poll(
             "lon": _num(gps.longitude) if gps else None,
             "charging": bool(ch and ch.charging_state == 1),
             "power_kw": _num(ch.charge_power) if ch else None,
+            # The car's own measured efficiency — feeds the trip-side
+            # SOH estimate (distance x efficiency / SOC dropped).
+            "eff_kwh100": _num(rt.recent_50km_energy_ev),
         }
         import urllib.parse
         await _kv(["lpush", KV_SNAPS_KEY,
@@ -538,9 +649,10 @@ async def trips(
             except Exception:
                 pass
     snaps.sort(key=lambda s: s.get("t", ""))
-    return {"ok": True, "source": "server", "trips": _derive_trips(
-        snaps, tariff or TARIFF_RPKWH, BATTERY_KWH),
-        "snapshots": len(snaps)}
+    trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH)
+    return {"ok": True, "source": "server", "trips": trips,
+            "snapshots": len(snaps),
+            "soh": _estimate_soh(snaps, trips, BATTERY_KWH)}
 
 
 # Serve the static frontend (public/). Path is anchored to this file, not the

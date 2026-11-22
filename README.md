@@ -59,7 +59,7 @@ sets `KV_REST_API_URL` / `KV_REST_API_TOKEN` automatically. Without
 a linked store, `/api/poll` returns `kv_not_configured` and the
 dashboard falls back to browser-local trips. Optional env vars:
 `CRON_SECRET` (Vercel Cron auth), `TARIFF_RPKWH` (default 1700),
-`BYD_BATTERY_KWH` (default 44.9).
+`BYD_BATTERY_KWH` (default 60.48).
 
 ## What it does NOT do (next)
 
