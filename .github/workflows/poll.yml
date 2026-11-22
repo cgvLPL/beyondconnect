@@ -1,4 +1,8 @@
 # BEYONDconnect background poll — the 5-minute scheduler.
+#
+# NOTE: GitHub only registers the cron schedule when this file is committed
+# to main. If scheduled runs ever stop firing, re-commit this file to
+# re-register the schedule (a manual run does NOT re-register it).
 name: BEYONDconnect background poll
 on:
   schedule:
