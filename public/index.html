@@ -19,10 +19,19 @@
   --radius:24px;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#0c0c0e;--text:#f5f5f7;--muted:#98989d;--line:#38383a;--card:#1c1c1e;--card-soft:#2c2c2e;
-  --green-soft:#0f2e1c;--glass-tint:rgb(30 30 34 / .45);--glass-border:rgb(255 255 255 / .18);
-  --glass-shadow:0 8px 24px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .25), inset 0 -1px 0 rgb(0 0 0 / .2);}
+  /* OLED dark: pure black background so pixels turn off; cards/glass stay
+     just above black so surfaces still read, glows kept faint. */
+  :root{color-scheme:dark;--bg:#000;--text:#f5f5f7;--muted:#9a9aa0;--line:#232326;--card:#0c0c0c;--card-soft:#141414;
+  --green-soft:#0d2b18;--glass-tint:rgb(18 18 18 / .55);--glass-border:rgb(255 255 255 / .14);
+  --glass-shadow:0 8px 24px rgb(0 0 0 / .6), inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -1px 0 rgb(0 0 0 / .2);}
+  .glass::before{background:radial-gradient(120% 70% at 25% 0%, rgb(255 255 255 / .14), transparent 55%)}
+  .tabs{background:rgb(255 255 255 / .06)}
+  .pill.off{background:#161616}
+  .charge-scene{background:#0b0b0b}
+  .map{filter:invert(.92) hue-rotate(180deg) brightness(.9) contrast(.95)}
 }
+@media (prefers-color-scheme:dark) and (prefers-reduced-transparency:reduce){.glass{background:rgb(0 0 0 / .94)}}
+@media (prefers-color-scheme:dark) and (prefers-contrast:more){.glass{background:#000;border-color:#f5f5f7}}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
@@ -32,9 +41,9 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Seg
     linear-gradient(180deg,#ececef,#e4e4e8 40%,#e9e9ec);
   min-height:100vh}
 @media (prefers-color-scheme:dark){body{background:
-    radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .14), transparent 60%),
-    radial-gradient(700px 420px at 10% 0%, rgb(10 132 255 / .12), transparent 60%),
-    linear-gradient(180deg,#101012,#0c0c0e 40%,#0c0c0e);}}
+    radial-gradient(900px 500px at 70% -10%, rgb(0 166 81 / .07), transparent 60%),
+    radial-gradient(700px 420px at 10% 0%, rgb(10 132 255 / .05), transparent 60%),
+    #000;}}
 
 /* --- Liquid Glass (chrome only) --- */
 .glass{
