@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.7 — 22 Nov 2026
+
+- Trips no longer split when the car sits still briefly mid-drive. The trip detector closed a trip whenever the odometer didn't move for one poll (a traffic light, a quick stop), so a single drive showed up as two trips — e.g. a 1 km leg and a 10 km leg 2 minutes apart. Segments separated by under 10 minutes of standing still are now joined into one trip (distance, duration, battery and route all computed across the join). A real stop — parked 10+ minutes at a destination — still counts as a separate trip.
+
 ## v1.3.6 — 22 Nov 2026
 
 - Vehicle tab is now bento tiles instead of two spec lists: a wide Battery hero tile (big %, green/red bar, "≈ 490 km range" subline), then Range, Range · your driving, Odometer, Efficiency · lifetime, Battery health · est., Capacity, and a wide Vehicle identity tile (Model / Nickname / VIN / Plate / Purchased as compact rows). Your-driving range and battery health show "Collecting…" until the background snapshots have enough history to estimate them.

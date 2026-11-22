@@ -588,6 +588,27 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dic
         prev = s
     if cur is not None:
         trips.append(cur)
+    # Merge segments split by a brief stop: a single drive is often cut in
+    # two when the car sits still for one poll (traffic light, quick stop)
+    # and the odometer doesn't move for that interval, so the loop above
+    # closes the trip and a new one starts when it moves again. Join
+    # segments whose stationary gap is under 10 min so they read as one
+    # trip; a real stop (parked 10+ min at a destination) stays separate.
+    MERGE_GAP_MIN = 10
+    merged = []
+    for seg in trips:
+        if merged:
+            prev_first, prev_last = merged[-1]
+            try:
+                gap = (datetime.fromisoformat(seg[0]["t"]) -
+                       datetime.fromisoformat(prev_last["t"])).total_seconds() / 60
+            except Exception:
+                gap = None
+            if gap is not None and gap < MERGE_GAP_MIN:
+                merged[-1][1] = seg[1]
+                continue
+        merged.append([seg[0], seg[1]])
+    trips = merged
     out = []
     for first, last in trips:
         dist = round(last["odo_km"] - first["odo_km"], 1)

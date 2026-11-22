@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.6 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.7 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -623,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.7 — 22 Nov 2026</h3>
+    <ul>
+      <li>Trips no longer split when the car sits still briefly mid-drive: segments separated by under 10 minutes (traffic light, quick stop) are now joined into one trip. A real stop — parked 10+ minutes — still counts as a separate trip.</li>
+    </ul>
     <h3>v1.3.6 — 22 Nov 2026</h3>
     <ul>
       <li>Vehicle tab is now bento tiles: a wide Battery hero (big %, green bar, ≈ range), then Range, Range · your driving, Odometer, Efficiency · lifetime, Battery health · est., Capacity, and a wide Vehicle identity tile (Model, Nickname, VIN, Plate, Purchased). Your-driving range and battery health show "Collecting…" until there's enough history.</li>
