@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.18 — 23 Nov 2026
+
+- Control icons are now the ones from Ray's picture (IMG_2189.png), extracted exactly by tracing the image: Flash lights is the headlight (was a household lightbulb), Trunk is the car rear with the lid opening and an up arrow (was a house), Find car is the car signalling with rays above it (was a map pin), and Windows is the car window with an up triangle (was a plain 2×2 grid). The four icons were traced from the PNG with OpenCV (threshold + contour trace, scaled to 24×24) and render as filled shapes with fill="currentColor", so they still adapt to dark/light mode. Locks and Charging kept their icons.
+
 ## v1.3.17 — 23 Nov 2026
 
 - You can now set home yourself (v1.3.16 fixed the sentinel corruption, but the auto-detected home still read BSD once the car had sat there ~17 h — the densest snapshot cluster is wherever the car is parked now, not necessarily home). New `POST /api/set-home` (app-key gated) stores a {lat, lon, name} override in KV; `/api/trips` uses it for the home value and for every trip/charging "Home" place label, and reports `home_source` ("manual" / "auto") and `home_name`. `POST /api/clear-home` drops the override and goes back to auto-detection. In the app: open any trip's detail sheet and tap "Set start as home" or "Set end as home" (so the 68 km Cikarang → BSD drive can set home to Cikarang from its start), and Settings → Home location shows the current home with its source ("Set by you" / "Auto-detected") plus a Clear button when it's manual. The override is stored server-side, so it survives restarts and applies to every device. Verified: unit test on synthetic data (derived home = BSD, override = Cikarang → trip reads "Home → None"); rig test of the full flow (set from a trip, home flips to Cikarang, Clear reverts) pending before push.

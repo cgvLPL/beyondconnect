@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.17 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.18 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -570,22 +570,22 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <div class="ctlstate" id="ctlChargeState">Not charging</div>
   </div>
   <div class="ctltile" id="tileFind" role="button" tabindex="0" onclick="tapFind()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapFind();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M5.1 13.0 L5.1 13.9 L5.3 14.1 L5.8 14.1 L7.5 14.9 L16.5 14.9 L17.2 14.4 L18.0 14.4 L18.7 13.9 L18.7 13.0 L18.2 12.7 L16.8 13.0 L15.8 13.4 L8.0 13.4 L6.3 12.7 Z M17.0 4.1 L16.0 4.1 L14.6 5.6 L14.6 7.2 L6.3 7.2 L4.9 8.4 L3.7 10.8 L2.5 10.8 L2.0 11.3 L2.7 12.5 L3.0 21.0 L6.8 21.3 L7.5 20.6 L7.7 19.1 L16.0 19.1 L16.3 20.6 L17.0 21.3 L20.3 21.3 L21.0 20.8 L20.8 12.5 L21.8 11.3 L21.3 10.8 L20.1 10.8 L18.0 7.5 L15.3 7.0 L17.0 5.6 Z M6.3 9.1 L6.8 8.7 L16.8 8.7 L18.2 10.3 L19.9 13.9 L19.9 19.4 L19.4 19.9 L18.2 19.9 L17.7 19.4 L17.7 18.0 L6.0 18.0 L6.0 19.4 L5.6 19.9 L4.4 19.9 L3.9 19.4 L3.9 13.9 Z M6.8 4.1 L6.5 4.4 L6.5 4.9 L7.5 6.3 L8.2 6.8 L9.1 6.8 L9.1 5.6 L7.7 4.1 Z M11.5 2.5 L11.3 2.7 L11.3 5.8 L11.5 6.0 L12.2 6.0 L12.5 5.8 L12.5 2.7 L12.2 2.5 Z" fill-rule="evenodd"/></svg></div>
     <div class="ctlname">Find car</div>
     <div class="ctlstate">Horn + lights</div>
   </div>
   <div class="ctltile" id="tileFlash" role="button" tabindex="0" onclick="tapFlash()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapFlash();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 00-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0012 3z"/></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M2.0 17.3 L2.0 18.1 L2.5 18.6 L5.8 18.6 L6.3 18.1 L6.3 17.3 L6.1 17.0 L2.3 17.0 Z M2.0 13.5 L2.0 14.3 L2.3 14.6 L6.1 14.6 L6.3 14.3 L6.3 13.5 L6.1 13.2 L2.3 13.2 Z M2.0 9.7 L2.0 10.2 L2.5 10.8 L5.8 10.8 L6.3 10.2 L6.3 9.7 L5.8 9.2 L2.5 9.2 Z M2.0 5.9 L2.0 6.5 L2.5 7.0 L5.8 7.0 L6.3 6.5 L6.3 5.9 L5.8 5.4 L2.5 5.4 Z M10.6 3.8 L9.6 4.3 L8.8 5.6 L8.8 17.8 L9.3 19.2 L10.4 20.0 L14.4 20.0 L15.5 19.7 L18.5 18.4 L20.9 15.6 L21.7 13.5 L21.5 9.4 L20.1 7.0 L17.9 5.1 L13.9 3.8 Z M11.2 5.4 L13.6 5.4 L13.9 5.6 L15.5 5.9 L17.1 6.7 L19.0 8.6 L20.1 10.8 L20.1 13.2 L19.3 14.8 L17.1 17.0 L15.8 17.8 L15.2 17.8 L14.2 18.4 L12.3 18.4 L11.7 18.6 L10.4 17.5 L10.4 6.2 Z" fill-rule="evenodd"/></svg></div>
     <div class="ctlname">Flash lights</div>
     <div class="ctlstate">Flashes once</div>
   </div>
   <div class="ctltile" id="tileWin" role="button" tabindex="0" onclick="tapWindows()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapWindows();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18"/><path d="M12 12v8"/></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8.2 L11.3 10.3 L11.3 11.3 L14.4 11.3 L14.4 10.6 L13.2 8.2 Z M2.2 11.8 L2.0 12.7 L2.2 16.8 L3.7 18.0 L20.3 18.0 L21.3 17.5 L21.8 16.8 L21.8 7.2 L20.8 6.0 L8.9 5.8 L7.0 6.8 Z M3.4 13.9 L3.9 13.4 L20.1 13.4 L20.6 13.9 L20.6 15.6 L19.9 16.5 L4.1 16.5 L3.4 15.6 Z M4.1 11.8 L7.0 8.9 L9.1 7.2 L19.6 7.2 L20.1 7.5 L20.6 8.2 L20.6 11.5 L20.1 12.0 L4.4 12.0 Z" fill-rule="evenodd"/></svg></div>
     <div class="ctlname">Windows</div>
     <div class="ctlstate" id="ctlWinState">Closed</div>
   </div>
   <div class="ctltile" id="tileTrunk" role="button" tabindex="0" onclick="tapTrunk()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapTrunk();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5"/><path d="M5 8v10a1 1 0 001 1h12a1 1 0 001-1V8"/><path d="M9 19v-5h6v5"/></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M18.4 7.6 L18.4 9.8 L18.7 10.1 L18.7 10.6 L19.5 10.6 L20.1 12.0 L20.1 13.7 L19.2 15.3 L18.9 16.7 L19.2 17.0 L20.3 17.0 L21.4 15.3 L21.4 14.2 L21.7 13.9 L21.7 11.4 L21.2 10.1 L21.7 9.2 L21.7 8.7 L19.5 7.6 Z M2.0 7.3 L2.3 8.7 L7.8 8.9 L12.0 11.2 L14.2 11.7 L14.8 12.3 L15.1 13.9 L14.8 16.2 L14.2 16.7 L12.3 17.0 L10.9 18.7 L9.8 18.7 L8.1 17.0 L2.3 17.0 L2.3 18.4 L7.3 18.7 L8.9 20.3 L11.4 20.3 L12.6 19.8 L13.7 18.4 L15.3 18.4 L16.2 17.6 L16.7 16.2 L16.4 11.2 L15.9 10.6 L8.1 7.3 Z M16.7 3.9 L15.9 3.4 L14.2 3.4 L12.6 4.5 L10.1 5.6 L9.5 6.2 L9.5 7.0 L9.8 7.3 L11.2 7.3 L15.1 5.1 L15.3 5.3 L16.4 5.3 L16.7 5.1 Z" fill-rule="evenodd"/></svg></div>
     <div class="ctlname">Trunk</div>
     <div class="ctlstate" id="ctlTrunkState">Closed</div>
   </div>
@@ -623,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.18 — 23 Nov 2026</h3>
+    <ul>
+      <li>Control icons are now the ones from your picture, extracted exactly — Flash lights is the headlight, Trunk is the car rear with the lid opening, Find car is the car signalling, and Windows is the car window. Locks and Charging kept their icons.</li>
+    </ul>
     <h3>v1.3.17 — 23 Nov 2026</h3>
     <ul>
       <li>You can now set home yourself. Open any trip and tap "Set start as home" or "Set end as home" — that spot sticks as home (saved on the server) until you clear it in Settings → Home location. The auto-detected home no longer moves when the car sits somewhere else for days.</li>
