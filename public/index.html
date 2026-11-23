@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.19 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.20 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -625,6 +625,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.20 — 24 Nov 2026</h3>
+    <ul>
+      <li>Faster first load: the dashboard now paints instantly from your last visit's data while the live car status loads in the background.</li>
+    </ul>
     <h3>v1.3.19 — 23 Nov 2026</h3>
     <ul>
       <li>The Locks tile padlock now animates: when the car unlocks, the shackle swings open; when it locks, it clicks shut.</li>
@@ -918,6 +922,9 @@ async function load(manual){
     const d=await r.json();
     if(!d.ok){throw new Error(d.error+(d.detail?': '+d.detail:'')+(d.hint?' — '+d.hint:''));}
     window._last=d; render(d);
+    // Cache the fresh status so the next visit can paint instantly
+    // while the live BYD call (~4s) is still in flight (v1.3.20).
+    try{localStorage.setItem('beyondStatus',JSON.stringify({t:Date.now(),d}));}catch(e){}
     document.body.classList.remove('locked');
     $('app').style.display='block';
     loadServerTrips();
@@ -1483,7 +1490,21 @@ window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overv
 showPage(location.hash.slice(1)||'overview');
 function startTimer(){clearInterval(timer);timer=setInterval(()=>load(false),60000);}
 try{$('greetDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});}catch(e){}
-renderTrips(trips()); load(false); startTimer();
+renderTrips(trips());
+// Instant first paint (v1.3.20): render the last known status from the
+// previous visit while the live /api/status call (BYD, ~4s) is still in
+// flight. The fresh load below re-renders with live data when it lands.
+try{
+  if(appKey){
+    const cached=JSON.parse(localStorage.getItem('beyondStatus')||'null');
+    if(cached&&cached.d&&cached.d.realtime&&Date.now()-(cached.t||0)<24*3600*1000){
+      window._last=cached.d; render(cached.d);
+      document.body.classList.remove('locked');
+      $('app').style.display='block';
+    }
+  }
+}catch(e){}
+load(false); startTimer();
 </script>
 </body>
 </html>

@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.20 — 24 Nov 2026
+
+- Faster initial load (Ray, 2026-11-24 06:46 WIB). Measured live: the page shell loads in ~250 ms, but `/api/status` takes ~4.1 s because it calls BYD live (5 parallel BYD calls, each ~1 s) — so the dashboard sat blank for ~4 s. Fix: the last successful status is now cached in localStorage (`beyondStatus`, 24 h cap), and on startup the dashboard renders from that cache instantly and shows, while the live `/api/status` fetch runs in the background and re-renders with fresh data when it lands. The cached values are at most from the previous visit and are replaced within ~4 s.
+
 ## v1.3.19 — 23 Nov 2026
 
 - The Locks tile padlock now animates (Ray's photo of a padlock): the shackle is its own SVG group with a CSS transition (transform-origin at the left hinge, spring easing). When the car is unlocked the shackle swings open 40°; when it locks it rotates back shut. Driven by the tile's existing `on` class (locked), so it follows the real lock state from the server.
