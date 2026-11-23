@@ -527,6 +527,34 @@ async def _kv(args: list[str], method: str = "POST") -> dict | None:
         return None
 
 
+def _valid_gps(lat, lon) -> bool:
+    """A GPS fix is real only if it is numeric, in range, and not the
+    (0, 0) sentinel BYD sends when the car is asleep / GPS is unavailable.
+    (0, 0) is in the Gulf of Guinea — never a real location for this car.
+    Unfiltered, (0, 0) snapshots poisoned everything: the densest 1 km
+    cluster became (0, 0) so home read [0, 0], and trips spanning a
+    (0, 0) point read ~23,728 km."""
+    if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+        return False
+    if lat == 0 and lon == 0:
+        return False
+    return -90 <= lat <= 90 and -180 <= lon <= 180
+
+
+def _clean_snap(s: dict) -> dict:
+    """Null out BYD asleep-sentinels in one snapshot, so every derivation
+    (home, trips, sessions, SOH, range) sees clean data. The odometer
+    reads 0.0 and GPS reads (0, 0) while the car is asleep; a real
+    odometer is never 0 on this car (23,730 km)."""
+    c = dict(s)
+    if c.get("odo_km") is not None and c["odo_km"] <= 0:
+        c["odo_km"] = None
+    if not _valid_gps(c.get("lat"), c.get("lon")):
+        c["lat"] = None
+        c["lon"] = None
+    return c
+
+
 def _home_location(snaps: list[dict]) -> tuple | None:
     """The car's home: the densest 1 km spot across snapshots, then the
     median point inside it. The car is parked at home most of the time,
@@ -536,8 +564,7 @@ def _home_location(snaps: list[dict]) -> tuple | None:
     1-decimal boundary, so jitter split it and BSD won the count), and
     the old median of ALL snapshots landed mid-route after a long drive."""
     pts = [(s["lat"], s["lon"]) for s in snaps
-           if isinstance(s.get("lat"), (int, float))
-           and isinstance(s.get("lon"), (int, float))]
+           if _valid_gps(s.get("lat"), s.get("lon"))]
     if len(pts) < 10:
         return None
     best, best_n = None, -1
@@ -567,7 +594,7 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dic
         if home is None:
             return None
         lat, lon = s.get("lat"), s.get("lon")
-        if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+        if not _valid_gps(lat, lon):
             return None
         return "Home" if _haversine_km(home, (lat, lon)) < 0.5 else None
     trips = []
@@ -906,10 +933,18 @@ async def poll(
         )
         snap = {
             "t": datetime.now(timezone.utc).isoformat(),
-            "odo_km": _num(rt.total_mileage),
+            # BYD sends 0.0 sentinels when the car is asleep — a 0 km
+            # odometer and a (0, 0) GPS fix are not real, so store None
+            # instead of poisoning home / trips with them.
+            "odo_km": _num(rt.total_mileage)
+            if _num(rt.total_mileage) not in (None, 0) else None,
             "batt_pct": _num(rt.elec_percent),
-            "lat": _num(gps.latitude) if gps else None,
-            "lon": _num(gps.longitude) if gps else None,
+            "lat": _num(gps.latitude)
+            if gps and _valid_gps(_num(gps.latitude), _num(gps.longitude))
+            else None,
+            "lon": _num(gps.longitude)
+            if gps and _valid_gps(_num(gps.latitude), _num(gps.longitude))
+            else None,
             # Regen braking is not charging: the gun must be plugged in.
             # charging_state alone reads 1 while regenerating (energy
             # flowing into the battery), but connect_state is 0 then —
@@ -953,6 +988,9 @@ async def trips(
             except Exception:
                 pass
     snaps.sort(key=lambda s: s.get("t", ""))
+    # BYD asleep-sentinels (odo 0, GPS (0, 0)) are stored in older
+    # snapshots — null them here so every derivation below sees clean data.
+    snaps = [_clean_snap(s) for s in snaps]
     trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH)
     t = tariff or TARIFF_RPKWH
     home = _home_location(snaps)

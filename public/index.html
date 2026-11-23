@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.15 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.16 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -623,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.16 — 23 Nov 2026</h3>
+    <ul>
+      <li>Fixed the trip history and home going wrong overnight. When the car is asleep, BYD reports a 0 km odometer and a (0, 0) GPS fix — and those were stored as real data, so home read [0, 0] (in the ocean) and phantom 23,728 km trips appeared. Those values are now ignored everywhere: new snapshots store them as missing, and the existing ones are filtered out when trips and home are worked out. Home is back to a real place.</li>
+    </ul>
     <h3>v1.3.15 — 23 Nov 2026</h3>
     <ul>
       <li>When the car is charging, the hero card is now replaced by a charging scene: your side-view Dolphin photo, a big battery %, a pulsing glowing progress bar below the car, and the charger type — AC Charger, Fast Charger or Ultra Fast Charger, detected from the live charging power. The stats show Power (kW), Charged (kWh), Current (A) and Voltage (V). No cable, no charge box.</li>
