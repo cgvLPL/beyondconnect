@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.18 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.19 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -141,6 +141,8 @@ button{font:inherit}
 .ctltile.big .btn{width:100%}
 .ctltile.big .seg{margin-top:12px}
 .ctlicon{width:56px;height:56px;border-radius:50%;background:rgb(127 127 127 / .16);display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--text)}
+#tileLock .lockshackle{transform-box:fill-box;transform-origin:left bottom;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+#tileLock:not(.on) .lockshackle{transform:rotate(-40deg)}
 .ctlname{font-size:17px;font-weight:600}
 .ctlstate{color:var(--muted);font-size:15px;margin-top:2px}
 .ctltile.on{background:#fff;color:#111;border-color:transparent}
@@ -560,7 +562,7 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <button class="btn" id="ctlClimateBtn" style="margin-top:12px" onclick="event.stopPropagation();toggleClimate()">Start</button>
   </div>
   <div class="ctltile" id="tileLock" role="button" tabindex="0" onclick="toggleLock()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();toggleLock();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><g class="lockshackle"><path d="M8 10V7a4 4 0 018 0v3"/></g></svg></div>
     <div class="ctlname">Locks</div>
     <div class="ctlstate" id="ctlLockState">Locked</div>
   </div>
@@ -623,6 +625,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.19 — 23 Nov 2026</h3>
+    <ul>
+      <li>The Locks tile padlock now animates: when the car unlocks, the shackle swings open; when it locks, it clicks shut.</li>
+    </ul>
     <h3>v1.3.18 — 23 Nov 2026</h3>
     <ul>
       <li>Control icons are now the ones from your picture, extracted exactly — Flash lights is the headlight, Trunk is the car rear with the lid opening, Find car is the car signalling, and Windows is the car window. Locks and Charging kept their icons.</li>

@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.19 — 23 Nov 2026
+
+- The Locks tile padlock now animates (Ray's photo of a padlock): the shackle is its own SVG group with a CSS transition (transform-origin at the left hinge, spring easing). When the car is unlocked the shackle swings open 40°; when it locks it rotates back shut. Driven by the tile's existing `on` class (locked), so it follows the real lock state from the server.
+
 ## v1.3.18 — 23 Nov 2026
 
 - Control icons are now the ones from Ray's picture (IMG_2189.png), extracted exactly by tracing the image: Flash lights is the headlight (was a household lightbulb), Trunk is the car rear with the lid opening and an up arrow (was a house), Find car is the car signalling with rays above it (was a map pin), and Windows is the car window with an up triangle (was a plain 2×2 grid). The four icons were traced from the PNG with OpenCV (threshold + contour trace, scaled to 24×24) and render as filled shapes with fill="currentColor", so they still adapt to dark/light mode. Locks and Charging kept their icons.
