@@ -502,6 +502,7 @@ async def control(
 KV_URL = os.environ.get("KV_REST_API_URL", "").rstrip("/")
 KV_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 KV_SNAPS_KEY = "beyond:snaps"
+KV_HOME_KEY = "beyond:home"  # user-set home override: {"lat","lon","name"}
 KV_MAX_SNAPS = 3000  # ~10 days at a 5-minute cadence
 CRON_SECRET = os.environ.get("CRON_SECRET", "")
 TARIFF_RPKWH = float(os.environ.get("TARIFF_RPKWH", "1700") or 1700)
@@ -555,6 +556,26 @@ def _clean_snap(s: dict) -> dict:
     return c
 
 
+async def _home_override() -> dict | None:
+    """The user-set home, if Ray has picked one (stored in KV by
+    /api/set-home). Returns {"lat","lon","name"} or None. An override
+    wins over the derived home: the car can sit away from home for days
+    (BSD) without the densest-spot heuristic moving "home" there."""
+    res = await _kv(["get", KV_HOME_KEY], method="GET")
+    if not res or res.get("result") is None:
+        return None
+    try:
+        d = json.loads(res["result"])
+    except Exception:
+        return None
+    if not isinstance(d, dict):
+        return None
+    lat, lon = _num(d.get("lat")), _num(d.get("lon"))
+    if not _valid_gps(lat, lon):
+        return None
+    return {"lat": lat, "lon": lon, "name": str(d.get("name") or "")}
+
+
 def _home_location(snaps: list[dict]) -> tuple | None:
     """The car's home: the densest 1 km spot across snapshots, then the
     median point inside it. The car is parked at home most of the time,
@@ -585,10 +606,14 @@ def _haversine_km(a: tuple, b: tuple) -> float:
     return 2 * 6371 * math.asin(math.sqrt(h))
 
 
-def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float) -> list[dict]:
+def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float,
+                  home: tuple | None = None) -> list[dict]:
     """Group snapshots into trips: a trip is a run of snapshots where the
-    odometer keeps increasing (gaps under 30 min). Needs >= 0.5 km."""
-    home = _home_location(snaps)
+    odometer keeps increasing (gaps under 30 min). Needs >= 0.5 km.
+    `home` is the (lat, lon) used for the "Home" place label — pass the
+    user-set override when there is one, else it is derived here."""
+    if home is None:
+        home = _home_location(snaps)
 
     def place(s):
         if home is None:
@@ -991,9 +1016,16 @@ async def trips(
     # BYD asleep-sentinels (odo 0, GPS (0, 0)) are stored in older
     # snapshots — null them here so every derivation below sees clean data.
     snaps = [_clean_snap(s) for s in snaps]
-    trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH)
+    # A user-set home wins over the derived one (see _home_override).
+    ovr = await _home_override()
+    if ovr is not None:
+        home = (ovr["lat"], ovr["lon"])
+        home_source, home_name = "manual", ovr.get("name") or None
+    else:
+        home = _home_location(snaps)
+        home_source, home_name = "auto", None
+    trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH, home)
     t = tariff or TARIFF_RPKWH
-    home = _home_location(snaps)
     sessions = []
     for s in _charging_sessions(snaps):
         place = None
@@ -1015,8 +1047,48 @@ async def trips(
     return {"ok": True, "source": "server", "trips": trips,
             "snapshots": len(snaps), "charging_sessions": sessions,
             "home": list(home) if home else None,
+            "home_source": home_source, "home_name": home_name,
             "soh": _estimate_soh(snaps, trips, BATTERY_KWH),
             "range": _estimate_range(snaps, trips, BATTERY_KWH)}
+
+
+@app.post("/api/set-home")
+async def set_home(
+    request: Request,
+    x_app_key: str | None = Header(default=None),
+):
+    """Save Ray's home location (from a trip's start/end, or the car's
+    current position). Stored in KV so it survives restarts and applies
+    to every device. Body: {"lat","lon","name"?}. App-key gated."""
+    _require_app_key(x_app_key)
+    if not KV_URL or not KV_TOKEN:
+        return JSONResponse(status_code=503, content={
+            "ok": False, "error": "kv_not_configured"})
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    lat, lon = _num(body.get("lat")), _num(body.get("lon"))
+    if not _valid_gps(lat, lon):
+        return JSONResponse(status_code=400, content={
+            "ok": False, "error": "bad_home",
+            "detail": "lat/lon must be a real location (not 0, 0)."})
+    name = str(body.get("name") or "")[:80]
+    await _kv(["set", KV_HOME_KEY, json.dumps(
+        {"lat": lat, "lon": lon, "name": name})])
+    return {"ok": True, "home": [lat, lon], "name": name or None}
+
+
+@app.post("/api/clear-home")
+async def clear_home(x_app_key: str | None = Header(default=None)):
+    """Drop the user-set home; /api/trips goes back to deriving it from
+    the densest snapshot cluster. App-key gated."""
+    _require_app_key(x_app_key)
+    if not KV_URL or not KV_TOKEN:
+        return JSONResponse(status_code=503, content={
+            "ok": False, "error": "kv_not_configured"})
+    await _kv(["del", KV_HOME_KEY])
+    return {"ok": True, "home": None}
 
 
 # Serve the static frontend (public/). Path is anchored to this file, not the

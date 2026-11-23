@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.16 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.17 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -623,6 +623,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.17 — 23 Nov 2026</h3>
+    <ul>
+      <li>You can now set home yourself. Open any trip and tap "Set start as home" or "Set end as home" — that spot sticks as home (saved on the server) until you clear it in Settings → Home location. The auto-detected home no longer moves when the car sits somewhere else for days.</li>
+    </ul>
     <h3>v1.3.16 — 23 Nov 2026</h3>
     <ul>
       <li>Fixed the trip history and home going wrong overnight. When the car is asleep, BYD reports a 0 km odometer and a (0, 0) GPS fix — and those were stored as real data, so home read [0, 0] (in the ocean) and phantom 23,728 km trips appeared. Those values are now ignored everywhere: new snapshots store them as missing, and the existing ones are filtered out when trips and home are worked out. Home is back to a real place.</li>
@@ -753,6 +757,9 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <div class="row" style="margin-top:10px"><label class="muted">Efficiency</label>
     <div class="seg" id="effSeg"><button type="button" data-u="kwh100" class="on" onclick="setEffUnit('kwh100')">kWh/100km</button><button type="button" data-u="kmkwh" onclick="setEffUnit('kmkwh')">km/kWh</button></div></div>
     <div class="muted" style="font-size:13px;margin-top:6px">How efficiency is shown — energy used per 100 km, or distance per kWh. Applies everywhere: Energy page, trips, and the Vehicle tab.</div>
+    <h3>Home location</h3>
+    <div class="row" id="homeRow"><span class="muted">Loading…</span></div>
+    <div class="muted" style="font-size:13px;margin-top:6px">"Home" is where the car parks most, auto-detected from your trips. If it picks the wrong place (it reads BSD while the car sits there), open a trip that starts or ends at your real home and tap "Set start as home" or "Set end as home" — that sticks until you clear it here.</div>
   </div>
 </div>
 <div id="detailSheet" class="sheet" hidden onclick="if(event.target===this)closeDetail()">
@@ -865,7 +872,7 @@ function setEffUnit(u){
   if(window._last)render(window._last);
   loadServerTrips();
 }
-function menuSettings(){closeMenu();$('settingsSheet').hidden=false;}
+function menuSettings(){closeMenu();updateHomeRow();$('settingsSheet').hidden=false;}
 function closeSettings(){$('settingsSheet').hidden=true;}
 function saveKey(){appKey=$('keyInput').value.trim();sessionStorage.setItem('beyondKey',appKey);$('keybox').style.display='none';document.body.classList.remove('locked');load(true);}
 function fmt(n,d=1){return n==null||isNaN(n)?'–':Number(n).toFixed(d);}
@@ -997,8 +1004,11 @@ async function loadServerTrips(){
     window._soh=d.soh||null; window._range=d.range||null; updateSohRow(); updateRangeTile();
     window._trips=d.trips||[]; window._sessions=d.charging_sessions||[];
     // Home location: re-evaluate the hero location label now that home is
-    // known (render() may have run before this fetch completed).
+    // known (render() may have run before this fetch completed). A home
+    // Ray set himself (home_source "manual") wins over the derived one.
+    window._homeSource=d.home_source||'auto'; window._homeName=d.home_name||null;
     if(d.home){window._home=d.home; if(window._last&&window._last.gps&&window._last.gps.lat)updateLocName(window._last.gps.lat,window._last.gps.lon);}
+    updateHomeRow();
     window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
     // Charging history (Energy page) — blank until a session exists
     $('chargeHistory').innerHTML=window._sessions.map((s,i)=>{
@@ -1034,6 +1044,55 @@ let detailMap=null;
 function closeDetail(){
   if(detailMap){detailMap.remove();detailMap=null;}
   $('detailSheet').hidden=true;
+}
+// Set home to one end of a trip (looked up by index, so no coords are
+// embedded in the button markup). `which` is "start" or "end".
+function setHomeFromTrip(i,which){
+  const t=(window._trips||[])[i]; if(!t)return;
+  const lat=which==='start'?t.start_lat:t.end_lat;
+  const lon=which==='start'?t.start_lon:t.end_lon;
+  const name=which==='start'?(t.start_place||'Home'):(t.end_place||'Home');
+  if(lat==null||lon==null)return;
+  setHome(lat,lon,name);
+}
+// Set home to a chosen spot (from a trip's start/end). Saved on the
+// server, so it survives restarts and applies to every device — the
+// auto-detected home (densest snapshot cluster) stops moving it.
+async function setHome(lat,lon,name){
+  const msg=$('homeMsg');
+  try{
+    const r=await fetch('/api/set-home',{method:'POST',
+      headers:{'Content-Type':'application/json','X-App-Key':appKey},
+      body:JSON.stringify({lat,lon,name:name||'Home'})});
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.detail||d.error||'failed');
+    if(msg)msg.textContent='Home set to '+(name||'this spot')+'. Reloading trips…';
+    closeDetail();
+    await loadServerTrips();
+    if(window._last&&window._last.gps&&window._last.gps.lat)updateLocName(window._last.gps.lat,window._last.gps.lon);
+  }catch(e){
+    if(msg)msg.textContent='Could not set home: '+e.message;
+  }
+}
+async function clearHome(){
+  try{
+    await fetch('/api/clear-home',{method:'POST',
+      headers:{'X-App-Key':appKey}});
+    await loadServerTrips();
+    if(window._last&&window._last.gps&&window._last.gps.lat)updateLocName(window._last.gps.lat,window._last.gps.lon);
+  }catch(e){}
+}
+// Settings → Home row: what home is, and whether Ray set it or it was
+// auto-detected from where the car parks most.
+function updateHomeRow(){
+  const el=$('homeRow'); if(!el)return;
+  const h=window._home;
+  if(!h){el.innerHTML='<span class="muted">Not detected yet — drive and park a few times, or set it from a trip.</span>';return;}
+  const name=window._homeName||'';
+  const label=name||('('+h[0].toFixed(4)+', '+h[1].toFixed(4)+')');
+  const src=window._homeSource==='manual'?'Set by you':'Auto-detected';
+  el.innerHTML='<span>'+label+' · <span class="muted">'+src+'</span></span>'+
+    (window._homeSource==='manual'?'<button class="btn ghost" style="min-height:38px;padding:8px 16px;font-size:14px" onclick="clearHome()">Clear</button>':'');
 }
 function chargerType(peakKw){
   if(peakKw==null)return '–';
@@ -1135,7 +1194,14 @@ function openTripDetail(i){
   '<div><span class="k">Compared to your average</span><span class="v">'+(cmp!=null?(cmp>0?'+':'')+fmt(cmp,1)+'%':'–')+'</span></div>'+
   '<div><span class="k">Battery</span><span class="v">'+(t.start_batt_pct!=null?fmt(t.start_batt_pct,0)+'%':'–')+' → '+(t.end_batt_pct!=null?fmt(t.end_batt_pct,0)+'%':'–')+'</span></div>'+
   '<div><span class="k">Estimated cost</span><span class="v">'+(t.est_cost_rp!=null?'Rp '+t.est_cost_rp.toLocaleString('id-ID'):'–')+'</span></div>'+
-  '</div>';
+  '</div>'+
+  '<div class="dsec">Home</div>'+
+  '<div class="muted" style="margin-bottom:8px">Set home to one end of this trip, so the "Home" label and trip places use it instead of the auto-detected spot.</div>'+
+  '<div class="row">'+
+  (t.start_lat!=null?'<button class="btn ghost" onclick="setHomeFromTrip('+i+',\'start\')">Set start as home</button>':'')+
+  (t.end_lat!=null?'<button class="btn ghost" onclick="setHomeFromTrip('+i+',\'end\')">Set end as home</button>':'')+
+  '</div>'+
+  '<div class="muted" id="homeMsg" style="margin-top:8px"></div>';
   $('detailSheet').hidden=false;
   // Route map (Leaflet, same tiles as the Overview map)
   if(window.L&&(t.points||[]).length>=2){
