@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.21 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.22 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -625,6 +625,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.22 — 24 Nov 2026</h3>
+    <ul>
+      <li>Fixed the Last trip card: it was showing the oldest trip instead of your latest drive.</li>
+    </ul>
     <h3>v1.3.21 — 24 Nov 2026</h3>
     <ul>
       <li>The Dolphin on the home card now blends into the black background — its edges fade out and it's a touch darker.</li>
@@ -1030,7 +1034,7 @@ async function loadServerTrips(){
     window._homeSource=d.home_source||'auto'; window._homeName=d.home_name||null;
     if(d.home){window._home=d.home; if(window._last&&window._last.gps&&window._last.gps.lat)updateLocName(window._last.gps.lat,window._last.gps.lon);}
     updateHomeRow();
-    window._lastTrip=d.trips.length?d.trips[d.trips.length-1]:null; updateLastTrip();
+    window._lastTrip=d.trips.length?d.trips[0]:null; updateLastTrip();
     // Charging history (Energy page) — blank until a session exists
     $('chargeHistory').innerHTML=window._sessions.map((s,i)=>{
       const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';

@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.22 — 24 Nov 2026
+
+- Fixed the Last trip card on Home (Ray, 2026-11-24 07:17 WIB: "the last trip on the home screen is not updated"). Root cause: the backend returns trips newest-first (`_derive_trips` ends with `list(reversed(out))`), but the frontend picked `d.trips[d.trips.length-1]` — the last element, which is the OLDEST trip. So the card showed the 68 km drive from Nov 22 instead of the latest 6 km drive this morning (Nov 24 06:46 WIB). Fix: `_lastTrip` now takes `d.trips[0]` (newest). The trip history list itself was already correct (it renders newest first). Verified against live /api/trips: `trips[0]` is the 6 km Nov 24 06:46 WIB drive, `trips[-1]` is the 68 km Nov 22 drive.
+
 ## v1.3.21 — 24 Nov 2026
 
 - The hero Dolphin blends into the black card (Ray, 2026-11-24 06:57 WIB). The car photo is a cutout, but its bright blue body and hard silhouette popped against the black card. Fix: a radial-gradient mask on `.herocard img.car` fades the car's outer edges (front, rear, wheels) into the card, plus `brightness(.88)` so the body sits quieter in the black. Iterated 5 times in the rig (the first masks were too subtle to see; the 4th was too strong on the front grille, the 5th keeps the face readable). Charging scene car (`dolphin-side.png`) untouched — follow-up if Ray wants it blended too.
