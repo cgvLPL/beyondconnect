@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.20 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
+/* BEYONDconnect v1.3.21 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
    Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
    pills, rail, dock). Content cards are standard material. The sheen is a
    soft-light top fade; the gradient rim was tried and removed at Ray's
@@ -269,7 +269,7 @@ body.lightbg .qapill.on{background:#111;color:#fff;border-color:#111}
 .hc-name{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .hc-loc{color:rgb(255 255 255 / .6);font-size:15px;font-weight:500;margin-top:4px}
 .herolock{flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .10);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.herocard img.car{width:88%;max-width:460px;display:block;margin:10px auto 0}
+.herocard img.car{width:88%;max-width:460px;display:block;margin:10px auto 0;-webkit-mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 30%,transparent 72%);mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 30%,transparent 72%);filter:brightness(.88)}
 .statrow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .card.statcard{padding:18px;cursor:pointer}
 .statcard .sc-label{font-size:15px;font-weight:600}
@@ -625,6 +625,10 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.3.21 — 24 Nov 2026</h3>
+    <ul>
+      <li>The Dolphin on the home card now blends into the black background — its edges fade out and it's a touch darker.</li>
+    </ul>
     <h3>v1.3.20 — 24 Nov 2026</h3>
     <ul>
       <li>Faster first load: the dashboard now paints instantly from your last visit's data while the live car status loads in the background.</li>

@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.3.21 — 24 Nov 2026
+
+- The hero Dolphin blends into the black card (Ray, 2026-11-24 06:57 WIB). The car photo is a cutout, but its bright blue body and hard silhouette popped against the black card. Fix: a radial-gradient mask on `.herocard img.car` fades the car's outer edges (front, rear, wheels) into the card, plus `brightness(.88)` so the body sits quieter in the black. Iterated 5 times in the rig (the first masks were too subtle to see; the 4th was too strong on the front grille, the 5th keeps the face readable). Charging scene car (`dolphin-side.png`) untouched — follow-up if Ray wants it blended too.
+
 ## v1.3.20 — 24 Nov 2026
 
 - Faster initial load (Ray, 2026-11-24 06:46 WIB). Measured live: the page shell loads in ~250 ms, but `/api/status` takes ~4.1 s because it calls BYD live (5 parallel BYD calls, each ~1 s) — so the dashboard sat blank for ~4 s. Fix: the last successful status is now cached in localStorage (`beyondStatus`, 24 h cap), and on startup the dashboard renders from that cache instantly and shows, while the live `/api/status` fetch runs in the background and re-renders with fresh data when it lands. The cached values are at most from the previous visit and are replaced within ~4 s.
