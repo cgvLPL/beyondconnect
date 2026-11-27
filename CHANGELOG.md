@@ -1,5 +1,13 @@
 # BEYONDconnect changelog
 
+## v1.4.1 — 27 Nov 2026
+
+- Control tiles (Ray, 2026-11-27). The big Climate tile now reads like TuyaMinimal's AC tile: temperature and the − / + buttons on top, name, state and the Start button pinned to the bottom, with room between the buttons and the label (they were touching). The − / + buttons are glass instead of black discs, and shrink slightly when pressed.
+
+## v1.4.0 — 27 Nov 2026
+
+- Liquid Glass like TuyaMinimal (Ray, 2026-11-27). Before, only the floating chrome (top buttons, chips, dock) was glass; the cards were near-black slabs, and with no wallpaper by default there was nothing for the glass to show. Now: (1) the Halftone wallpaper from TuyaMinimal is the default background (picker: Settings → Background → Halftone; anyone who already picked a background keeps it); (2) cards, Battery/Last trip tiles, the Location card, control tiles, trip cards, the hero card and the charging scene are translucent glass with a 22 px blur, a 1 px light edge, a lit top edge and a soft top sheen; (3) tiles/inputs/segmented controls inside a card are lighter nested glass; (4) the dock's active tab is a dark inset pill with an accent icon (lime in dark, green in light). The hero and charging scene stay dark glass in light mode because their text is light. Reduced-transparency users get solid cards.
+
 ## v1.3.22 — 24 Nov 2026
 
 - Fixed the Last trip card on Home (Ray, 2026-11-24 07:17 WIB: "the last trip on the home screen is not updated"). Root cause: the backend returns trips newest-first (`_derive_trips` ends with `list(reversed(out))`), but the frontend picked `d.trips[d.trips.length-1]` — the last element, which is the OLDEST trip. So the card showed the 68 km drive from Nov 22 instead of the latest 6 km drive this morning (Nov 24 06:46 WIB). Fix: `_lastTrip` now takes `d.trips[0]` (newest). The trip history list itself was already correct (it renders newest first). Verified against live /api/trips: `trips[0]` is the 6 km Nov 24 06:46 WIB drive, `trips[-1]` is the 68 km Nov 22 drive.

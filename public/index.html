@@ -7,12 +7,13 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* BEYONDconnect v1.3.22 — Liquid Glass, taken from HomeView (TuyaMinimal 2.92.02).
-   Apple HIG: glass ONLY for the floating control/navigation layer (top bar,
-   pills, rail, dock). Content cards are standard material. The sheen is a
-   soft-light top fade; the gradient rim was tried and removed at Ray's
-   request — glass now has a plain 1px edge again. Refraction is a
-   Chromium-only progressive enhancement over the blur fallback. */
+/* BEYONDconnect v1.4.0 — Liquid Glass, taken from HomeView / TuyaMinimal.
+   v1.4.0: the glass now covers the content layer too (cards, tiles, hero,
+   control tiles, trip cards), like TuyaMinimal: translucent tinted glass,
+   a 1px light edge, a soft top highlight and a strong blur over a wallpaper.
+   The Halftone wallpaper from TuyaMinimal is the default, so the glass has
+   something to refract. Refraction is a Chromium-only progressive
+   enhancement over the blur fallback. */
 :root{
   --bg:#f4f4f6; --text:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea;
   --card:#ffffff; --card-soft:#f5f5f7;
@@ -64,6 +65,7 @@ body.bg-dune #bgLayer{background-image:url(backgrounds/dune.jpg)}
 body.bg-nebula #bgLayer{background-image:url(backgrounds/nebula.jpg)}
 body.bg-silk #bgLayer{background-image:url(backgrounds/silk.jpg)}
 body.bg-beams #bgLayer{background-image:url(backgrounds/beams.jpg)}
+body.bg-halftone #bgLayer{background-image:url(backgrounds/halftone.jpg)}
 /* A dark background forces dark UI colours (and vice versa), whatever the system says. */
 body.darkbg{color-scheme:dark;--bg:#000;--text:#f5f5f7;--muted:#9a9aa0;--line:#232326;--card:#0c0c0c;--card-soft:#141414;--green-soft:#0d2b18;--glass-tint:rgb(36 36 40 / .62);--glass-strong:rgb(40 40 44 / .74);--glass-border:rgb(255 255 255 / .14);--glass-shadow:0 8px 26px rgb(0 0 0 / .5), 0 1px 3px rgb(0 0 0 / .4)}
 body.darkbg .tabs{background:rgb(255 255 255 / .06)}
@@ -410,6 +412,68 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 .sections>*{min-width:0}
 @media (min-width:860px){.sections{grid-template-columns:repeat(3,1fr)}}
 @media (min-width:860px){.sections .card.span2{grid-column:span 2}}
+
+/* ================= v1.4.0 — TuyaMinimal liquid glass (content layer) =================
+   Tokens: --lg-bg tinted glass, --lg-soft nested glass (tiles inside cards),
+   --lg-edge the 1px rim, --lg-hi the lit top edge, --lg-sheen the soft top fade. */
+:root{
+  --lg-bg:rgb(255 255 255 / .50);--lg-soft:rgb(255 255 255 / .40);
+  --lg-edge:rgb(255 255 255 / .62);--lg-hi:rgb(255 255 255 / .80);--lg-sheen:rgb(255 255 255 / .30);
+  --lg-shadow:0 10px 30px rgb(30 34 60 / .10), 0 1px 2px rgb(30 34 60 / .06);
+  --lg-blur:blur(22px) saturate(170%);--lg-accent:#00a651;--lg-pill:rgb(0 0 0 / .07);
+}
+@media (prefers-color-scheme:dark){:root{
+  --lg-bg:rgb(34 34 40 / .46);--lg-soft:rgb(255 255 255 / .06);
+  --lg-edge:rgb(255 255 255 / .14);--lg-hi:rgb(255 255 255 / .12);--lg-sheen:rgb(255 255 255 / .07);
+  --lg-shadow:0 10px 30px rgb(0 0 0 / .45), 0 1px 2px rgb(0 0 0 / .40);--lg-accent:#d3f34f;--lg-pill:rgb(0 0 0 / .42)}}
+body.darkbg{--lg-bg:rgb(34 34 40 / .46);--lg-soft:rgb(255 255 255 / .06);
+  --lg-edge:rgb(255 255 255 / .14);--lg-hi:rgb(255 255 255 / .12);--lg-sheen:rgb(255 255 255 / .07);
+  --lg-shadow:0 10px 30px rgb(0 0 0 / .45), 0 1px 2px rgb(0 0 0 / .40);--lg-accent:#d3f34f;--lg-pill:rgb(0 0 0 / .42)}
+body.lightbg{--lg-bg:rgb(255 255 255 / .50);--lg-soft:rgb(255 255 255 / .40);
+  --lg-edge:rgb(255 255 255 / .62);--lg-hi:rgb(255 255 255 / .80);--lg-sheen:rgb(255 255 255 / .30);
+  --lg-shadow:0 10px 30px rgb(30 34 60 / .10), 0 1px 2px rgb(30 34 60 / .06);--lg-accent:#00a651;--lg-pill:rgb(0 0 0 / .07)}
+
+.card,.statcard,.loccard,.ctltile:not(.on),.tripcard{
+  background:linear-gradient(180deg,var(--lg-sheen),transparent 42%),var(--lg-bg);
+  -webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);
+  border:1px solid var(--lg-edge);
+  box-shadow:inset 0 1px 0 var(--lg-hi),var(--lg-shadow)}
+/* Things that sit inside a glass card are lighter glass, not a second dark slab */
+.tile,.card .tripcard,.ac-seatbtn:not(.on),.ac-round:not(.on),.seg,.bgopts button:not(.on),.pill.off,input,select{
+  background:var(--lg-soft);border-color:var(--lg-edge)}
+.ctltile.on{background:rgb(255 255 255 / .92);-webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);box-shadow:inset 0 1px 0 #fff,var(--lg-shadow)}
+.ac-seatbtn:not(.on),.ac-round:not(.on){-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+/* Hero: always a dark glass (its text is light in both modes) */
+.herocard{
+  background:linear-gradient(180deg,rgb(255 255 255 / .10),rgb(255 255 255 / .02) 45%),rgb(16 16 20 / .52);
+  -webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);
+  border:1px solid rgb(255 255 255 / .14);
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .14),0 10px 30px rgb(0 0 0 / .38)}
+body.darkbg .charge-scene,.charge-scene{
+  background:linear-gradient(180deg,rgb(255 255 255 / .10),rgb(255 255 255 / .02) 45%),rgb(16 16 20 / .52);
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .14),0 10px 30px rgb(0 0 0 / .38)}
+/* Floating dock: lit top edge, and the active tab is a dark inset pill with an accent icon (TuyaMinimal) */
+.dock{box-shadow:inset 0 1px 0 var(--lg-hi),var(--glass-shadow)}
+.dock a.on{background:var(--lg-pill);color:var(--lg-accent);opacity:1;box-shadow:inset 0 1px 0 rgb(255 255 255 / .06)}
+/* Control tiles: the big Climate tile reads like TuyaMinimal's AC tile (temperature on top, name + state + button pinned to the bottom),
+   the -/+ buttons get breathing room and are glass instead of black discs. */
+.ctltile.big .ctlbigrow{margin-bottom:18px}
+.ctltile.big .ctlname{margin-top:auto}
+.ctlstep button{background:var(--lg-soft);border-color:var(--lg-edge);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.ctltile.on .ctlstep button{background:rgb(0 0 0 / .06);border-color:rgb(0 0 0 / .14)}
+.ctlstep button:active{transform:scale(.92)}
+/* Sheets: heavier blur so the page behind never competes with the sheet's text (also in Chromium, where .glass uses the refraction filter) */
+.glass.sheetcard,html.refract .glass.sheetcard{-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%)}
+/* Controls: the tiles are already glass, so the card around them steps out of the way (TuyaMinimal has no card-in-card) */
+#controls.card{background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding-left:0;padding-right:0}
+#controls.card>h2{padding-left:4px;text-shadow:0 1px 10px rgb(0 0 0 / .45)}
+/* Text sitting straight on the wallpaper (greeting, page titles) is lifted and shadowed like TuyaMinimal's */
+body.darkbg .gtext,body.darkbg .page>h1,body.darkbg .pagehead{text-shadow:0 1px 10px rgb(0 0 0 / .55)}
+body.darkbg .gdate,body.darkbg .ghey{color:rgb(255 255 255 / .82)}
+/* Halftone is dimmed a little so the dots sit behind the glass instead of fighting it */
+body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background:rgb(0 0 0 / .30)}
+@media (prefers-reduced-transparency:reduce){
+  .card,.statcard,.loccard,.ctltile:not(.on),.tripcard,.herocard,.charge-scene{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--card)}}
 </style>
 <link rel="stylesheet" href="leaflet/leaflet.css">
 </head>
@@ -625,6 +689,14 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <h3>v1.4.1 — 27 Nov 2026</h3>
+    <ul>
+      <li>The big Climate tile now reads like TuyaMinimal's AC tile: temperature and the − / + buttons on top, name, state and the Start button pinned to the bottom. The − / + buttons are glass instead of black discs.</li>
+    </ul>
+    <h3>v1.4.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Liquid Glass everywhere, like TuyaMinimal: cards, tiles, the hero card and the charging scene are translucent glass with blur and a lit edge. The Halftone wallpaper is the new default background (change it in Settings → Background).</li>
+    </ul>
     <h3>v1.3.22 — 24 Nov 2026</h3>
     <ul>
       <li>Fixed the Last trip card: it was showing the oldest trip instead of your latest drive.</li>
@@ -762,13 +834,14 @@ body.darkbg .leaflet-container .car-pin{filter:invert(.92) hue-rotate(180deg) br
     <h3>Background</h3>
     <div class="bgopts" id="bgOpts">
       <button type="button" data-bg="system" onclick="setBg('system')">System</button>
+      <button type="button" data-bg="halftone" onclick="setBg('halftone')">Halftone</button>
       <button type="button" data-bg="ember" onclick="setBg('ember')">Ember</button>
       <button type="button" data-bg="dune" onclick="setBg('dune')">Dune</button>
       <button type="button" data-bg="nebula" onclick="setBg('nebula')">Nebula</button>
       <button type="button" data-bg="silk" onclick="setBg('silk')">Silk</button>
       <button type="button" data-bg="beams" onclick="setBg('beams')">Beams</button>
     </div>
-    <div class="muted" style="font-size:13px;margin-top:6px">The wallpapers you sent. Dune is the light one; the rest are dark.</div>
+    <div class="muted" style="font-size:13px;margin-top:6px">Halftone is the default, from TuyaMinimal. Dune is the light one; the rest are dark.</div>
     <h3>Energy &amp; cost</h3>
     <div class="row"><label class="muted" for="tariff">Tariff Rp/kWh</label>
     <input id="tariff" type="number" value="1700" min="0" step="1" style="width:96px;text-align:right"></div>
@@ -876,11 +949,11 @@ $('pinInput').value=localStorage.getItem('beyondPin')||sessionStorage.getItem('b
 if(settings.tariff)$('tariff').value=settings.tariff;
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
 if(settings.effUnit==='kmkwh')document.querySelectorAll('#effSeg button').forEach(b=>b.classList.toggle('on',b.dataset.u==='kmkwh'));
-const BGS=['system','ember','dune','nebula','silk','beams'];
-const BG_DARK={ember:1,nebula:1,silk:1,beams:1};
+const BGS=['system','halftone','ember','dune','nebula','silk','beams'];
+const BG_DARK={halftone:1,ember:1,nebula:1,silk:1,beams:1};
 function applyBg(name){if(!BGS.includes(name))name='system';document.body.classList.remove(...BGS.map(b=>'bg-'+b));document.body.classList.remove('darkbg','lightbg');if(name&&name!=='system'){document.body.classList.add('bg-'+name);document.body.classList.add(BG_DARK[name]?'darkbg':'lightbg');}document.querySelectorAll('#bgOpts button').forEach(b=>b.classList.toggle('on',b.dataset.bg===(name||'system')));}
 function setBg(name){settings.background=name;settings.tariff=+$('tariff').value||settings.tariff;settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
-applyBg(settings.background||'system');
+applyBg(settings.background||'halftone');
 function saveSettings(){settings.tariff=+$('tariff').value;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);}
 // Efficiency unit: kWh/100km (default) or km/kWh. All efficiency displays
 // go through fmtEff so the choice applies everywhere at once.
