@@ -339,156 +339,160 @@ async def control(
             "detail": "BYD's cloud has no working stop-charge command — it "
                       "returns success but the car keeps charging. Stop a "
                       "charge with the key fob / door-handle double-unlock."})
-    try:
-        client = await _get_client()
-        vehicles = await client.get_vehicles()
-        if not vehicles:
-            return JSONResponse(status_code=502, content={
-                "ok": False, "error": "no_vehicles"})
-        vin = vehicles[0].vin
-        if action != "charge_start" and not client.commands_enabled:
-            try:
-                await client.verify_command_access(vin, command_pwd=pin)
-            except BydControlPasswordError:
-                return JSONResponse(status_code=403, content={
-                    "ok": False, "error": "bad_pin",
-                    "detail": "Wrong control PIN, or the account is locked "
-                              "after too many wrong attempts."})
-        if action == "lock":
-            res = await client.lock(vin, command_pwd=pin)
-        elif action == "unlock":
-            res = await client.unlock(vin, command_pwd=pin)
-        elif action == "climate_start":
-            temp = body.get("temperature")
-            try:
-                temp = float(temp) if temp is not None else 23.0
-            except (TypeError, ValueError):
-                temp = 23.0
-            temp = min(31.0, max(15.0, temp))
-            dur = body.get("duration_min")
-            try:
-                dur = int(dur) if dur is not None else 30
-            except (TypeError, ValueError):
-                dur = 30
-            span = min(5, max(1, (dur + 4) // 5))  # 10..30 min -> code 1..5
-            cycle = body.get("cycle_mode")
-            try:
-                cycle = int(cycle) if cycle is not None else 2
-            except (TypeError, ValueError):
-                cycle = 2
-            cycle = 1 if cycle == 1 else 2  # 1=fresh air, 2=recirculate
-            fan = body.get("fan_level")
-            try:
-                fan = int(fan) if fan is not None else None
-            except (TypeError, ValueError):
-                fan = None
-            fan = fan if fan is not None and 1 <= fan <= 7 else None
-            if body.get("adjust"):
-                # Setpoint tweak of a running session: keep the session
-                # and its auto-off timer (air_set "14").
-                hv_now = None
+    for attempt in range(2):
+        try:
+            client = await _get_client()
+            vehicles = await client.get_vehicles()
+            if not vehicles:
+                return JSONResponse(status_code=502, content={
+                    "ok": False, "error": "no_vehicles"})
+            vin = vehicles[0].vin
+            if action != "charge_start" and not client.commands_enabled:
                 try:
-                    hv_now = await client.get_hvac_status(vin)
-                except Exception:
+                    await client.verify_command_access(vin, command_pwd=pin)
+                except BydControlPasswordError:
+                    return JSONResponse(status_code=403, content={
+                        "ok": False, "error": "bad_pin",
+                        "detail": "Wrong control PIN, or the account is locked "
+                                  "after too many wrong attempts."})
+            if action == "lock":
+                res = await client.lock(vin, command_pwd=pin)
+            elif action == "unlock":
+                res = await client.unlock(vin, command_pwd=pin)
+            elif action == "climate_start":
+                temp = body.get("temperature")
+                try:
+                    temp = float(temp) if temp is not None else 23.0
+                except (TypeError, ValueError):
+                    temp = 23.0
+                temp = min(31.0, max(15.0, temp))
+                dur = body.get("duration_min")
+                try:
+                    dur = int(dur) if dur is not None else 30
+                except (TypeError, ValueError):
+                    dur = 30
+                span = min(5, max(1, (dur + 4) // 5))  # 10..30 min -> code 1..5
+                cycle = body.get("cycle_mode")
+                try:
+                    cycle = int(cycle) if cycle is not None else 2
+                except (TypeError, ValueError):
+                    cycle = 2
+                cycle = 1 if cycle == 1 else 2  # 1=fresh air, 2=recirculate
+                fan = body.get("fan_level")
+                try:
+                    fan = int(fan) if fan is not None else None
+                except (TypeError, ValueError):
+                    fan = None
+                fan = fan if fan is not None and 1 <= fan <= 7 else None
+                if body.get("adjust"):
+                    # Setpoint tweak of a running session: keep the session
+                    # and its auto-off timer (air_set "14").
                     hv_now = None
-                if hv_now is not None and hv_now.is_ac_on:
-                    res = await client.start_climate(
-                        vin, params=ClimateStartParams(temperature=temp,
-                                                        air_set="14"),
-                        command_pwd=pin)
+                    try:
+                        hv_now = await client.get_hvac_status(vin)
+                    except Exception:
+                        hv_now = None
+                    if hv_now is not None and hv_now.is_ac_on:
+                        res = await client.start_climate(
+                            vin, params=ClimateStartParams(temperature=temp,
+                                                            air_set="14"),
+                            command_pwd=pin)
+                    else:
+                        res = await client.start_climate(
+                            vin, params=ClimateStartParams(
+                                temperature=temp, time_span=span,
+                                cycle_mode=cycle, wind_level=fan),
+                            command_pwd=pin)
                 else:
                     res = await client.start_climate(
                         vin, params=ClimateStartParams(
                             temperature=temp, time_span=span,
                             cycle_mode=cycle, wind_level=fan),
                         command_pwd=pin)
-            else:
-                res = await client.start_climate(
-                    vin, params=ClimateStartParams(
-                        temperature=temp, time_span=span,
-                        cycle_mode=cycle, wind_level=fan),
-                    command_pwd=pin)
-        elif action == "seat_climate":
-            # Seat ventilation (and heat) — the API requires ALL seat
-            # values in every command, so build from the current state
-            # and change only the requested seat (pyBYD factory).
-            seat = str(body.get("seat") or "")
-            mode = str(body.get("mode") or "")
-            level = body.get("level")
-            try:
-                level = int(level)
-            except (TypeError, ValueError):
-                level = -1
-            _SEAT_PARAM = {
-                ("driver", "heat"): "main_heat",
-                ("driver", "vent"): "main_ventilation",
-                ("copilot", "heat"): "copilot_heat",
-                ("copilot", "vent"): "copilot_ventilation",
-                ("rear_left", "heat"): "lr_seat_heat_state",
-                ("rear_left", "vent"): "lr_seat_ventilation_state",
-                ("rear_right", "heat"): "rr_seat_heat_state",
-                ("rear_right", "vent"): "rr_seat_ventilation_state",
-            }
-            key = _SEAT_PARAM.get((seat, mode))
-            if key is None or level not in (0, 1, 2):
-                return JSONResponse(status_code=400, content={
-                    "ok": False, "error": "bad_seat",
-                    "detail": "seat must be driver/copilot/rear_left/"
-                              "rear_right, mode heat/vent, level 0/1/2."})
-            # UI level 0=off, 1=low, 2=high -> command scale 3/2/1.
-            cmd_level = {0: 3, 1: 2, 2: 1}[level]
-            hv_now = rt_now = None
-            try:
-                hv_now = await client.get_hvac_status(vin)
-            except Exception:
-                hv_now = None
-            try:
-                rt_now = await client.get_vehicle_realtime(vin)
-            except Exception:
-                rt_now = None
-            params = SeatClimateParams.from_current_state(hv_now, rt_now)
-            params = params.with_change(key, cmd_level)
-            res = await client.set_seat_climate(
-                vin, params=params, command_pwd=pin)
-        elif action == "climate_stop":
-            res = await client.stop_climate(vin, command_pwd=pin)
-        elif action == "find_car":
-            # Horn + lights.
-            res = await client.find_car(vin, command_pwd=pin)
-        elif action == "flash_lights":
-            res = await client.flash_lights(vin, command_pwd=pin)
-        elif action == "open_windows":
-            # BYD vents the windows to a ~10% crack, not a full drop.
-            res = await client.open_windows(vin, command_pwd=pin)
-        elif action == "close_windows":
-            res = await client.close_windows(vin, command_pwd=pin)
-        elif action == "open_trunk":
-            # Gated by functionNo 1020 (OPENTRUNK) in Latest Config —
-            # may be unsupported on this car (400 not_supported).
-            res = await client.open_trunk(vin, command_pwd=pin)
-        elif action == "close_trunk":
-            # Gated by functionNo 1021 (CLOSETRUNK) in Latest Config.
-            res = await client.close_trunk(vin, command_pwd=pin)
-        elif action == "charge_start":
-            res = await client.start_charging(vin)
+            elif action == "seat_climate":
+                # Seat ventilation (and heat) — the API requires ALL seat
+                # values in every command, so build from the current state
+                # and change only the requested seat (pyBYD factory).
+                seat = str(body.get("seat") or "")
+                mode = str(body.get("mode") or "")
+                level = body.get("level")
+                try:
+                    level = int(level)
+                except (TypeError, ValueError):
+                    level = -1
+                _SEAT_PARAM = {
+                    ("driver", "heat"): "main_heat",
+                    ("driver", "vent"): "main_ventilation",
+                    ("copilot", "heat"): "copilot_heat",
+                    ("copilot", "vent"): "copilot_ventilation",
+                    ("rear_left", "heat"): "lr_seat_heat_state",
+                    ("rear_left", "vent"): "lr_seat_ventilation_state",
+                    ("rear_right", "heat"): "rr_seat_heat_state",
+                    ("rear_right", "vent"): "rr_seat_ventilation_state",
+                }
+                key = _SEAT_PARAM.get((seat, mode))
+                if key is None or level not in (0, 1, 2):
+                    return JSONResponse(status_code=400, content={
+                        "ok": False, "error": "bad_seat",
+                        "detail": "seat must be driver/copilot/rear_left/"
+                                  "rear_right, mode heat/vent, level 0/1/2."})
+                # UI level 0=off, 1=low, 2=high -> command scale 3/2/1.
+                cmd_level = {0: 3, 1: 2, 2: 1}[level]
+                hv_now = rt_now = None
+                try:
+                    hv_now = await client.get_hvac_status(vin)
+                except Exception:
+                    hv_now = None
+                try:
+                    rt_now = await client.get_vehicle_realtime(vin)
+                except Exception:
+                    rt_now = None
+                params = SeatClimateParams.from_current_state(hv_now, rt_now)
+                params = params.with_change(key, cmd_level)
+                res = await client.set_seat_climate(
+                    vin, params=params, command_pwd=pin)
+            elif action == "climate_stop":
+                res = await client.stop_climate(vin, command_pwd=pin)
+            elif action == "find_car":
+                # Horn + lights.
+                res = await client.find_car(vin, command_pwd=pin)
+            elif action == "flash_lights":
+                res = await client.flash_lights(vin, command_pwd=pin)
+            elif action == "open_windows":
+                # BYD vents the windows to a ~10% crack, not a full drop.
+                res = await client.open_windows(vin, command_pwd=pin)
+            elif action == "close_windows":
+                res = await client.close_windows(vin, command_pwd=pin)
+            elif action == "open_trunk":
+                # Gated by functionNo 1020 (OPENTRUNK) in Latest Config —
+                # may be unsupported on this car (400 not_supported).
+                res = await client.open_trunk(vin, command_pwd=pin)
+            elif action == "close_trunk":
+                # Gated by functionNo 1021 (CLOSETRUNK) in Latest Config.
+                res = await client.close_trunk(vin, command_pwd=pin)
+            elif action == "charge_start":
+                res = await client.start_charging(vin)
+                return {"ok": True, "action": action,
+                        "result": {"res": res.res, "message": res.message}}
             return {"ok": True, "action": action,
-                    "result": {"res": res.res, "message": res.message}}
-        return {"ok": True, "action": action,
-                "result": {"success": bool(res.success),
-                           "state": str(res.control_state)}}
-    except BydEndpointNotSupportedError as e:
-        return JSONResponse(status_code=400, content={
-            "ok": False, "error": "not_supported", "detail": str(e)[:200]})
-    except BydRemoteControlError as e:
-        msg = str(e)
-        code = "already_charging" if "already" in msg.lower() else "command_failed"
-        return JSONResponse(status_code=502, content={
-            "ok": False, "error": code, "detail": msg[:200]})
-    except Exception as e:
-        msg = str(e)
-        code = "byd_auth_failed" if "3008" in msg else "byd_error"
-        return JSONResponse(status_code=502, content={
-            "ok": False, "error": code, "detail": msg[:200]})
+                    "result": {"success": bool(res.success),
+                               "state": str(res.control_state)}}
+        except BydEndpointNotSupportedError as e:
+            return JSONResponse(status_code=400, content={
+                "ok": False, "error": "not_supported", "detail": str(e)[:200]})
+        except BydRemoteControlError as e:
+            msg = str(e)
+            code = "already_charging" if "already" in msg.lower() else "command_failed"
+            return JSONResponse(status_code=502, content={
+                "ok": False, "error": code, "detail": msg[:200]})
+        except Exception as e:
+            await _reset_client()
+            if attempt == 1:
+                msg = str(e)
+                code = "byd_auth_failed" if "3008" in msg else "byd_error"
+                return JSONResponse(status_code=502, content={
+                    "ok": False, "error": code, "detail": msg[:200]})
+    return JSONResponse(status_code=502, content={"ok": False, "error": "byd_error"})
 
 
 # ---------------------------------------------------------------------------

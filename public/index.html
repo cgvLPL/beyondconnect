@@ -795,6 +795,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.7.1 — 27 Nov 2026</h3>
+    <ul>
+      <li>Fixed commands failing with "Server disconnected" when the BYD session went stale: a command now resets the connection and retries once with a fresh sign-in, the same way the dashboard already did.</li>
+    </ul>
     <h3>v1.7.0 — 27 Nov 2026</h3>
     <ul>
       <li>Every stat tile and list row now has a small colour disc with a glyph, like TuyaMinimal's chips. All icons are proper SVGs now — no emoji or text symbols left — and the Locks/Charging tiles use the filled lock and bolt.</li>
