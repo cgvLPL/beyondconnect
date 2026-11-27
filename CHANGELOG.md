@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.9.0 — 27 Nov 2026
+
+- Pull down to refresh (Ray, 2026-11-27 19:17 WIB: "can you make it pull down to refresh"). Dragging down from the top of any page now reloads the car status — the same `load(true)` as menu → Refresh (/api/status + trips). A glass spinner pill follows the pull with damping (arrow rotates as you pull), spins while loading, then slides away. Guards: doesn't engage on the lock screen, while any sheet is open, mid-scroll, on horizontal drags, or while a refresh is already running. `overscroll-behavior-y:none` stops the browser's own pull-to-reload from competing. Verified on the mock rig with synthetic touch drags (indicator tracks the pull, release past the threshold triggers a status reload, short pull snaps back without refreshing).
+
 ## v1.8.0 — 27 Nov 2026
 
 - Merge trips (Ray, 2026-11-27 17:28 WIB: "can you make it able to merge trips"). A drive the background logging split at a long stop (10+ min parked) can now be joined back into one trip: open a trip's detail sheet → Merge → "Merge with previous trip" / "Merge with next trip". Backend: `_derive_trips` gains `manual_joins` — segments whose start_time is in the set fold into the previous trip however long the stop was; each derived trip carries its `joins` list. The set is stored in KV (`beyond:trip_merges`) via `POST /api/trips/merge` {start_time} and removed via `POST /api/trips/unmerge` {start_times} ("Split back apart" in the sheet), so merges survive restarts and apply on every device. Merged trip cards show a Merged pill. Distance/energy/efficiency of a merged trip come from its first and last snapshots, same as any trip. Verified with unit tests on synthetic snapshots (no-join, single join, chained joins, join-on-first-trip and unknown-start no-ops) and on the mock rig.

@@ -369,6 +369,11 @@ select{font:inherit;background:var(--card-soft);color:var(--text);border:1px sol
 .bars div{flex:1;background:var(--green);border-radius:4px 4px 0 0;opacity:.85}
 /* --- Trip cards (server trip history, detailed) --- */
 .tripcard{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--card-soft);margin-top:10px;cursor:pointer}
+/* Pull to refresh (v1.9.0) */
+html,body{overscroll-behavior-y:none}
+#ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);width:40px;height:40px;margin-left:-20px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-56px);pointer-events:none;z-index:60}
+#ptr.spin svg{animation:ptrspin .7s linear infinite}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
 .card h3{font-size:17px;font-weight:700;margin:18px 0 8px}
 /* --- History detail sheet (charge + trip, bydconnect-style) --- */
 .dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -605,6 +610,7 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 </div>
 <div class="wrap">
 <div id="error"></div>
+<div id="ptr" class="glass" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-2.64-6.36"/><path d="M21 3v6h-6"/></svg></div>
 <div id="app" style="display:none">
 
 <div class="page active" id="page-overview">
@@ -795,6 +801,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.9.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Pull down to refresh: drag down from the top of any page to reload the car status, instead of opening the menu.</li>
+    </ul>
     <h3>v1.8.0 — 27 Nov 2026</h3>
     <ul>
       <li>Merge trips: open a trip and join it with the one before or after it — for a drive the app split at a long stop. Merged trips show a Merged tag and can be split back apart. Saved on the server, so it applies on every device.</li>
@@ -1722,6 +1732,61 @@ document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('ctxmenu').classList.remove('open');$('tripsMenu').classList.remove('open');closeChangelog();closeSettings();closeAc();}});
 function closeMenu(){$('ctxmenu').classList.remove('open');}
 function menuRefresh(){closeMenu();load(true);}
+/* Pull to refresh (v1.9.0): drag down from the top of any page to reload
+   the car status — the same load(true) as menu Refresh. */
+(function(){
+  const el=$('ptr'); if(!el) return;
+  const THRESH=64, MAX=96;
+  let startY=null, startX=0, dist=0, pulling=false, busy=false;
+  function blocked(){
+    if(busy) return true;
+    if(document.body.classList.contains('locked')) return true;
+    const app=$('app'); if(!app||app.style.display==='none') return true;
+    if(document.querySelector('.sheet:not([hidden])')) return true;
+    return false;
+  }
+  function setPull(d){
+    dist=Math.max(0,Math.min(d,MAX));
+    el.style.opacity=String(Math.min(1,dist/THRESH));
+    el.style.transform='translateY('+(-56+dist)+'px)';
+    const svg=el.querySelector('svg');
+    if(svg&&!el.classList.contains('spin')) svg.style.transform='rotate('+(dist/THRESH*270)+'deg)';
+  }
+  function reset(){
+    el.style.transition='transform .25s ease,opacity .25s ease';
+    el.style.opacity='0'; el.style.transform='translateY(-56px)';
+    const svg=el.querySelector('svg'); if(svg) svg.style.transform='';
+    setTimeout(()=>{el.style.transition='';},260);
+    dist=0; pulling=false; startY=null;
+  }
+  document.addEventListener('touchstart',e=>{
+    if(blocked()||window.scrollY>0||e.touches.length!==1){startY=null;return;}
+    startY=e.touches[0].clientY; startX=e.touches[0].clientX; pulling=false;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(startY==null||busy) return;
+    const dy=e.touches[0].clientY-startY, dx=e.touches[0].clientX-startX;
+    if(!pulling){
+      if(dy>8&&dy>Math.abs(dx)&&window.scrollY<=0) pulling=true; else return;
+    }
+    if(window.scrollY>0){reset();return;}
+    e.preventDefault();
+    setPull(dy*0.5);
+  },{passive:false});
+  document.addEventListener('touchend',async()=>{
+    if(startY==null) return;
+    const go=pulling&&dist>=THRESH;
+    startY=null;
+    if(!go){reset();return;}
+    busy=true; pulling=false;
+    el.classList.add('spin');
+    el.style.transition='transform .2s ease';
+    el.style.transform='translateY(8px)'; el.style.opacity='1';
+    try{ await load(true); }catch(e){}
+    el.classList.remove('spin'); busy=false; reset();
+  },{passive:true});
+  document.addEventListener('touchcancel',()=>{if(!busy)reset();},{passive:true});
+})();
 function menuAuto(){closeMenu();toggleAuto();}
 function menuExport(){closeMenu();exportCSV();}
 function menuClear(){closeMenu();clearTrips();}
