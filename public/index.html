@@ -596,6 +596,14 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 .rname{flex:1;font-weight:600}
 .rinput{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
 .rinput input{width:84px;text-align:right}
+.rateblk{border-bottom:1px solid var(--lg-edge);padding-bottom:10px}
+.rategroup .rateblk:last-child{border-bottom:0}
+.rateblk .raterow{border-bottom:0;padding-bottom:2px}
+.rate3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:2px 2px 0 44px}
+.rate3 label{display:flex;flex-direction:column;gap:3px;color:var(--muted);font-size:12px;font-weight:600}
+.rate3 .rin{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400}
+.rate3 input{width:100%;min-width:0;text-align:right;font-size:15px}
+.ctag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.05em;background:var(--lg-soft);color:var(--muted);border:1px solid var(--lg-edge);vertical-align:1px}
 .provcard{border:1px solid var(--lg-edge);border-radius:20px;padding:16px;margin-top:12px}
 .provhead{display:flex;align-items:center;gap:12px}
 .provname{font-size:18px;font-weight:700}
@@ -818,6 +826,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.11.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Public charging rates now split AC and DC, with an optional per-session fee — set all three per provider in Settings. Sessions are classed AC or DC from their peak power (over 22 kW is DC) and show an AC/DC tag. Defaults follow the researched Indonesian prices: AC and DC energy cost the same Rp2,467/kWh, DC adds the regulated service fee, so DC defaults to Rp3,600/kWh all-in (Voltron AC Rp2,875 with taxes, plus its Rp4,000 admin fee; Hyundai Rp3,000 admin).</li>
+    </ul>
     <h3>v1.10.0 — 27 Nov 2026</h3>
     <ul>
       <li>Charging is now priced per provider: set a rate each for Home, SPKLU, Voltron, Hyundai and Other public in Settings. Home sessions are detected by location; public ones by the nearest charge point in Open Charge Map, or by a place you tag on a session — tagging remembers the spot for next time.</li>
@@ -1006,15 +1018,15 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
     <h3>Energy &amp; cost</h3>
     <div class="rategroup">
     <div class="raterow"><span class="rdisc" style="background:#34c759"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Home</span><label class="rinput">Rp <input id="rateHome" type="number" value="1700" min="0" step="1"> /kWh</label></div>
-    <div class="raterow"><span class="rdisc" style="background:#0a84ff"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">SPKLU</span><label class="rinput">Rp <input id="rateSpklu" type="number" value="2467" min="0" step="1"> /kWh</label></div>
-    <div class="raterow"><span class="rdisc" style="background:#bf5af2"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Voltron</span><label class="rinput">Rp <input id="rateVoltron" type="number" value="2467" min="0" step="1"> /kWh</label></div>
-    <div class="raterow"><span class="rdisc" style="background:#30d5c8"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Hyundai</span><label class="rinput">Rp <input id="rateHyundai" type="number" value="2467" min="0" step="1"> /kWh</label></div>
-    <div class="raterow"><span class="rdisc" style="background:#8e8e93"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Other public</span><label class="rinput">Rp <input id="rateOther" type="number" value="2467" min="0" step="1"> /kWh</label></div>
+    <div class="rateblk"><div class="raterow"><span class="rdisc" style="background:#0a84ff"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">SPKLU</span></div><div class="rate3"><label>AC · Rp/kWh<span class="rin"><input id="rateSpkluAc" type="number" value="2467" min="0" step="1"></span></label><label>DC · Rp/kWh<span class="rin"><input id="rateSpkluDc" type="number" value="3600" min="0" step="1"></span></label><label>Fee · Rp/session<span class="rin"><input id="feeSpklu" type="number" value="0" min="0" step="1"></span></label></div></div>
+    <div class="rateblk"><div class="raterow"><span class="rdisc" style="background:#bf5af2"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Voltron</span></div><div class="rate3"><label>AC · Rp/kWh<span class="rin"><input id="rateVoltronAc" type="number" value="2875" min="0" step="1"></span></label><label>DC · Rp/kWh<span class="rin"><input id="rateVoltronDc" type="number" value="3600" min="0" step="1"></span></label><label>Fee · Rp/session<span class="rin"><input id="feeVoltron" type="number" value="4000" min="0" step="1"></span></label></div></div>
+    <div class="rateblk"><div class="raterow"><span class="rdisc" style="background:#30d5c8"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Hyundai</span></div><div class="rate3"><label>AC · Rp/kWh<span class="rin"><input id="rateHyundaiAc" type="number" value="2467" min="0" step="1"></span></label><label>DC · Rp/kWh<span class="rin"><input id="rateHyundaiDc" type="number" value="2467" min="0" step="1"></span></label><label>Fee · Rp/session<span class="rin"><input id="feeHyundai" type="number" value="3000" min="0" step="1"></span></label></div></div>
+    <div class="rateblk"><div class="raterow"><span class="rdisc" style="background:#8e8e93"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Other public</span></div><div class="rate3"><label>AC · Rp/kWh<span class="rin"><input id="rateOtherAc" type="number" value="2467" min="0" step="1"></span></label><label>DC · Rp/kWh<span class="rin"><input id="rateOtherDc" type="number" value="2467" min="0" step="1"></span></label><label>Fee · Rp/session<span class="rin"><input id="feeOther" type="number" value="0" min="0" step="1"></span></label></div></div>
     </div>
     <div class="row" style="margin-top:8px"><label class="muted" for="battKwh">Battery kWh</label>
     <input id="battKwh" type="number" value="60.48" min="1" step="0.1" style="width:96px;text-align:right"></div>
     <div class="row" style="margin-top:10px"><button class="btn ghost" onclick="saveSettings()">Save</button></div>
-    <div class="muted" style="font-size:13px;margin-top:6px">Charging sessions are priced by provider: home by location, public ones detected from Open Charge Map or a place you tagged on a session. Trips and the tiles above use the home rate.</div>
+    <div class="muted" style="font-size:13px;margin-top:6px">Charging sessions are priced by provider and charge type: AC or DC is read from the session's peak power (over 22 kW counts as DC), and the fee is added once per session. Home is detected by location; public providers from Open Charge Map or a place you tagged on a session. Trips and the tiles above use the home rate.</div>
     <div class="row" style="margin-top:10px"><label class="muted">Efficiency</label>
     <div class="seg" id="effSeg"><button type="button" data-u="kwh100" class="on" onclick="setEffUnit('kwh100')">kWh/100km</button><button type="button" data-u="kmkwh" onclick="setEffUnit('kmkwh')">km/kWh</button></div></div>
     <div class="muted" style="font-size:13px;margin-top:6px">How efficiency is shown — energy used per 100 km, or distance per kWh. Applies everywhere: Energy page, trips, and the Vehicle tab.</div>
@@ -1112,21 +1124,21 @@ const settings=JSON.parse(localStorage.getItem('beyondSettings')||'{}');
 // key — enter it once and you won't have to re-enter it every time.
 // It is stored only in this browser, never sent to the server.
 $('pinInput').value=localStorage.getItem('beyondPin')||sessionStorage.getItem('beyondPin')||'';
-const _R=settings.rates||{};
-$('rateHome').value=_R.home||settings.tariff||1700;
-$('rateSpklu').value=_R.spklu||2467;
-$('rateVoltron').value=_R.voltron||2467;
-$('rateHyundai').value=_R.hyundai||2467;
-$('rateOther').value=_R.other||2467;
+const RATE_DEFAULTS={spklu:{ac:2467,dc:3600,fee:0},voltron:{ac:2875,dc:3600,fee:4000},hyundai:{ac:2467,dc:2467,fee:3000},other:{ac:2467,dc:2467,fee:0}};
+function rates2(){const r2=settings.rates2||{},r1=settings.rates||{};const out={home:r1.home||settings.tariff||1700};for(const p of['spklu','voltron','hyundai','other']){const d=RATE_DEFAULTS[p],o=r2[p]||{},old=r1[p];out[p]={ac:o.ac!=null?o.ac:(old||d.ac),dc:o.dc!=null?o.dc:(old||d.dc),fee:o.fee!=null?o.fee:d.fee};}return out;}
+const _R2=rates2();
+$('rateHome').value=_R2.home;
+for(const [p,id] of [['spklu','Spklu'],['voltron','Voltron'],['hyundai','Hyundai'],['other','Other']]){$('rate'+id+'Ac').value=_R2[p].ac;$('rate'+id+'Dc').value=_R2[p].dc;$('fee'+id).value=_R2[p].fee;}
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
 if(settings.effUnit==='kmkwh')document.querySelectorAll('#effSeg button').forEach(b=>b.classList.toggle('on',b.dataset.u==='kmkwh'));
 const BGS=['system','halftone','ember','dune','nebula','silk','beams'];
 const BG_DARK={halftone:1,ember:1,nebula:1,silk:1,beams:1};
 function applyBg(name){if(!BGS.includes(name))name='system';document.body.classList.remove(...BGS.map(b=>'bg-'+b));document.body.classList.remove('darkbg','lightbg');if(name&&name!=='system'){document.body.classList.add('bg-'+name);document.body.classList.add(BG_DARK[name]?'darkbg':'lightbg');}document.querySelectorAll('#bgOpts button').forEach(b=>b.classList.toggle('on',b.dataset.bg===(name||'system')));}
-function readRates(){return{home:+$('rateHome').value||1700,spklu:+$('rateSpklu').value||2467,voltron:+$('rateVoltron').value||2467,hyundai:+$('rateHyundai').value||2467,other:+$('rateOther').value||2467};}
-function setBg(name){settings.background=name;settings.rates=readRates();settings.tariff=settings.rates.home;settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
+function readRates(){const o={home:+$('rateHome').value||1700};for(const [p,id] of [['spklu','Spklu'],['voltron','Voltron'],['hyundai','Hyundai'],['other','Other']]){const d=RATE_DEFAULTS[p];o[p]={ac:+$('rate'+id+'Ac').value||d.ac,dc:+$('rate'+id+'Dc').value||d.dc,fee:+$('fee'+id).value||0};}return o;}
+function persistRates(){settings.rates2=readRates();settings.rates={home:settings.rates2.home};settings.tariff=settings.rates2.home;}
+function setBg(name){settings.background=name;persistRates();settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
 applyBg(settings.background||'halftone');
-function saveSettings(){settings.rates=readRates();settings.tariff=settings.rates.home;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);loadServerTrips();}
+function saveSettings(){persistRates();settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);loadServerTrips();}
 // Efficiency unit: kWh/100km (default) or km/kWh. All efficiency displays
 // go through fmtEff so the choice applies everywhere at once.
 function effVal(kwh100){if(kwh100==null||kwh100<=0)return null;return settings.effUnit==='kmkwh'?100/kwh100:kwh100;}
@@ -1265,8 +1277,8 @@ function tripTime(t){
 }
 async function loadServerTrips(){
   try{
-    const _r=settings.rates||{};
-    const r=await fetch('/api/trips?tariff='+(_r.home||settings.tariff||1700)+'&rate_spklu='+(_r.spklu||2467)+'&rate_voltron='+(_r.voltron||2467)+'&rate_hyundai='+(_r.hyundai||2467)+'&rate_other='+(_r.other||2467),
+    const _r=rates2();const _q=['tariff='+_r.home];for(const p of['spklu','voltron','hyundai','other']){_q.push('rate_'+p+'_ac='+_r[p].ac,'rate_'+p+'_dc='+_r[p].dc,'fee_'+p+'='+_r[p].fee);}
+    const r=await fetch('/api/trips?'+_q.join('&'),
       {headers:appKey?{'X-App-Key':appKey}:{}});
     if(r.status===401)return;
     const d=await r.json();
@@ -1285,7 +1297,7 @@ async function loadServerTrips(){
     $('chargeHistory').innerHTML=window._sessions.map((s,i)=>{
       const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
       return '<div class="tripcard" onclick="openChargeDetail('+i+')"><div class="trip-head"><div><div class="trip-date">'+tripDate(s)+'</div>'+
-      '<div class="trip-route"><i class="pdot" style="background:'+PROVIDER_COLORS[s.provider||'other']+'"></i>'+(s.provider_label||s.place||'Charging')+'</div></div><div class="trip-time">'+tripTime(s)+'</div></div>'+
+      '<div class="trip-route"><i class="pdot" style="background:'+PROVIDER_COLORS[s.provider||'other']+'"></i>'+(s.provider_label||s.place||'Charging')+(s.charge_type?'<span class="ctag">'+s.charge_type.toUpperCase()+'</span>':'')+'</div></div><div class="trip-time">'+tripTime(s)+'</div></div>'+
       '<div class="trip-stats">'+
       stat('Energy',fmt(s.energy_kwh,1)+' <small>kWh</small>')+
       stat('Battery',(s.start_batt_pct!=null?fmt(s.start_batt_pct,0)+'%':'–')+' → '+(s.end_batt_pct!=null?fmt(s.end_batt_pct,0)+'%':'–'))+
@@ -1467,12 +1479,12 @@ function openChargeDetail(i){
   '<button class="iconbtn" onclick="closeDetail()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
   '<div class="dgrid">'+
   '<div class="tile"><div class="k">Added to battery</div><div class="v">'+fmt(s.energy_kwh,2)+' <small>kWh</small></div></div>'+
-  '<div class="tile"><div class="k">Total cost</div><div class="v">'+(s.est_cost_rp!=null?'Rp '+s.est_cost_rp.toLocaleString('id-ID'):'–')+'</div><div class="s">Estimated</div></div>'+
+  '<div class="tile"><div class="k">Total cost</div><div class="v">'+(s.est_cost_rp!=null?'Rp '+s.est_cost_rp.toLocaleString('id-ID'):'–')+'</div><div class="s">'+(s.fee_rp?'incl. Rp '+s.fee_rp.toLocaleString('id-ID')+' fee':'Estimated')+'</div></div>'+
   '</div>'+
   '<div class="provcard"><div class="provhead">'+
   '<span class="rdisc" style="background:'+PROVIDER_COLORS[s.provider||'other']+'">'+BOLT+'</span>'+
   '<div><div class="provname">'+(s.provider_label||'Other public')+'</div><div class="provsub">'+providerSub(s)+'</div></div>'+
-  '<div class="provrate">Rp '+(s.rate_rp!=null?s.rate_rp:(settings.tariff||1700)).toLocaleString('id-ID')+'<small>per kWh</small></div></div>'+
+  '<div class="provrate">Rp '+(s.rate_rp!=null?s.rate_rp:(settings.tariff||1700)).toLocaleString('id-ID')+'<small>per kWh'+(s.charge_type?' · '+s.charge_type.toUpperCase():'')+'</small></div></div>'+
   '<div class="seg" style="margin-top:14px">'+PROVIDER_OPTS.map(o=>'<button type="button" class="'+(s.provider===o[0]?'on':'')+'" onclick="setSessionProvider('+i+',\''+o[0]+'\')">'+o[1]+'</button>').join('')+'</div>'+
   '<div class="muted" style="font-size:13px;margin-top:8px">Tagging a provider remembers this place — future sessions here use it automatically.</div>'+
   (s.provider_source==='remembered'?'<div class="row" style="margin-top:10px"><button class="btn ghost" onclick="clearSessionProvider('+i+')">Forget this place</button></div>':'')+

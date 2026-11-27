@@ -885,12 +885,16 @@ def _charging_sessions(snaps: list[dict]) -> list[dict]:
         except Exception:
             dur = None
         cap = energy / (dsoc / 100)
+        powers = [x.get("power_kw") for x in run
+                  if isinstance(x.get("power_kw"), (int, float))]
+        peak = max(powers) if powers else None
         sessions.append({
             "start_time": first.get("t"), "end_time": last.get("t"),
             "duration_min": dur,
             "start_batt_pct": first.get("batt_pct"),
             "end_batt_pct": last.get("batt_pct"),
             "energy_kwh": round(energy, 2),
+            "peak_power_kw": round(peak, 1) if peak is not None else None,
             "n_points": len(run),
             "dsoc": dsoc,
             "capacity_kwh": cap if 30 <= cap <= 60 else None,
@@ -919,6 +923,27 @@ def _charging_sessions(snaps: list[dict]) -> list[dict]:
         prev = s
     flush(run)
     return list(reversed(sessions))  # newest first
+
+
+DC_THRESHOLD_KW = 22.0
+
+
+def _charge_type(peak_power_kw, energy_kwh, duration_min) -> str:
+    """AC vs DC for pricing, from the session's peak charge power.
+    >22 kW is DC (the ESDM tier boundary; the Dolphin AC-charges at
+    ~7 kW and DC-charges well above 22). Falls back to average power
+    when no peak was recorded, then to AC."""
+    p = peak_power_kw
+    if p is None and energy_kwh and duration_min:
+        p = energy_kwh / (duration_min / 60)
+    return "dc" if (p or 0) > DC_THRESHOLD_KW else "ac"
+
+
+def _session_cost(energy_kwh, charge_type, rate_ac, rate_dc, fee_rp):
+    """(total_rp, rate_rp, fee_rp) for one charging session."""
+    rate = rate_dc if charge_type == "dc" else rate_ac
+    fee = round(fee_rp or 0)
+    return round(energy_kwh * rate) + fee, rate, fee
 
 
 def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
@@ -1124,6 +1149,18 @@ async def trips(
     rate_voltron: float | None = None,
     rate_hyundai: float | None = None,
     rate_other: float | None = None,
+    rate_spklu_ac: float | None = None,
+    rate_spklu_dc: float | None = None,
+    fee_spklu: float | None = None,
+    rate_voltron_ac: float | None = None,
+    rate_voltron_dc: float | None = None,
+    fee_voltron: float | None = None,
+    rate_hyundai_ac: float | None = None,
+    rate_hyundai_dc: float | None = None,
+    fee_hyundai: float | None = None,
+    rate_other_ac: float | None = None,
+    rate_other_dc: float | None = None,
+    fee_other: float | None = None,
 ):
     _require_app_key(x_app_key)
     if not KV_URL or not KV_TOKEN:
@@ -1155,11 +1192,21 @@ async def trips(
     merges = await _trip_merges()
     trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH, home, merges)
     t = tariff or TARIFF_RPKWH
-    # Per-provider rates (v1.10.0): home uses the tariff param (trips too);
-    # public providers fall back to it when the app sends no rate.
-    rates = {"home": t,
-             "spklu": rate_spklu or t, "voltron": rate_voltron or t,
-             "hyundai": rate_hyundai or t, "other": rate_other or t}
+    # Per-provider rates: home uses the tariff param (trips too).
+    # Public providers have separate AC/DC rates plus a per-session
+    # fee (v1.11.0); the old single rate_<p> param still works as the
+    # fallback for both, then the tariff.
+    def _pr(ac, dc, old, fee):
+        a = ac or old or t
+        return {"ac": a, "dc": dc or old or a, "fee": fee or 0}
+    rates = {"home": {"ac": t, "dc": t, "fee": 0},
+             "spklu": _pr(rate_spklu_ac, rate_spklu_dc, rate_spklu, fee_spklu),
+             "voltron": _pr(rate_voltron_ac, rate_voltron_dc,
+                            rate_voltron, fee_voltron),
+             "hyundai": _pr(rate_hyundai_ac, rate_hyundai_dc,
+                            rate_hyundai, fee_hyundai),
+             "other": _pr(rate_other_ac, rate_other_dc,
+                          rate_other, fee_other)}
     places = await _charge_places()
     ocm_cache: dict = {}
     ocm_dirty = False
@@ -1196,15 +1243,22 @@ async def trips(
                     ocm_title = hit.get("title")
             if provider is None:
                 provider, source = "other", "unknown"
-        rate = rates[provider]
+        ct = _charge_type(s.get("peak_power_kw"), s["energy_kwh"],
+                          s["duration_min"])
+        pr = rates[provider]
+        cost, rate, fee = _session_cost(s["energy_kwh"], ct,
+                                        pr["ac"], pr["dc"], pr["fee"])
         sessions.append({
             "start_time": s["start_time"], "end_time": s["end_time"],
             "duration_min": s["duration_min"],
             "start_batt_pct": s["start_batt_pct"],
             "end_batt_pct": s["end_batt_pct"],
             "energy_kwh": s["energy_kwh"],
-            "est_cost_rp": round(s["energy_kwh"] * rate),
+            "est_cost_rp": cost,
             "rate_rp": rate,
+            "fee_rp": fee,
+            "charge_type": ct,
+            "peak_power_kw": s.get("peak_power_kw"),
             "provider": provider,
             "provider_label": PROVIDER_LABELS[provider],
             "provider_source": source,
