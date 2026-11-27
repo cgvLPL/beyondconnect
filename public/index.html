@@ -474,6 +474,112 @@ body.darkbg .gdate,body.darkbg .ghey{color:rgb(255 255 255 / .82)}
 body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background:rgb(0 0 0 / .30)}
 @media (prefers-reduced-transparency:reduce){
   .card,.statcard,.loccard,.ctltile:not(.on),.tripcard,.herocard,.charge-scene{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--card)}}
+
+/* ================= v1.5.0 — TuyaMinimal motion =================
+   Same vocabulary as TuyaMinimal: a springy press on every control, pages that slide in from the side
+   they sit on, tiles that bounce and light up when toggled, sheets and menus that spring open, and a
+   tab-bar pill + segmented-control thumb that slide to the selection. All of it stops for Reduce Motion. */
+:root{--spring:cubic-bezier(.3,1.45,.5,1);--m-ease:cubic-bezier(.32,1.32,.5,1);--seg-on:#111}
+@media (prefers-color-scheme:dark){:root{--seg-on:#f5f5f7}}
+body.darkbg{--seg-on:#f5f5f7}body.lightbg{--seg-on:#111}
+@keyframes enter-forward{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:none}}
+@keyframes enter-back{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:none}}
+@keyframes tile-on{0%{transform:scale(.955);filter:brightness(.8)}55%{transform:scale(1.018);filter:brightness(1.05)}100%{transform:none;filter:none}}
+@keyframes tile-off{0%{transform:scale(.955);filter:brightness(1.2)}55%{transform:scale(1.01)}100%{transform:none;filter:none}}
+@keyframes icon-pop{0%{transform:scale(.86);filter:brightness(.9)}60%{transform:scale(1.05)}100%{transform:scale(1);filter:none}}
+@keyframes status-in{from{opacity:0;transform:translateY(3px)}}
+@keyframes sheet-in{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes scrim-in{from{opacity:0}}
+@keyframes menu-in{from{opacity:0;transform:scale(.88) translateY(-6px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.page.enter-forward{animation:enter-forward .26s cubic-bezier(.2,.8,.2,1)}
+.page.enter-back{animation:enter-back .26s cubic-bezier(.2,.8,.2,1)}
+/* Press: a quick spring */
+.ctltile,.qapill,.btn,.iconbtn,.ac-seatbtn,.ac-round,.ctlstep button,.dock a,.seg button,.bgopts button{
+  transition:transform .45s var(--spring),background-color .2s ease,color .2s ease,box-shadow .25s ease,opacity .2s ease}
+.ctltile:active{transform:scale(.96)}
+.ctltile.big{cursor:default}.ctltile.big:active{transform:none}
+.qapill:active,.btn:active,.iconbtn:active,.ac-seatbtn:active,.ac-round:active,.ctlstep button:active,.dock a:active{transform:scale(.93)}
+.seg button:active,.bgopts button:active{transform:scale(.96)}
+.iconbtn:active{transform:scale(1.08);box-shadow:var(--glass-shadow),0 0 0 6px rgb(255 255 255 / .16)}
+/* Toggle: tile bounce, icon pop, status fade */
+.ctltile.m-on{animation:tile-on .56s var(--m-ease) both}
+.ctltile.m-off{animation:tile-off .5s var(--m-ease) both}
+.ctltile.m-on .ctlicon,.ctltile.m-off .ctlicon{animation:icon-pop .42s var(--m-ease) both}
+.ctltile.m-on .ctlstate,.ctltile.m-off .ctlstate{animation:status-in .35s ease both}
+.qapill.m-pop{animation:icon-pop .42s var(--m-ease) both}
+.ctltile{transition:transform .45s var(--spring),background-color .35s ease,color .35s ease,box-shadow .25s ease}
+/* Sheets and the ••• menu spring open */
+.sheet:not([hidden]){animation:scrim-in .25s ease-out}
+.sheet:not([hidden]) .sheetcard{animation:sheet-in .5s var(--m-ease) both}
+.ctxmenu.open{transform-origin:top right;animation:menu-in .32s cubic-bezier(.2,.9,.3,1) both}
+/* Tab bar: one pill that slides (and springs) to the active tab */
+.dock{position:fixed}
+.dock-thumb{position:absolute;left:0;top:0;border-radius:999px;background:var(--lg-pill);box-shadow:inset 0 1px 0 rgb(255 255 255 / .06);
+  pointer-events:none;z-index:0;transition:transform .5s var(--m-ease),width .5s var(--m-ease),height .5s var(--m-ease)}
+.dock a{position:relative;z-index:1}
+.dock.has-thumb a.on{background:none;box-shadow:none}
+/* Segmented controls: the selected pill slides */
+.seg{position:relative}
+.seg button{position:relative;z-index:1}
+.seg-thumb{position:absolute;left:0;top:0;border-radius:999px;background:var(--seg-on);pointer-events:none;z-index:0;
+  transition:transform .45s var(--m-ease),width .45s var(--m-ease),height .45s var(--m-ease),opacity .2s ease}
+.seg.has-thumb button.on{background:none}
+@media (prefers-reduced-motion:reduce){
+  .page.enter-forward,.page.enter-back,.ctltile.m-on,.ctltile.m-off,.ctltile.m-on .ctlicon,.ctltile.m-off .ctlicon,.ctltile.m-on .ctlstate,.ctltile.m-off .ctlstate,
+  .qapill.m-pop,.sheet:not([hidden]),.sheet:not([hidden]) .sheetcard,.ctxmenu.open{animation:none}
+  .dock-thumb,.seg-thumb,.ctltile,.qapill,.btn,.iconbtn,.dock a,.seg button{transition:none}
+  .ctltile:active,.qapill:active,.btn:active,.iconbtn:active,.dock a:active,.seg button:active{transform:none}}
+
+/* ================= v1.6.0 — TuyaMinimal icons =================
+   Same icon language as TuyaMinimal: a hue per function; the glyph is that hue on a dark glass disc, and
+   when the function is on the disc fills with the hue (from the centre) and the glyph turns white.
+   Tab-bar glyphs are the filled set (fill + 1.2 stroke); chips carry a solid hue disc with a white glyph. */
+.hue-yellow{--hue:#ffc400;--hue-ink:#d99a00}.hue-amber{--hue:#ff9f0a;--hue-ink:#d97a00}.hue-orange{--hue:#ff7a1a;--hue-ink:#e0600a}
+.hue-blue{--hue:#32ade6;--hue-ink:#0a84d0}.hue-teal{--hue:#2fc4b7;--hue-ink:#12998e}.hue-green{--hue:#34c759;--hue-ink:#1f9e43}
+.hue-purple{--hue:#a970f0;--hue-ink:#8a4fd6}.hue-grey{--hue:#8e8e93;--hue-ink:#6e6e73}
+#tileClimate{--hue:#32ade6;--hue-ink:#0a84d0}#tileLock{--hue:#34c759;--hue-ink:#1f9e43}#tileCharge{--hue:#ffc400;--hue-ink:#d99a00}
+#tileFind{--hue:#ff9f0a;--hue-ink:#d97a00}#tileFlash{--hue:#ffd60a;--hue-ink:#d99a00}#tileWin{--hue:#2fc4b7;--hue-ink:#12998e}#tileTrunk{--hue:#a970f0;--hue-ink:#8a4fd6}
+@property --fill{syntax:'<percentage>';inherits:false;initial-value:0%}
+@keyframes fill-in{from{--fill:0%}to{--fill:100%}}
+@keyframes fill-out{from{--fill:100%}to{--fill:0%}}
+@keyframes glyph-on{from{color:var(--hue)}}
+@keyframes glyph-off{from{color:#fff}}
+:root{--ic-off:rgb(127 127 127 / .16)}
+@media (prefers-color-scheme:dark){:root{--ic-off:rgb(255 255 255 / .08)}}
+body.darkbg{--ic-off:rgb(255 255 255 / .08)}
+body.lightbg{--ic-off:rgb(127 127 127 / .16)}
+.ctlicon{--fill:0%;width:50px;height:50px;color:var(--hue-ink,var(--text));box-shadow:inset 0 0 0 1px rgb(255 255 255 / .06)}
+@media (prefers-color-scheme:dark){.ctlicon{color:var(--hue,var(--text))}}
+body.darkbg .ctlicon{color:var(--hue,var(--text))}
+body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
+.ctlicon,.ctltile.on .ctlicon{
+  background:radial-gradient(circle farthest-corner at 50% 50%,var(--hue,transparent) var(--fill),transparent calc(var(--fill) + .4%)),var(--ic-off)}
+.ctltile.on .ctlicon{--fill:100%;color:#fff;box-shadow:none}
+.ctltile.m-on .ctlicon{animation:fill-in .42s cubic-bezier(.2,.7,.3,1) both,glyph-on .3s ease backwards,icon-pop .5s var(--m-ease) both}
+.ctltile.m-off .ctlicon{animation:fill-out .36s cubic-bezier(.4,0,.6,1) both,glyph-off .3s ease backwards,icon-pop .5s var(--m-ease) both}
+/* Chips: a solid hue disc with a white glyph */
+.qapill{gap:8px;padding:6px 14px 6px 6px}
+.qapill .qdot{width:28px;height:28px;flex:none;border-radius:50%;background:var(--hue);color:#fff;display:grid;place-items:center;transition:background-color .3s ease}
+.qapill .qdot svg{display:block}
+/* Tab bar: filled glyphs */
+.dock a svg{width:26px;height:26px}
+@media (prefers-reduced-motion:reduce){.ctltile.m-on .ctlicon,.ctltile.m-off .ctlicon{animation:none}}
+
+/* ================= v1.7.0 — icon system, part 2 =================
+   Every stat tile and list row gets a small hue disc like TuyaMinimal's chips; no emoji or text symbols are left. */
+.hue-red{--hue:#ff453a;--hue-ink:#d92d20}.hue-pink{--hue:#ff5a8a;--hue-ink:#d93a6c}
+.kic{display:inline-grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:var(--hue,#8e8e93);color:#fff;margin-right:2px;box-shadow:inset 0 1px 0 rgb(255 255 255 / .22)}
+.kic svg{display:block}
+.tile .k{display:flex;align-items:center;gap:8px}
+.tile.hero .k .kic{width:28px;height:28px}
+.sumrow .lab{display:flex;align-items:center;gap:12px}
+.sumrow .lab .kic{width:30px;height:30px}
+.sumrow{align-items:center}
+.hc-loc{display:flex;align-items:center;gap:5px}.hc-loc .pin{flex:none;opacity:.85}
+.ctxmenu button .mi{display:inline-grid;place-items:center}
+.iconbtn svg{display:block}
+.cs-badge svg{flex:none}
+.ac-round svg{display:inline-block;vertical-align:-2px;margin-right:2px}
 </style>
 <link rel="stylesheet" href="leaflet/leaflet.css">
 </head>
@@ -512,21 +618,21 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
       <button onclick="menuRefresh()">Refresh now <span class="mi">↻</span></button>
       <div class="ctxsep"></div>
       <button onclick="menuAuto()"><span id="menuAutoLabel">Auto-refresh</span> <span class="switch on" id="menuAutoSwitch"><span class="knob"></span></span></button>
-      <button onclick="menuExport()">Export trips CSV <span class="mi">↓</span></button>
-      <button onclick="menuChangelog()">What's new <span class="mi">✦</span></button>
-      <button onclick="menuSettings()">Settings <span class="mi">›</span></button>
+      <button onclick="menuExport()">Export trips CSV <span class="mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span></button>
+      <button onclick="menuChangelog()">What's new <span class="mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9z" fill="currentColor"/></svg></span></button>
+      <button onclick="menuSettings()">Settings <span class="mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span></button>
       <div class="ctxsep"></div>
-      <button class="danger" onclick="menuClear()">Clear trip history <span class="mi">✕</span></button>
+      <button class="danger" onclick="menuClear()">Clear trip history <span class="mi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button>
     </div>
   </div>
 </div>
 <div class="qapills" id="qaPills">
-  <button class="qapill" id="qaLock" onclick="toggleLock()">🔒 Locked</button>
-  <button class="qapill" id="qaClimate" onclick="openAc()">❄️ Climate</button>
-  <button class="qapill" id="qaCharge" onclick="tapCharge()">⚡ Charge</button>
+  <button class="qapill" id="qaLock" onclick="toggleLock()"><span class="qdot hue-green"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6" fill="currentColor"/><path d="M8 10.2V7.6a4 4 0 0 1 8 0v2.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></span><span class="qlabel">Locked</span></button>
+  <button class="qapill" id="qaClimate" onclick="openAc()"><span class="qdot hue-blue"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8l16.4-9.6"/></svg></span><span class="qlabel">Climate</span></button>
+  <button class="qapill" id="qaCharge" onclick="tapCharge()"><span class="qdot hue-yellow"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="qlabel">Charge</span></button>
 </div>
 <div class="herocard" id="heroCard">
-  <div class="hc-top"><div><div class="hc-name" id="carName">Dolphino</div><div class="hc-loc">📍 <span id="heroLoc">Cikarang</span></div></div>
+  <div class="hc-top"><div><div class="hc-name" id="carName">Dolphino</div><div class="hc-loc"><svg class="pin" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12zm0-9.2a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6z" fill-rule="evenodd"/></svg><span id="heroLoc">Cikarang</span></div></div>
   <button class="herolock" id="heroLock" onclick="toggleLock()" title="Lock / unlock" aria-label="Lock or unlock"></button></div>
   <img class="car" id="carImg" alt="BYD Dolphin" style="display:none">
 </div>
@@ -536,7 +642,7 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
     <div class="cs-meta">
       <div class="cs-state"><svg id="csBolt" width="15" height="15" viewBox="0 0 24 24" fill="#4ade80"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>Charging</div>
       <div class="cs-eta" id="csEta"></div>
-      <div class="cs-badge ac" id="csBadge">⚡ AC Charger</div>
+      <div class="cs-badge ac" id="csBadge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg><span>AC Charger</span></div>
     </div>
   </div>
   <img class="cs-car" id="csCarImg" src="dolphin-side.png" alt="BYD Dolphin charging">
@@ -606,7 +712,7 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
 </div>
 <div class="page" id="page-trips">
 <div class="sections">
-<div class="card span2" id="trips"><div class="cardhead"><h2>Trips</h2><div class="menuwrap"><button class="iconbtn" onclick="toggleTripsMenu(event)" title="Trips menu" aria-haspopup="true">•••</button><div class="glass ctxmenu" id="tripsMenu" role="menu"><button onclick="tripsMenuExport()">Export CSV <span class="mi">↓</span></button><button class="danger" onclick="tripsMenuClear()">Clear history <span class="mi">✕</span></button></div></div></div>
+<div class="card span2" id="trips"><div class="cardhead"><h2>Trips</h2><div class="menuwrap"><button class="iconbtn" onclick="toggleTripsMenu(event)" title="Trips menu" aria-haspopup="true">•••</button><div class="glass ctxmenu" id="tripsMenu" role="menu"><button onclick="tripsMenuExport()">Export CSV <span class="mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span></button><button class="danger" onclick="tripsMenuClear()">Clear history <span class="mi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button></div></div></div>
 <div id="serverTrips"><div class="muted">Loading automatic trips…</div></div>
 <div class="tblwrap" style="overflow-x:auto;margin-top:8px"><table><thead><tr><th>Time (WIB)</th><th>Battery</th><th>Odo</th><th>Δ km</th><th>Δ kWh</th><th>Est. cost</th></tr></thead>
 <tbody id="tripRows"></tbody></table></div></div>
@@ -626,12 +732,12 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
     <button class="btn" id="ctlClimateBtn" style="margin-top:12px" onclick="event.stopPropagation();toggleClimate()">Start</button>
   </div>
   <div class="ctltile" id="tileLock" role="button" tabindex="0" onclick="toggleLock()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();toggleLock();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><g class="lockshackle"><path d="M8 10V7a4 4 0 018 0v3"/></g></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6" fill="currentColor" stroke="none"/><g class="lockshackle"><path d="M8 10.2V7.6a4 4 0 018 0v2.6"/></g></svg></div>
     <div class="ctlname">Locks</div>
     <div class="ctlstate" id="ctlLockState">Locked</div>
   </div>
   <div class="ctltile" id="tileCharge" role="button" tabindex="0" onclick="tapCharge()" onkeydown="if(event.key==='Enter'||event.key===' ') {event.preventDefault();tapCharge();}">
-    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg></div>
+    <div class="ctlicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z" fill="currentColor"/></svg></div>
     <div class="ctlname">Charging</div>
     <div class="ctlstate" id="ctlChargeState">Not charging</div>
   </div>
@@ -678,17 +784,29 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
 </div>
 </div>
 <nav class="dock" aria-label="Sections">
-  <a href="#overview" class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg></a>
-  <a href="#energy"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg></a>
-  <a href="#trips"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></a>
-  <a href="#controls"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></a>
-  <a href="#vehicle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V7.5L5.6 5.4A2 2 0 017.3 4.5h9.4a2 2 0 011.7.9L20 7.5V16"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.7"/><circle cx="16.5" cy="16.5" r="1.7"/></svg></a>
+  <a href="#overview" class="on"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path fill-rule="evenodd" d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM10 21v-5a2 2 0 0 1 4 0v5z"/></svg></a>
+  <a href="#energy"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></a>
+  <a href="#trips"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><defs><mask id="dkClock" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff"/><path d="M12 7v5.2l3.2 2" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><circle cx="12" cy="12" r="9.4" mask="url(#dkClock)"/></svg></a>
+  <a href="#controls"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6"/><path d="M8 10.2V7.6a4 4 0 0 1 8 0v2.6" fill="none" stroke-width="2"/></svg></a>
+  <a href="#vehicle"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path fill-rule="evenodd" d="M5.5 5.8A2 2 0 0 1 7.2 4.8h9.6a2 2 0 0 1 1.7 1L20.6 10v7.2a1 1 0 0 1-1 1h-1.2a2.3 2.3 0 0 1-4.6 0H9.6a2.3 2.3 0 0 1-4.6 0H4.4a1 1 0 0 1-1-1V10zM6.4 10h11.2l-1.3-3.2H7.7z"/></svg></a>
 </nav>
 </div>
 </div>
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
-    <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close">✕</button></div>
+    <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.7.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Every stat tile and list row now has a small colour disc with a glyph, like TuyaMinimal's chips. All icons are proper SVGs now — no emoji or text symbols left — and the Locks/Charging tiles use the filled lock and bolt.</li>
+    </ul>
+    <h3>v1.6.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Icons like TuyaMinimal: filled tab-bar glyphs, and every control has its own colour (Locks green, Climate blue, Charging yellow…). A tile's disc fills with its colour when it's on, and the top chips use colour discs instead of emoji.</li>
+    </ul>
+    <h3>v1.5.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Motion everywhere, borrowed from TuyaMinimal: springy presses, pages that slide in, tiles that bounce when they flip, sheets that spring up, and a tab pill and segmented thumbs that slide. All of it respects Reduce Motion.</li>
+    </ul>
     <h3>v1.4.1 — 27 Nov 2026</h3>
     <ul>
       <li>The big Climate tile now reads like TuyaMinimal's AC tile: temperature and the − / + buttons on top, name, state and the Start button pinned to the bottom. The − / + buttons are glass instead of black discs.</li>
@@ -826,7 +944,7 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
 </div>
 <div id="settingsSheet" class="sheet" hidden onclick="if(event.target===this)closeSettings()">
   <div class="glass sheetcard">
-    <div class="lrow"><span class="lbrand">Settings</span><button class="iconbtn" onclick="closeSettings()" title="Close">✕</button></div>
+    <div class="lrow"><span class="lbrand">Settings</span><button class="iconbtn" onclick="closeSettings()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <h3>Control PIN</h3>
     <div class="row"><label class="muted" for="pinInput">6-digit BYD control PIN</label>
     <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" style="width:96px;text-align:center;letter-spacing:.2em" onchange="localStorage.setItem('beyondPin',this.value);sessionStorage.setItem('beyondPin',this.value)"></div>
@@ -862,7 +980,7 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
 </div>
 <div id="acSheet" class="sheet" hidden onclick="if(event.target===this)closeAc()">
   <div class="glass sheetcard">
-    <div class="lrow"><span class="lbrand">A/C</span><button class="iconbtn" onclick="closeAc()" title="Close">✕</button></div>
+    <div class="lrow"><span class="lbrand">A/C</span><button class="iconbtn" onclick="closeAc()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="ac-cabin">
       <svg viewBox="0 0 340 200" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <rect x="60" y="8" width="220" height="184" rx="36" opacity=".45"/>
@@ -881,8 +999,8 @@ body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background
     <input type="range" id="acTempSlider" class="actemp" min="15" max="31" step="0.5" value="23" aria-label="Temperature" oninput="acTempInput(this.value)" onchange="acTempChange()">
     <div class="ac-rounds">
       <button class="ac-round" id="acPowerBtn" onclick="toggleClimate()">Turn on</button>
-      <button class="ac-round" onclick="acFast(15)">❄ MAX<small>Fast cooling</small></button>
-      <button class="ac-round" onclick="acFast(31)">☀ MAX<small>Quick heating</small></button>
+      <button class="ac-round" onclick="acFast(15)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8l16.4-9.6"/></svg> MAX<small>Fast cooling</small></button>
+      <button class="ac-round" onclick="acFast(31)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.6" fill="currentColor"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3L7 7M17 17l1.7 1.7M5.3 18.7L7 17M17 7l1.7-1.7"/></svg> MAX<small>Quick heating</small></button>
     </div>
     <div class="muted" style="margin:16px 0 4px">Settings</div>
     <div class="ac-setrow"><span>Circulation</span><div class="seg" id="acCycleSeg"><button type="button" data-cycle="1" onclick="setCycle(1)">Fresh</button><button type="button" data-cycle="2" class="on" onclick="setCycle(2)">Recirculate</button></div></div>
@@ -1014,8 +1132,8 @@ async function load(manual){
   }
 }
 function ctrlSay(h){const c=$('ctrlMsg');if(c)c.innerHTML=h;const q=$('qaMsg');if(q)q.innerHTML=h;}
-const LOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>';
-const UNLOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 017.7-1.5"/></svg>';
+const LOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6" fill="currentColor" stroke="none"/><path d="M8 10.2V7.6a4 4 0 018 0v2.6"/></svg>';
+const UNLOCK_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6" fill="currentColor" stroke="none"/><path d="M8 10.2V7.6a4 4 0 017.7-1.5"/></svg>';
 function ago(ts){const s=Math.floor((Date.now()-new Date(ts).getTime())/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' h ago';const d=Math.floor(s/86400);return d===1?'Yesterday':d+' days ago';}
 function updateLastTrip(){const t=window._lastTrip,v=$('lastTripVal'),s=$('lastTripSub');if(!v)return;if(!t){v.textContent='—';s.textContent='No trips yet';return;}v.textContent=fmt(t.distance_km,1)+' km';s.textContent=(t.duration_min!=null?t.duration_min+' min · ':'')+ago(t.end_time||t.start_time);}
 /* --- Remote controls (v1.1) --- */
@@ -1246,7 +1364,7 @@ function openChargeDetail(i){
   '<div class="dhead"><div><div class="dtitle">Charge Detail</div>'+
   '<div class="dsub">'+wib(s.start_time)+' · '+(s.place||'Charging')+'</div>'+
   '<div class="dsub"><span class="acc">DiLink · estimated from SoC</span></div></div>'+
-  '<button class="iconbtn" onclick="closeDetail()" title="Close">✕</button></div>'+
+  '<button class="iconbtn" onclick="closeDetail()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
   '<div class="dgrid">'+
   '<div class="tile"><div class="k">Added to battery</div><div class="v">'+fmt(s.energy_kwh,2)+' <small>kWh</small></div></div>'+
   '<div class="tile"><div class="k">Total cost</div><div class="v">'+(s.est_cost_rp!=null?'Rp '+s.est_cost_rp.toLocaleString('id-ID'):'–')+'</div><div class="s">Estimated</div></div>'+
@@ -1277,7 +1395,7 @@ function openTripDetail(i){
   $('detailBody').innerHTML=
   '<div class="dhead"><div><div class="dtitle">Trip details</div>'+
   '<div class="dsub">'+wib(t.start_time)+'</div></div>'+
-  '<button class="iconbtn" onclick="closeDetail()" title="Close">✕</button></div>'+
+  '<button class="iconbtn" onclick="closeDetail()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
   '<div class="dgrid">'+
   '<div class="tile"><div class="k">Distance</div><div class="v">'+fmt(t.distance_km,1)+' <small>km</small></div></div>'+
   '<div class="tile"><div class="k">Duration</div><div class="v">'+(t.duration_min!=null?t.duration_min+' <small>min</small>':'–')+'</div></div>'+
@@ -1395,7 +1513,7 @@ function render(d){
     const cLabel={ac:'AC Charger',fast:'Fast Charger',ultra:'Ultra Fast Charger'}[ctype];
     const cDot={ac:'#4ade80',fast:'#60a5fa',ultra:'#c084fc'}[ctype];
     const badge=$('csBadge');
-    badge.textContent='⚡ '+cLabel;
+    badge.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg><span></span>';badge.lastChild.textContent=cLabel;
     badge.className='cs-badge '+ctype;
     $('csBar').className='cs-bar '+ctype;
     const bolt=$('csBolt'); if(bolt) bolt.setAttribute('fill',cDot);
@@ -1475,9 +1593,10 @@ function render(d){
   $('heroLock').innerHTML=allLocked?LOCK_SVG:UNLOCK_SVG;
   // Quick-action pills (HomeView room pills): state-aware, one tap from home
   const qaL=$('qaLock'), qaC=$('qaClimate'), qaG=$('qaCharge');
-  if(qaL){qaL.textContent=allLocked?'🔒 Locked':'🔓 Unlocked';qaL.classList.toggle('on',allLocked);}
-  if(qaC){qaC.textContent=climOn?'❄️ Climate on':'❄️ Climate';qaC.classList.toggle('on',climOn);}
-  if(qaG){qaG.textContent=charging?'⚡ Charging':'⚡ Charge';qaG.classList.toggle('on',charging);}
+  const QA_LOCK_C='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6" fill="currentColor"/><path d="M8 10.2V7.6a4 4 0 0 1 8 0v2.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',QA_LOCK_O='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.4" y="10.2" width="15.2" height="11" rx="2.6" fill="currentColor"/><path d="M8 10.2V7.6a4 4 0 0 1 7.7-1.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  if(qaL){qaL.querySelector('.qlabel').textContent=allLocked?'Locked':'Unlocked';qaL.querySelector('.qdot').innerHTML=allLocked?QA_LOCK_C:QA_LOCK_O;qaL.querySelector('.qdot').className='qdot '+(allLocked?'hue-green':'hue-orange');qaL.classList.toggle('on',allLocked);}
+  if(qaC){qaC.querySelector('.qlabel').textContent=climOn?'Climate on':'Climate';qaC.classList.toggle('on',climOn);}
+  if(qaG){qaG.querySelector('.qlabel').textContent=charging?'Charging':'Charge';qaG.classList.toggle('on',charging);}
   $('battStatPct').textContent=fmt(rt.battery_pct,0)+'%';
   const ttf=charging?timeToFull(rt):null;
   $('battStatSub').textContent=charging?(kw?fmt(kw,1)+' kW'+(ttf?' · ≈ '+ttf+' to full':''):'Charging'):(window._range?'≈ '+window._range.range_now_km+' km':fmt(rt.range_km,0)+' km range');
@@ -1555,9 +1674,16 @@ function menuClear(){closeMenu();clearTrips();}
 const PAGES=['overview','energy','trips','controls','vehicle'];
 function showPage(name){
   if(!PAGES.includes(name))name='overview';
+  const prev=document.querySelector('.page.active'),pi=prev?PAGES.indexOf(prev.id.slice(5)):-1,ni=PAGES.indexOf(name);
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
   document.querySelectorAll('.dock a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+name));
   window.scrollTo(0,0);
+  const el=document.getElementById('page-'+name);
+  if(el&&pi>-1&&pi!==ni&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    el.classList.remove('enter-forward','enter-back');void el.offsetWidth;
+    el.classList.add(ni>pi?'enter-forward':'enter-back');
+    setTimeout(()=>el.classList.remove('enter-forward','enter-back'),420);}
+  if(window.moveDockThumb)moveDockThumb();
   if(name==='overview'&&window.carMap)setTimeout(()=>window.carMap.invalidateSize(),60);
 }
 function goPage(name){
@@ -1568,6 +1694,112 @@ function goPage(name){
 document.querySelectorAll('.dock a').forEach(a=>a.addEventListener('click',e=>{
   e.preventDefault();goPage(a.getAttribute('href').slice(1));}));
 window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overview'));
+/* ---- v1.7.0 icons for stat tiles and list rows (TuyaMinimal hue discs) ---- */
+(function(){
+  const L=(i,f)=>'<svg width="14" height="14" viewBox="0 0 24 24" fill="'+(f?'currentColor':'none')+'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+i+'</svg>';
+  const G={
+    battery:L('<rect x="2.5" y="7" width="16" height="10" rx="2.5"/><path d="M21.5 10.5v3"/>'),
+    cell:L('<rect x="7" y="4.5" width="10" height="16" rx="2.5"/><path d="M10 2h4"/>'),
+    bolt:L('<path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/>',1),
+    route:L('<circle cx="6" cy="19" r="2"/><path d="M6 17V10a4 4 0 0 1 4-4h8M15 3l3 3-3 3"/>'),
+    gauge:L('<path d="M4.6 18a9 9 0 1 1 14.8 0"/><path d="M12 13.5l3.6-3.6"/>'),
+    leaf:L('<path d="M5 19C5 10 10 5 20 5c0 10-5 15-14 15"/><path d="M5 19c3-4 6-6 10-8"/>'),
+    heart:L('<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>'),
+    money:L('<rect x="3" y="6.5" width="18" height="11" rx="2.5"/><circle cx="12" cy="12" r="2.4"/>'),
+    clock:L('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/>'),
+    therm:L('<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/>'),
+    sun:L('<circle cx="12" cy="12" r="3.6"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3L7 7M17 17l1.7 1.7M5.3 18.7L7 17M17 7l1.7-1.7"/>'),
+    target:L('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/>'),
+    flake:L('<path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8l16.4-9.6"/>'),
+    door:L('<path d="M6 21V5.5A1.5 1.5 0 0 1 7.5 4H16a2 2 0 0 1 2 2v15"/><path d="M4 21h16M13.5 12.5v.01"/>'),
+    car:L('<path d="M4 16V9.5l2-3.5h12l2 3.5V16"/><path d="M3 16h18"/><circle cx="7.5" cy="17.5" r="1.7"/><circle cx="16.5" cy="17.5" r="1.7"/>'),
+    window:L('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 4v16M4 12h16"/>'),
+    lock:L('<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>'),
+    trunk:L('<path d="M4 17V9.5L6 6h12l2 3.5V17"/><path d="M3 17h18M9 12h6"/>'),
+    plug:L('<path d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0zM12 17v4"/>')
+  };
+  /* label (lower-case start) -> [glyph, hue] */
+  const MAP=[
+    ['battery health',['heart','red']],['battery',['battery','green']],['capacity',['cell','teal']],
+    ['range',['route','blue']],['recent',['route','blue']],['odometer',['gauge','purple']],
+    ['efficiency',['leaf','green']],['lifetime',['clock','purple']],['cost per',['money','amber']],['full charge',['bolt','yellow']],
+    ['added to',['bolt','yellow']],['total cost',['money','amber']],['distance',['route','blue']],['duration',['clock','purple']],['consumption',['plug','yellow']],
+    ['inside',['therm','orange']],['outside',['sun','blue']],['set temp',['target','red']],['ac',['flake','blue']],
+    ['front hood',['car','orange']],['doors',['door','blue']],['windows',['window','teal']],['trunk',['trunk','purple']],['locks',['lock','green']]
+  ];
+  const find=t=>{t=t.trim().toLowerCase();for(const [k,v] of MAP)if(t===k||t.startsWith(k+' ')||t.startsWith(k+' ·'))return v;return null;};
+  const disc=v=>'<span class="kic hue-'+v[1]+'" aria-hidden="true">'+G[v[0]]+'</span>';
+  function decorate(root){
+    (root||document).querySelectorAll('.tile > .k, .sumrow > .lab').forEach(el=>{
+      if(el.querySelector('.kic'))return;
+      const v=find(el.textContent);if(!v)return;
+      el.insertAdjacentHTML('afterbegin',disc(v));
+    });
+  }
+  window.decorateIcons=decorate;
+  decorate();
+  let q=0;
+  new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;decorate();});}).observe(document.body,{childList:true,subtree:true});
+})();
+
+/* ---- v1.5.0 motion helpers (from TuyaMinimal) ---- */
+(function(){
+  const still=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* Tab bar: a single pill that slides to the active tab */
+  window.moveDockThumb=function(instant){
+    const dock=document.querySelector('.dock');if(!dock)return;
+    let t=dock.querySelector('.dock-thumb');
+    if(!t){t=document.createElement('span');t.className='dock-thumb';t.setAttribute('aria-hidden','true');dock.prepend(t);dock.classList.add('has-thumb');instant=true;}
+    const a=dock.querySelector('a.on');if(!a||!a.offsetWidth)return;
+    if(instant||still()){t.style.transition='none';}
+    t.style.width=a.offsetWidth+'px';t.style.height=a.offsetHeight+'px';
+    t.style.transform='translate('+a.offsetLeft+'px,'+a.offsetTop+'px)';
+    if(instant||still()){void t.offsetWidth;t.style.transition='';}
+  };
+  /* Segmented controls: the selected pill slides between options */
+  function placeSeg(seg,instant){
+    const t=seg._thumb,b=seg.querySelector('button.on');
+    if(!t)return;
+    if(!b||!b.offsetWidth){t.style.opacity='0';return;}
+    t.style.opacity='1';
+    if(instant||still())t.style.transition='none';
+    t.style.width=b.offsetWidth+'px';t.style.height=b.offsetHeight+'px';
+    t.style.transform='translate('+b.offsetLeft+'px,'+b.offsetTop+'px)';
+    if(instant||still()){void t.offsetWidth;t.style.transition='';}
+  }
+  function setupSeg(seg){
+    if(seg._thumb)return;
+    const t=document.createElement('i');t.className='seg-thumb';t.setAttribute('aria-hidden','true');
+    seg.prepend(t);seg._thumb=t;seg.classList.add('has-thumb');
+    new MutationObserver(m=>{if(!seg.contains(t))seg.prepend(t);placeSeg(seg);}).observe(seg,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+    if(window.ResizeObserver)new ResizeObserver(()=>placeSeg(seg,true)).observe(seg);
+    placeSeg(seg,true);
+  }
+  /* Tiles and chips: bounce when their on/off state flips */
+  function watchToggle(el,cls){
+    if(el._wt)return;el._wt=1;el._was=el.classList.contains('on');
+    new MutationObserver(()=>{
+      const on=el.classList.contains('on');if(on===el._was)return;el._was=on;
+      if(still())return;
+      const k=cls==='pop'?'m-pop':(on?'m-on':'m-off');
+      el.classList.remove('m-on','m-off','m-pop');void el.offsetWidth;el.classList.add(k);
+      setTimeout(()=>el.classList.remove(k),700);
+    }).observe(el,{attributes:true,attributeFilter:['class']});
+  }
+  function init(){
+    document.querySelectorAll('.seg').forEach(setupSeg);
+    document.querySelectorAll('.ctltile').forEach(e=>watchToggle(e,'tile'));
+    document.querySelectorAll('.qapill').forEach(e=>watchToggle(e,'pop'));
+    moveDockThumb(true);
+    const dock=document.querySelector('.dock');
+    if(dock&&window.ResizeObserver)new ResizeObserver(()=>moveDockThumb(true)).observe(dock);
+  }
+  init();
+  window.addEventListener('load',()=>moveDockThumb(true));
+  window.addEventListener('resize',()=>moveDockThumb(true));
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>moveDockThumb(true));
+})();
+
 showPage(location.hash.slice(1)||'overview');
 function startTimer(){clearInterval(timer);timer=setInterval(()=>load(false),60000);}
 try{$('greetDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});}catch(e){}

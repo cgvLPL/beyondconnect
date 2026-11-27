@@ -1,5 +1,17 @@
 # BEYONDconnect changelog
 
+## v1.7.0 — 27 Nov 2026
+
+- Icons, part 2 (Ray, 2026-11-27). (1) Every stat tile and list row gets a small hue disc with a white glyph, like TuyaMinimal's chips: Battery, Range, Odometer, Efficiency, Battery health and Capacity on Vehicle; Lifetime, Recent, Cost per km, Full charge on Energy; Added to battery, Total cost, Distance, Duration, Consumption in the trip and charge detail sheets; Inside, Outside, Set temp, AC; and the Front hood, Doors, Windows, Trunk rows. They are added by a small decorator keyed on the label, so tiles drawn later get them too. (2) No emoji or text symbols are left as icons: the close ✕, the menu ↓ ✦ › ✕, the location pin, the charger badge and the A/C MAX buttons are SVG, in the same stroke weights as the rest. (3) The Locks and Charging tiles and the hero lock button use the filled lock and bolt, matching the tab bar and the other tiles. The "Hey 👋" greeting is unchanged.
+
+## v1.6.0 — 27 Nov 2026
+
+- Icons like TuyaMinimal (Ray, 2026-11-27). (1) The tab bar uses the filled glyph set (fill + 1.2 stroke, 26 px) instead of outlines; (2) every control has a hue: Locks green, Climate blue, Charging yellow, Find car amber, Flash lights yellow, Windows teal, Trunk purple; (3) a tile's icon is that hue on a dark glass disc, and when the tile is on the disc fills with the hue from the centre and the glyph turns white (the fill, glyph flip and icon pop play when it toggles); (4) the Locked / Climate / Charge chips drop the emoji for a solid hue disc with a white glyph, and the lock glyph opens when the car is unlocked. Reduce Motion skips the fill animation.
+
+## v1.5.0 — 27 Nov 2026
+
+- Motion from TuyaMinimal (Ray, 2026-11-27). BEYONDconnect had almost no animation; it now uses the same vocabulary: (1) a springy press (scale .93–.96) on tiles, chips, buttons, the A/C controls and the tab bar; (2) pages slide in from the side they sit on in the tab order, 32 px + fade, .26 s; (3) control tiles bounce and brighten when they flip on/off, the icon pops and the status text fades in; the Controls chips pop too; (4) the A/C, settings and detail sheets spring up over a fading scrim, and the ••• menu opens with a small blur-in; (5) the tab bar's active pill is one element that slides and springs to the selected tab; (6) every segmented control (Fresh/Recirculate, Duration, efficiency unit) has a sliding thumb. All of it is off with Reduce Motion. No data or backend changes.
+
 ## v1.4.1 — 27 Nov 2026
 
 - Control tiles (Ray, 2026-11-27). The big Climate tile now reads like TuyaMinimal's AC tile: temperature and the − / + buttons on top, name, state and the Start button pinned to the bottom, with room between the buttons and the label (they were touching). The − / + buttons are glass instead of black discs, and shrink slightly when pressed.
