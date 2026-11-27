@@ -795,6 +795,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.8.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Merge trips: open a trip and join it with the one before or after it — for a drive the app split at a long stop. Merged trips show a Merged tag and can be split back apart. Saved on the server, so it applies on every device.</li>
+    </ul>
     <h3>v1.7.1 — 27 Nov 2026</h3>
     <ul>
       <li>Fixed commands failing with "Server disconnected" when the BYD session went stale: a command now resets the connection and retries once with a fresh sign-in, the same way the dashboard already did.</li>
@@ -1246,7 +1250,7 @@ async function loadServerTrips(){
       d.trips.map((t,i)=>{
         const route=tripRoute(t);
         const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
-        return '<div class="tripcard" onclick="openTripDetail('+i+')"><div class="trip-head"><div><div class="trip-date">'+tripDate(t)+'</div>'+
+        return '<div class="tripcard" onclick="openTripDetail('+i+')"><div class="trip-head"><div><div class="trip-date">'+tripDate(t)+((t.joins&&t.joins.length)?' <span class="pill">Merged</span>':'')+'</div>'+
         (route?'<div class="trip-route">'+route+'</div>':'')+'</div><div class="trip-time">'+tripTime(t)+'</div></div>'+
         '<div class="trip-stats">'+
         stat('Distance',fmt(t.distance_km,1)+' <small>km</small>')+
@@ -1301,6 +1305,45 @@ async function clearHome(){
     await loadServerTrips();
     if(window._last&&window._last.gps&&window._last.gps.lat)updateLocName(window._last.gps.lat,window._last.gps.lon);
   }catch(e){}
+}
+// Merge two neighbouring trips into one (saved on the server, so it
+// survives restarts and applies to every device). dir "prev" folds this
+// trip into the older one before it; "next" folds the newer trip after
+// it into this one. The backend stores the later trip's start_time.
+async function mergeTrip(i,dir){
+  const trips=window._trips||[]; const t=trips[i]; if(!t)return;
+  const start=dir==='prev'?t.start_time:(trips[i-1]||{}).start_time;
+  if(!start)return;
+  const msg=$('mergeMsg');
+  try{
+    const r=await fetch('/api/trips/merge',{method:'POST',
+      headers:{'Content-Type':'application/json','X-App-Key':appKey},
+      body:JSON.stringify({start_time:start})});
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.detail||d.error||'failed');
+    if(msg)msg.textContent='Merged. Reloading trips…';
+    closeDetail();
+    await loadServerTrips();
+  }catch(e){
+    if(msg)msg.textContent='Could not merge: '+e.message;
+  }
+}
+// Split a merged trip back into its separate trips.
+async function unmergeTrip(i){
+  const t=(window._trips||[])[i]; if(!t||!(t.joins||[]).length)return;
+  const msg=$('mergeMsg');
+  try{
+    const r=await fetch('/api/trips/unmerge',{method:'POST',
+      headers:{'Content-Type':'application/json','X-App-Key':appKey},
+      body:JSON.stringify({start_times:t.joins})});
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.detail||d.error||'failed');
+    if(msg)msg.textContent='Split back apart. Reloading trips…';
+    closeDetail();
+    await loadServerTrips();
+  }catch(e){
+    if(msg)msg.textContent='Could not split: '+e.message;
+  }
 }
 // Settings → Home row: what home is, and whether Ray set it or it was
 // auto-detected from where the car parks most.
@@ -1421,7 +1464,15 @@ function openTripDetail(i){
   (t.start_lat!=null?'<button class="btn ghost" onclick="setHomeFromTrip('+i+',\'start\')">Set start as home</button>':'')+
   (t.end_lat!=null?'<button class="btn ghost" onclick="setHomeFromTrip('+i+',\'end\')">Set end as home</button>':'')+
   '</div>'+
-  '<div class="muted" id="homeMsg" style="margin-top:8px"></div>';
+  '<div class="muted" id="homeMsg" style="margin-top:8px"></div>'+
+  '<div class="dsec">Merge</div>'+
+  '<div class="muted" style="margin-bottom:8px">Join this trip with a neighbouring one — for a drive the app split at a long stop. A merged trip can be split back apart.</div>'+
+  '<div class="row">'+
+  (i+1<(window._trips||[]).length?'<button class="btn ghost" onclick="mergeTrip('+i+',\'prev\')">Merge with previous trip</button>':'')+
+  (i>0?'<button class="btn ghost" onclick="mergeTrip('+i+',\'next\')">Merge with next trip</button>':'')+
+  ((t.joins&&t.joins.length)?'<button class="btn ghost" onclick="unmergeTrip('+i+')">Split back apart</button>':'')+
+  '</div>'+
+  '<div class="muted" id="mergeMsg" style="margin-top:8px"></div>';
   $('detailSheet').hidden=false;
   // Route map (Leaflet, same tiles as the Overview map)
   if(window.L&&(t.points||[]).length>=2){

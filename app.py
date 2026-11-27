@@ -507,6 +507,7 @@ KV_URL = os.environ.get("KV_REST_API_URL", "").rstrip("/")
 KV_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 KV_SNAPS_KEY = "beyond:snaps"
 KV_HOME_KEY = "beyond:home"  # user-set home override: {"lat","lon","name"}
+KV_TRIP_MERGES_KEY = "beyond:trip_merges"  # start_times Ray merged into the previous trip
 KV_MAX_SNAPS = 3000  # ~10 days at a 5-minute cadence
 CRON_SECRET = os.environ.get("CRON_SECRET", "")
 TARIFF_RPKWH = float(os.environ.get("TARIFF_RPKWH", "1700") or 1700)
@@ -580,6 +581,22 @@ async def _home_override() -> dict | None:
     return {"lat": lat, "lon": lon, "name": str(d.get("name") or "")}
 
 
+async def _trip_merges() -> set:
+    """Start_times of trips Ray manually merged into the previous trip
+    (stored in KV by /api/trips/merge). _derive_trips folds those
+    segments into the trip before them. Empty set when none / KV off."""
+    res = await _kv(["get", KV_TRIP_MERGES_KEY], method="GET")
+    if not res or res.get("result") is None:
+        return set()
+    try:
+        d = json.loads(res["result"])
+    except Exception:
+        return set()
+    if not isinstance(d, list):
+        return set()
+    return {str(x) for x in d}
+
+
 def _home_location(snaps: list[dict]) -> tuple | None:
     """The car's home: the densest 1 km spot across snapshots, then the
     median point inside it. The car is parked at home most of the time,
@@ -611,7 +628,8 @@ def _haversine_km(a: tuple, b: tuple) -> float:
 
 
 def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float,
-                  home: tuple | None = None) -> list[dict]:
+                  home: tuple | None = None,
+                  manual_joins: set | None = None) -> list[dict]:
     """Group snapshots into trips: a trip is a run of snapshots where the
     odometer keeps increasing (gaps under 30 min). Needs >= 0.5 km.
     `home` is the (lat, lon) used for the "Home" place label — pass the
@@ -674,9 +692,20 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float,
                 merged[-1][1] = seg[1]
                 continue
         merged.append([seg[0], seg[1]])
-    trips = merged
+    # Manual merges (Ray joined two trips in the app): a segment whose
+    # start_time is in manual_joins folds into the previous segment,
+    # however long the stop between them was. The join start_times ride
+    # along so the app can split the trip back apart (unmerge).
+    joins_set = manual_joins or set()
+    final = []
+    for first, last in merged:
+        if final and first["t"] in joins_set:
+            final[-1][1] = last
+            final[-1][2].append(first["t"])
+        else:
+            final.append([first, last, []])
     out = []
-    for first, last in trips:
+    for first, last, joins in final:
         dist = round(last["odo_km"] - first["odo_km"], 1)
         if dist < 0.5:
             continue
@@ -704,6 +733,7 @@ def _derive_trips(snaps: list[dict], tariff: float, batt_kwh: float,
             "start_lat": first.get("lat"), "start_lon": first.get("lon"),
             "end_lat": last.get("lat"), "end_lon": last.get("lon"),
             "start_place": place(first), "end_place": place(last),
+            "joins": joins,
             "points": [{"t": s.get("t"), "lat": s.get("lat"),
                         "lon": s.get("lon"), "batt_pct": s.get("batt_pct")}
                        for s in snaps
@@ -1028,7 +1058,8 @@ async def trips(
     else:
         home = _home_location(snaps)
         home_source, home_name = "auto", None
-    trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH, home)
+    merges = await _trip_merges()
+    trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH, home, merges)
     t = tariff or TARIFF_RPKWH
     sessions = []
     for s in _charging_sessions(snaps):
@@ -1093,6 +1124,59 @@ async def clear_home(x_app_key: str | None = Header(default=None)):
             "ok": False, "error": "kv_not_configured"})
     await _kv(["del", KV_HOME_KEY])
     return {"ok": True, "home": None}
+
+
+@app.post("/api/trips/merge")
+async def merge_trip(
+    request: Request,
+    x_app_key: str | None = Header(default=None),
+):
+    """Join a trip into the one before it (Ray merged them in the app).
+    Body: {"start_time": <the later trip's start_time>}. Stored in KV
+    as a set of start_times; _derive_trips folds those segments into
+    the previous trip. App-key gated."""
+    _require_app_key(x_app_key)
+    if not KV_URL or not KV_TOKEN:
+        return JSONResponse(status_code=503, content={
+            "ok": False, "error": "kv_not_configured"})
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    start = str(body.get("start_time") or "")
+    if not start:
+        return JSONResponse(status_code=400, content={
+            "ok": False, "error": "bad_start_time"})
+    merges = await _trip_merges()
+    merges.add(start)
+    await _kv(["set", KV_TRIP_MERGES_KEY, json.dumps(sorted(merges))])
+    return {"ok": True, "merges": sorted(merges)}
+
+
+@app.post("/api/trips/unmerge")
+async def unmerge_trip(
+    request: Request,
+    x_app_key: str | None = Header(default=None),
+):
+    """Split a merged trip back apart. Body: {"start_times": [...]} —
+    the join start_times to remove (a trip's `joins` list).
+    App-key gated."""
+    _require_app_key(x_app_key)
+    if not KV_URL or not KV_TOKEN:
+        return JSONResponse(status_code=503, content={
+            "ok": False, "error": "kv_not_configured"})
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    starts = body.get("start_times")
+    if not isinstance(starts, list) or not starts:
+        return JSONResponse(status_code=400, content={
+            "ok": False, "error": "bad_start_times"})
+    merges = await _trip_merges()
+    merges.difference_update(str(x) for x in starts)
+    await _kv(["set", KV_TRIP_MERGES_KEY, json.dumps(sorted(merges))])
+    return {"ok": True, "merges": sorted(merges)}
 
 
 # Serve the static frontend (public/). Path is anchored to this file, not the
