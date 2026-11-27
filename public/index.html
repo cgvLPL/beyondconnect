@@ -444,7 +444,7 @@ body.lightbg{--lg-bg:rgb(255 255 255 / .50);--lg-soft:rgb(255 255 255 / .40);
   border:1px solid var(--lg-edge);
   box-shadow:inset 0 1px 0 var(--lg-hi),var(--lg-shadow)}
 /* Things that sit inside a glass card are lighter glass, not a second dark slab */
-.tile,.card .tripcard,.ac-seatbtn:not(.on),.ac-round:not(.on),.seg,.bgopts button:not(.on),.pill.off,input,select{
+.tile,.card .tripcard,.ac-seatbtn:not(.on),.ac-round:not(.on),.seg,.bgopts button:not(.on),.pill.off,input,select,.provcard{
   background:var(--lg-soft);border-color:var(--lg-edge)}
 .ctltile.on{background:rgb(255 255 255 / .92);-webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);box-shadow:inset 0 1px 0 #fff,var(--lg-shadow)}
 .ac-seatbtn:not(.on),.ac-round:not(.on){-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
@@ -478,7 +478,7 @@ body.darkbg .gdate,body.darkbg .ghey{color:rgb(255 255 255 / .82)}
 /* Halftone is dimmed a little so the dots sit behind the glass instead of fighting it */
 body.bg-halftone #bgLayer::after{content:"";position:absolute;inset:0;background:rgb(0 0 0 / .30)}
 @media (prefers-reduced-transparency:reduce){
-  .card,.statcard,.loccard,.ctltile:not(.on),.tripcard,.herocard,.charge-scene{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--card)}}
+  .card,.statcard,.loccard,.ctltile:not(.on),.tripcard,.herocard,.charge-scene,.provcard{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--card)}}
 
 /* ================= v1.5.0 — TuyaMinimal motion =================
    Same vocabulary as TuyaMinimal: a springy press on every control, pages that slide in from the side
@@ -587,6 +587,23 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 .ac-round svg{display:inline-block;vertical-align:-2px;margin-right:2px}
 </style>
 <link rel="stylesheet" href="leaflet/leaflet.css">
+<style>
+.rategroup{margin-top:2px}
+.raterow{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--lg-edge)}
+.rategroup .raterow:last-child{border-bottom:0}
+.rdisc{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.rdisc svg{width:16px;height:16px}
+.rname{flex:1;font-weight:600}
+.rinput{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
+.rinput input{width:84px;text-align:right}
+.provcard{border:1px solid var(--lg-edge);border-radius:20px;padding:16px;margin-top:12px}
+.provhead{display:flex;align-items:center;gap:12px}
+.provname{font-size:18px;font-weight:700}
+.provsub{color:var(--muted);font-size:13px;margin-top:1px}
+.provrate{margin-left:auto;text-align:right;font-weight:700;font-size:17px;white-space:nowrap}
+.provrate small{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+</style>
 </head>
 <body>
 <div id="bgLayer" aria-hidden="true"></div>
@@ -706,8 +723,8 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div class="grid">
 <div class="tile"><div class="k">Lifetime</div><div class="v" id="eLife">–</div><div class="s" id="eLifeSub">kWh / 100 km</div></div>
 <div class="tile"><div class="k">Recent 50 km</div><div class="v" id="eRecent">–</div><div class="s" id="eRecentSub">kWh / 100 km</div></div>
-<div class="tile"><div class="k">Cost per km</div><div class="v" id="costKm">–</div><div class="s">at your tariff</div></div>
-<div class="tile"><div class="k">Full charge (0–100%)</div><div class="v" id="costFull">–</div><div class="s">at your tariff</div></div>
+<div class="tile"><div class="k">Cost per km</div><div class="v" id="costKm">–</div><div class="s">at home rate</div></div>
+<div class="tile"><div class="k">Full charge (0–100%)</div><div class="v" id="costFull">–</div><div class="s">at home rate</div></div>
 <div class="tile"><div class="k">Range (your driving)</div><div class="v" id="rangeEst">–</div><div class="s" id="rangeEstSub">from trip + charging history</div></div>
 </div>
 <div class="muted" style="margin-top:8px" id="eBarsLabel">Last 7 efficiency readings (kWh/100 km)</div>
@@ -785,7 +802,7 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
   <div class="tile"><div class="k">Capacity</div><div class="v" id="bCapVal">—</div></div>
   <div class="tile wide"><div class="k">Vehicle</div><div class="spec" id="bId"></div></div>
 </div>
-<div class="muted" style="font-size:13px;margin-top:8px">Estimated from charging sessions (power × time ÷ charge gained) and trips (distance × efficiency ÷ charge used). Needs a charging session of 10%+ before it can calculate.</div>
+<div class="muted" style="font-size:13px;margin-top:8px">Estimated from charging sessions of 10%+ (power × time ÷ charge gained) and trips that use 5%+ of the battery (distance × efficiency ÷ charge used). It appears as soon as one qualifies and firms up as more history lands.</div>
 </div>
 </div>
 </div>
@@ -801,6 +818,14 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.10.0 — 27 Nov 2026</h3>
+    <ul>
+      <li>Charging is now priced per provider: set a rate each for Home, SPKLU, Voltron, Hyundai and Other public in Settings. Home sessions are detected by location; public ones by the nearest charge point in Open Charge Map, or by a place you tag on a session — tagging remembers the spot for next time.</li>
+    </ul>
+    <h3>v1.9.1 — 27 Nov 2026</h3>
+    <ul>
+      <li>The battery-health note now tells the whole story: trips that use 5%+ count toward the estimate too, not just 10%+ charging sessions. Battery health also shows what it's based on ("from 1 trip"), so a thin estimate is easy to spot.</li>
+    </ul>
     <h3>v1.9.0 — 27 Nov 2026</h3>
     <ul>
       <li>Pull down to refresh: drag down from the top of any page to reload the car status, instead of opening the menu.</li>
@@ -979,12 +1004,17 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
     </div>
     <div class="muted" style="font-size:13px;margin-top:6px">Halftone is the default, from TuyaMinimal. Dune is the light one; the rest are dark.</div>
     <h3>Energy &amp; cost</h3>
-    <div class="row"><label class="muted" for="tariff">Tariff Rp/kWh</label>
-    <input id="tariff" type="number" value="1700" min="0" step="1" style="width:96px;text-align:right"></div>
+    <div class="rategroup">
+    <div class="raterow"><span class="rdisc" style="background:#34c759"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Home</span><label class="rinput">Rp <input id="rateHome" type="number" value="1700" min="0" step="1"> /kWh</label></div>
+    <div class="raterow"><span class="rdisc" style="background:#0a84ff"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">SPKLU</span><label class="rinput">Rp <input id="rateSpklu" type="number" value="2467" min="0" step="1"> /kWh</label></div>
+    <div class="raterow"><span class="rdisc" style="background:#bf5af2"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Voltron</span><label class="rinput">Rp <input id="rateVoltron" type="number" value="2467" min="0" step="1"> /kWh</label></div>
+    <div class="raterow"><span class="rdisc" style="background:#30d5c8"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Hyundai</span><label class="rinput">Rp <input id="rateHyundai" type="number" value="2467" min="0" step="1"> /kWh</label></div>
+    <div class="raterow"><span class="rdisc" style="background:#8e8e93"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg></span><span class="rname">Other public</span><label class="rinput">Rp <input id="rateOther" type="number" value="2467" min="0" step="1"> /kWh</label></div>
+    </div>
     <div class="row" style="margin-top:8px"><label class="muted" for="battKwh">Battery kWh</label>
     <input id="battKwh" type="number" value="60.48" min="1" step="0.1" style="width:96px;text-align:right"></div>
     <div class="row" style="margin-top:10px"><button class="btn ghost" onclick="saveSettings()">Save</button></div>
-    <div class="muted" style="font-size:13px;margin-top:6px">Used for the cost estimates on the Energy page and in trip and charging history.</div>
+    <div class="muted" style="font-size:13px;margin-top:6px">Charging sessions are priced by provider: home by location, public ones detected from Open Charge Map or a place you tagged on a session. Trips and the tiles above use the home rate.</div>
     <div class="row" style="margin-top:10px"><label class="muted">Efficiency</label>
     <div class="seg" id="effSeg"><button type="button" data-u="kwh100" class="on" onclick="setEffUnit('kwh100')">kWh/100km</button><button type="button" data-u="kmkwh" onclick="setEffUnit('kmkwh')">km/kWh</button></div></div>
     <div class="muted" style="font-size:13px;margin-top:6px">How efficiency is shown — energy used per 100 km, or distance per kWh. Applies everywhere: Energy page, trips, and the Vehicle tab.</div>
@@ -1082,15 +1112,21 @@ const settings=JSON.parse(localStorage.getItem('beyondSettings')||'{}');
 // key — enter it once and you won't have to re-enter it every time.
 // It is stored only in this browser, never sent to the server.
 $('pinInput').value=localStorage.getItem('beyondPin')||sessionStorage.getItem('beyondPin')||'';
-if(settings.tariff)$('tariff').value=settings.tariff;
+const _R=settings.rates||{};
+$('rateHome').value=_R.home||settings.tariff||1700;
+$('rateSpklu').value=_R.spklu||2467;
+$('rateVoltron').value=_R.voltron||2467;
+$('rateHyundai').value=_R.hyundai||2467;
+$('rateOther').value=_R.other||2467;
 if(settings.battKwh)$('battKwh').value=settings.battKwh;
 if(settings.effUnit==='kmkwh')document.querySelectorAll('#effSeg button').forEach(b=>b.classList.toggle('on',b.dataset.u==='kmkwh'));
 const BGS=['system','halftone','ember','dune','nebula','silk','beams'];
 const BG_DARK={halftone:1,ember:1,nebula:1,silk:1,beams:1};
 function applyBg(name){if(!BGS.includes(name))name='system';document.body.classList.remove(...BGS.map(b=>'bg-'+b));document.body.classList.remove('darkbg','lightbg');if(name&&name!=='system'){document.body.classList.add('bg-'+name);document.body.classList.add(BG_DARK[name]?'darkbg':'lightbg');}document.querySelectorAll('#bgOpts button').forEach(b=>b.classList.toggle('on',b.dataset.bg===(name||'system')));}
-function setBg(name){settings.background=name;settings.tariff=+$('tariff').value||settings.tariff;settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
+function readRates(){return{home:+$('rateHome').value||1700,spklu:+$('rateSpklu').value||2467,voltron:+$('rateVoltron').value||2467,hyundai:+$('rateHyundai').value||2467,other:+$('rateOther').value||2467};}
+function setBg(name){settings.background=name;settings.rates=readRates();settings.tariff=settings.rates.home;settings.battKwh=+$('battKwh').value||settings.battKwh;localStorage.setItem('beyondSettings',JSON.stringify(settings));applyBg(name);}
 applyBg(settings.background||'halftone');
-function saveSettings(){settings.tariff=+$('tariff').value;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);}
+function saveSettings(){settings.rates=readRates();settings.tariff=settings.rates.home;settings.battKwh=+$('battKwh').value;localStorage.setItem('beyondSettings',JSON.stringify(settings));renderCost(window._last);loadServerTrips();}
 // Efficiency unit: kWh/100km (default) or km/kWh. All efficiency displays
 // go through fmtEff so the choice applies everywhere at once.
 function effVal(kwh100){if(kwh100==null||kwh100<=0)return null;return settings.effUnit==='kmkwh'?100/kwh100:kwh100;}
@@ -1229,7 +1265,8 @@ function tripTime(t){
 }
 async function loadServerTrips(){
   try{
-    const r=await fetch('/api/trips?tariff='+(settings.tariff||1700),
+    const _r=settings.rates||{};
+    const r=await fetch('/api/trips?tariff='+(_r.home||settings.tariff||1700)+'&rate_spklu='+(_r.spklu||2467)+'&rate_voltron='+(_r.voltron||2467)+'&rate_hyundai='+(_r.hyundai||2467)+'&rate_other='+(_r.other||2467),
       {headers:appKey?{'X-App-Key':appKey}:{}});
     if(r.status===401)return;
     const d=await r.json();
@@ -1248,7 +1285,7 @@ async function loadServerTrips(){
     $('chargeHistory').innerHTML=window._sessions.map((s,i)=>{
       const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
       return '<div class="tripcard" onclick="openChargeDetail('+i+')"><div class="trip-head"><div><div class="trip-date">'+tripDate(s)+'</div>'+
-      '<div class="trip-route">'+(s.place||'Charging')+'</div></div><div class="trip-time">'+tripTime(s)+'</div></div>'+
+      '<div class="trip-route"><i class="pdot" style="background:'+PROVIDER_COLORS[s.provider||'other']+'"></i>'+(s.provider_label||s.place||'Charging')+'</div></div><div class="trip-time">'+tripTime(s)+'</div></div>'+
       '<div class="trip-stats">'+
       stat('Energy',fmt(s.energy_kwh,1)+' <small>kWh</small>')+
       stat('Battery',(s.start_batt_pct!=null?fmt(s.start_batt_pct,0)+'%':'–')+' → '+(s.end_batt_pct!=null?fmt(s.end_batt_pct,0)+'%':'–'))+
@@ -1410,6 +1447,12 @@ function chargeCurveSVG(pts){
   '</svg>'+
   '<div class="dlegend"><span><i style="background:#2dd4bf"></i>Power</span><span><i style="background:#f59e0b"></i>Battery</span></div>';
 }
+const PROVIDER_OPTS=[['home','Home'],['spklu','SPKLU'],['voltron','Voltron'],['hyundai','Hyundai'],['other','Other']];
+const PROVIDER_COLORS={home:'#34c759',spklu:'#0a84ff',voltron:'#bf5af2',hyundai:'#30d5c8',other:'#8e8e93'};
+const BOLT='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2.4L4.6 13.6h6.2l-1.3 7.9L19.2 10h-6.4l.4-7.6z"/></svg>';
+function providerSub(s){const src={home:'Home location',remembered:'Remembered place',ocm:'Detected · Open Charge Map',unknown:'Not detected — tag it below'}[s.provider_source]||'';const raw=(s.provider_source==='ocm'&&s.ocm_operator&&s.ocm_operator!==(s.provider_label||''))?' ('+s.ocm_operator+')':'';return src+raw;}
+async function setSessionProvider(i,provider){const s=(window._sessions||[])[i];if(!s)return;const m=$('provMsg');try{const r=await fetch('/api/sessions/provider',{method:'POST',headers:{'Content-Type':'application/json',...(appKey?{'X-App-Key':appKey}:{})},body:JSON.stringify({start_time:s.start_time,provider})});const d=await r.json();if(!d.ok)throw new Error(d.detail||d.error||'failed');closeDetail();loadServerTrips();}catch(e){if(m)m.textContent='Could not save: '+(e.message||e);}}
+async function clearSessionProvider(i){const s=(window._sessions||[])[i];if(!s)return;const m=$('provMsg');try{const r=await fetch('/api/sessions/provider/clear',{method:'POST',headers:{'Content-Type':'application/json',...(appKey?{'X-App-Key':appKey}:{})},body:JSON.stringify({start_time:s.start_time})});const d=await r.json();if(!d.ok)throw new Error(d.detail||d.error||'failed');closeDetail();loadServerTrips();}catch(e){if(m)m.textContent='Could not forget: '+(e.message||e);}}
 function openChargeDetail(i){
   const s=(window._sessions||[])[i]; if(!s)return;
   const pts=(s.points||[]).filter(p=>p.power_kw!=null||p.batt_pct!=null);
@@ -1419,13 +1462,21 @@ function openChargeDetail(i){
   const stat=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
   $('detailBody').innerHTML=
   '<div class="dhead"><div><div class="dtitle">Charge Detail</div>'+
-  '<div class="dsub">'+wib(s.start_time)+' · '+(s.place||'Charging')+'</div>'+
+  '<div class="dsub">'+wib(s.start_time)+' · '+(s.provider_label||s.place||'Charging')+'</div>'+
   '<div class="dsub"><span class="acc">DiLink · estimated from SoC</span></div></div>'+
   '<button class="iconbtn" onclick="closeDetail()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
   '<div class="dgrid">'+
   '<div class="tile"><div class="k">Added to battery</div><div class="v">'+fmt(s.energy_kwh,2)+' <small>kWh</small></div></div>'+
   '<div class="tile"><div class="k">Total cost</div><div class="v">'+(s.est_cost_rp!=null?'Rp '+s.est_cost_rp.toLocaleString('id-ID'):'–')+'</div><div class="s">Estimated</div></div>'+
   '</div>'+
+  '<div class="provcard"><div class="provhead">'+
+  '<span class="rdisc" style="background:'+PROVIDER_COLORS[s.provider||'other']+'">'+BOLT+'</span>'+
+  '<div><div class="provname">'+(s.provider_label||'Other public')+'</div><div class="provsub">'+providerSub(s)+'</div></div>'+
+  '<div class="provrate">Rp '+(s.rate_rp!=null?s.rate_rp:(settings.tariff||1700)).toLocaleString('id-ID')+'<small>per kWh</small></div></div>'+
+  '<div class="seg" style="margin-top:14px">'+PROVIDER_OPTS.map(o=>'<button type="button" class="'+(s.provider===o[0]?'on':'')+'" onclick="setSessionProvider('+i+',\''+o[0]+'\')">'+o[1]+'</button>').join('')+'</div>'+
+  '<div class="muted" style="font-size:13px;margin-top:8px">Tagging a provider remembers this place — future sessions here use it automatically.</div>'+
+  (s.provider_source==='remembered'?'<div class="row" style="margin-top:10px"><button class="btn ghost" onclick="clearSessionProvider('+i+')">Forget this place</button></div>':'')+
+  '<div class="muted" id="provMsg" style="font-size:13px;margin-top:6px"></div></div>'+
   '<div class="dsec">Energy Analysis</div>'+
   '<div class="spec"><div><span class="k">Charger Type</span><span class="v">'+chargerType(peak)+'</span></div>'+
   '<div><span class="k">Peak power</span><span class="v">'+(peak!=null?fmt(peak,1)+' kW':'–')+'</span></div></div>'+
@@ -1434,7 +1485,6 @@ function openChargeDetail(i){
   '<div class="dsec">Additional details</div>'+
   '<div class="spec">'+
   '<div><span class="k">Odometer</span><span class="v">'+(s.start_odo_km!=null?fmt(s.start_odo_km,0)+' km':'–')+'</span></div>'+
-  '<div><span class="k">Price/kWh</span><span class="v">Rp '+(settings.tariff||1700).toLocaleString('id-ID')+'</span></div>'+
   '<div><span class="k">Start %</span><span class="v">'+(s.start_batt_pct!=null?fmt(s.start_batt_pct,0)+'%':'–')+'</span></div>'+
   '<div><span class="k">End %</span><span class="v">'+(s.end_batt_pct!=null?fmt(s.end_batt_pct,0)+'%':'–')+'</span></div>'+
   '</div>';
@@ -1546,7 +1596,8 @@ function render(d){
   $('bEffVal').textContent=rt.energy_lifetime_kwh100!=null?fmtEff(rt.energy_lifetime_kwh100):'—';
   $('bEffSub').textContent=rt.energy_lifetime_kwh100!=null?effUnitSpaced():'';
   $('bSohVal').textContent=soh?soh.soh_pct+'%':'Collecting…';
-  $('bSohSub').textContent=soh?soh.capacity_kwh+' kWh capacity':'';
+  const sohBasis=[]; if(soh&&soh.charge_sessions)sohBasis.push(soh.charge_sessions+(soh.charge_sessions===1?' charge':' charges')); if(soh&&soh.trip_estimates)sohBasis.push(soh.trip_estimates+(soh.trip_estimates===1?' trip':' trips'));
+  $('bSohSub').textContent=soh?soh.capacity_kwh+' kWh capacity'+(sohBasis.length?' · from '+sohBasis.join(' · '):''):'';
   $('bCapVal').textContent=(+$('battKwh').value||60.48)+' kWh';
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
   // Regen braking is not charging: the gun must be connected. The charge
@@ -1681,7 +1732,7 @@ function render(d){
 }
 function renderCost(d){
   if(!d)return;
-  const tariff=+$('tariff').value||0, kwh=+$('battKwh').value||60.48;
+  const tariff=(settings.rates&&settings.rates.home)||settings.tariff||0, kwh=+$('battKwh').value||60.48;
   const cons=d.realtime.energy_recent_kwh100||d.realtime.energy_lifetime_kwh100;
   $('costKm').textContent=tariff&&cons?'Rp '+Math.round(cons*tariff/100).toLocaleString('id-ID'):'–';
   $('costFull').textContent=tariff?'Rp '+Math.round(kwh*tariff).toLocaleString('id-ID'):'–';
@@ -1695,7 +1746,7 @@ function saveTrip(d){
   localStorage.setItem('beyondTrips',JSON.stringify(list)); renderTrips(list);
 }
 function renderTrips(list){
-  const tariff=+$('tariff').value||0, kwh=+$('battKwh').value||60.48;
+  const tariff=(settings.rates&&settings.rates.home)||settings.tariff||0, kwh=+$('battKwh').value||60.48;
   $('tripRows').innerHTML=list.slice().reverse().map((s,i,arr)=>{
     const prev=arr[i+1];
     const dk=prev?(s.odo-prev.odo):null, db=prev?(prev.batt-s.batt):null;

@@ -508,6 +508,15 @@ KV_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 KV_SNAPS_KEY = "beyond:snaps"
 KV_HOME_KEY = "beyond:home"  # user-set home override: {"lat","lon","name"}
 KV_TRIP_MERGES_KEY = "beyond:trip_merges"  # start_times Ray merged into the previous trip
+KV_CHARGE_PLACES_KEY = "beyond:charge_places"  # [{lat, lon, provider}] places Ray tagged
+KV_OCM_CACHE_KEY = "beyond:ocm_cache"  # {"lat,lon" (3dp): {"bucket","title"} | None}
+OCM_API_KEY = os.environ.get("OCM_API_KEY", "")  # free key: openchargemap.org
+PROVIDERS = ("home", "spklu", "voltron", "hyundai", "other")
+PROVIDER_LABELS = {"home": "Home", "spklu": "SPKLU", "voltron": "Voltron",
+                   "hyundai": "Hyundai", "other": "Other public"}
+HOME_RADIUS_KM = 0.5    # same radius as the existing "Home" place label
+PLACE_RADIUS_KM = 0.15  # a remembered tag applies within 150 m
+OCM_RADIUS_KM = 0.3     # nearest charge point must be within 300 m
 KV_MAX_SNAPS = 3000  # ~10 days at a 5-minute cadence
 CRON_SECRET = os.environ.get("CRON_SECRET", "")
 TARIFF_RPKWH = float(os.environ.get("TARIFF_RPKWH", "1700") or 1700)
@@ -595,6 +604,87 @@ async def _trip_merges() -> set:
     if not isinstance(d, list):
         return set()
     return {str(x) for x in d}
+
+
+async def _charge_places() -> list:
+    """Places Ray tagged with a provider (KV list of {lat, lon, provider}).
+    A session within PLACE_RADIUS_KM of one inherits its provider."""
+    res = await _kv(["get", KV_CHARGE_PLACES_KEY], method="GET")
+    if not res or res.get("result") is None:
+        return []
+    try:
+        d = json.loads(res["result"])
+    except Exception:
+        return []
+    if not isinstance(d, list):
+        return []
+    out = []
+    for p in d:
+        if not isinstance(p, dict):
+            continue
+        lat, lon = p.get("lat"), p.get("lon")
+        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)) \
+                and p.get("provider") in PROVIDERS:
+            out.append({"lat": lat, "lon": lon, "provider": p["provider"]})
+    return out
+
+
+def _ocm_bucket(title: str | None) -> str:
+    """Map an Open Charge Map operator title to a provider bucket."""
+    t = (title or "").lower()
+    if "spklu" in t or "pln" in t or "perusahaan listrik" in t:
+        return "spklu"
+    if "voltron" in t:
+        return "voltron"
+    if "hyundai" in t:
+        return "hyundai"
+    return "other"
+
+
+async def _ocm_operator(lat: float, lon: float) -> str | None:
+    """Operator title of the nearest Open Charge Map charge point within
+    OCM_RADIUS_KM, or None (no key, no POI nearby, or lookup failed)."""
+    if not OCM_API_KEY:
+        return None
+    try:
+        async with aiohttp.ClientSession(trust_env=True) as s:
+            async with s.get(
+                "https://api.openchargemap.io/v3/poi/",
+                params={"output": "json", "latitude": lat, "longitude": lon,
+                        "distance": OCM_RADIUS_KM, "distanceunit": "KM",
+                        "maxresults": 5, "compact": "true"},
+                headers={"X-API-Key": OCM_API_KEY,
+                         "User-Agent": "BEYONDconnect/1.10 (personal EV tracker)"},
+                timeout=aiohttp.ClientTimeout(total=6),
+            ) as r:
+                if r.status != 200:
+                    return None
+                pois = await r.json()
+    except Exception:
+        return None
+    best, best_d = None, None
+    for p in pois if isinstance(pois, list) else []:
+        ai = p.get("AddressInfo") or {}
+        plat, plon = ai.get("Latitude"), ai.get("Longitude")
+        if not isinstance(plat, (int, float)) or not isinstance(plon, (int, float)):
+            continue
+        d = _haversine_km((lat, lon), (plat, plon))
+        if d <= OCM_RADIUS_KM and (best_d is None or d < best_d):
+            best_d = d
+            best = (p.get("OperatorInfo") or {}).get("Title")
+    return best
+
+
+def _classify_provider(lat, lon, home, places):
+    """(provider, source) from remembered tags and the home radius —
+    the parts that need no network. (None, None) when neither matches."""
+    if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
+        for p in places:
+            if _haversine_km((lat, lon), (p["lat"], p["lon"])) <= PLACE_RADIUS_KM:
+                return p["provider"], "remembered"
+        if home is not None and _haversine_km(home, (lat, lon)) < HOME_RADIUS_KM:
+            return "home", "home"
+    return None, None
 
 
 def _home_location(snaps: list[dict]) -> tuple | None:
@@ -1030,6 +1120,10 @@ async def trips(
     request: Request,
     x_app_key: str | None = Header(default=None),
     tariff: float | None = None,
+    rate_spklu: float | None = None,
+    rate_voltron: float | None = None,
+    rate_hyundai: float | None = None,
+    rate_other: float | None = None,
 ):
     _require_app_key(x_app_key)
     if not KV_URL or not KV_TOKEN:
@@ -1061,6 +1155,23 @@ async def trips(
     merges = await _trip_merges()
     trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH, home, merges)
     t = tariff or TARIFF_RPKWH
+    # Per-provider rates (v1.10.0): home uses the tariff param (trips too);
+    # public providers fall back to it when the app sends no rate.
+    rates = {"home": t,
+             "spklu": rate_spklu or t, "voltron": rate_voltron or t,
+             "hyundai": rate_hyundai or t, "other": rate_other or t}
+    places = await _charge_places()
+    ocm_cache: dict = {}
+    ocm_dirty = False
+    if OCM_API_KEY:
+        res = await _kv(["get", KV_OCM_CACHE_KEY], method="GET")
+        if res and res.get("result") is not None:
+            try:
+                parsed = json.loads(res["result"])
+                if isinstance(parsed, dict):
+                    ocm_cache = parsed
+            except Exception:
+                ocm_cache = {}
     sessions = []
     for s in _charging_sessions(snaps):
         place = None
@@ -1068,17 +1179,42 @@ async def trips(
         if home is not None and isinstance(lat, (int, float)) \
                 and isinstance(lon, (int, float)):
             place = "Home" if _haversine_km(home, (lat, lon)) < 0.5 else None
+        provider, source = _classify_provider(lat, lon, home, places)
+        ocm_title = None
+        if provider is None:
+            if OCM_API_KEY and isinstance(lat, (int, float)) \
+                    and isinstance(lon, (int, float)):
+                key = f"{lat:.3f},{lon:.3f}"
+                if key not in ocm_cache:
+                    title = await _ocm_operator(lat, lon)
+                    ocm_cache[key] = ({"bucket": _ocm_bucket(title),
+                                       "title": title} if title else None)
+                    ocm_dirty = True
+                hit = ocm_cache.get(key)
+                if hit:
+                    provider, source = hit["bucket"], "ocm"
+                    ocm_title = hit.get("title")
+            if provider is None:
+                provider, source = "other", "unknown"
+        rate = rates[provider]
         sessions.append({
             "start_time": s["start_time"], "end_time": s["end_time"],
             "duration_min": s["duration_min"],
             "start_batt_pct": s["start_batt_pct"],
             "end_batt_pct": s["end_batt_pct"],
             "energy_kwh": s["energy_kwh"],
-            "est_cost_rp": round(s["energy_kwh"] * t),
+            "est_cost_rp": round(s["energy_kwh"] * rate),
+            "rate_rp": rate,
+            "provider": provider,
+            "provider_label": PROVIDER_LABELS[provider],
+            "provider_source": source,
+            "ocm_operator": ocm_title,
             "start_odo_km": s.get("start_odo_km"),
             "place": place,
             "points": s["points"],
         })
+    if ocm_dirty:
+        await _kv(["set", KV_OCM_CACHE_KEY, json.dumps(ocm_cache)])
     return {"ok": True, "source": "server", "trips": trips,
             "snapshots": len(snaps), "charging_sessions": sessions,
             "home": list(home) if home else None,
@@ -1124,6 +1260,92 @@ async def clear_home(x_app_key: str | None = Header(default=None)):
             "ok": False, "error": "kv_not_configured"})
     await _kv(["del", KV_HOME_KEY])
     return {"ok": True, "home": None}
+
+
+async def _session_at(start_time: str) -> dict | None:
+    """The derived charging session with this start_time, or None."""
+    res = await _kv(["lrange", KV_SNAPS_KEY, "0", str(KV_MAX_SNAPS - 1)],
+                    method="GET")
+    snaps = []
+    if res and isinstance(res.get("result"), list):
+        for raw in res["result"]:
+            try:
+                snaps.append(json.loads(raw))
+            except Exception:
+                pass
+    snaps.sort(key=lambda s: s.get("t", ""))
+    snaps = [_clean_snap(s) for s in snaps]
+    for s in _charging_sessions(snaps):
+        if s.get("start_time") == start_time:
+            return s
+    return None
+
+
+@app.post("/api/sessions/provider")
+async def set_session_provider(
+    request: Request,
+    x_app_key: str | None = Header(default=None),
+):
+    """Remember a charging session's place as a provider (Ray tagged it
+    in the app). Body: {"start_time", "provider"}. Future sessions
+    within 150 m inherit it. Stored in KV. App-key gated."""
+    _require_app_key(x_app_key)
+    if not KV_URL or not KV_TOKEN:
+        return JSONResponse(status_code=503, content={
+            "ok": False, "error": "kv_not_configured"})
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    provider = str(body.get("provider") or "")
+    if provider not in PROVIDERS:
+        return JSONResponse(status_code=400, content={
+            "ok": False, "error": "bad_provider",
+            "detail": "provider must be one of: " + ", ".join(PROVIDERS)})
+    sess = await _session_at(str(body.get("start_time") or ""))
+    if sess is None:
+        return JSONResponse(status_code=404, content={
+            "ok": False, "error": "session_not_found"})
+    lat, lon = sess.get("lat"), sess.get("lon")
+    if not _valid_gps(lat, lon):
+        return JSONResponse(status_code=400, content={
+            "ok": False, "error": "no_location",
+            "detail": "That session has no GPS fix to remember."})
+    places = [p for p in await _charge_places()
+              if _haversine_km((lat, lon), (p["lat"], p["lon"])) > PLACE_RADIUS_KM]
+    places.append({"lat": lat, "lon": lon, "provider": provider})
+    await _kv(["set", KV_CHARGE_PLACES_KEY, json.dumps(places[-200:])])
+    return {"ok": True, "provider": provider,
+            "provider_label": PROVIDER_LABELS[provider]}
+
+
+@app.post("/api/sessions/provider/clear")
+async def clear_session_provider(
+    request: Request,
+    x_app_key: str | None = Header(default=None),
+):
+    """Forget the remembered provider at a session's place.
+    Body: {"start_time"}. App-key gated."""
+    _require_app_key(x_app_key)
+    if not KV_URL or not KV_TOKEN:
+        return JSONResponse(status_code=503, content={
+            "ok": False, "error": "kv_not_configured"})
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    sess = await _session_at(str(body.get("start_time") or ""))
+    if sess is None:
+        return JSONResponse(status_code=404, content={
+            "ok": False, "error": "session_not_found"})
+    lat, lon = sess.get("lat"), sess.get("lon")
+    if not _valid_gps(lat, lon):
+        return {"ok": True, "cleared": 0}
+    places = await _charge_places()
+    kept = [p for p in places
+            if _haversine_km((lat, lon), (p["lat"], p["lon"])) > PLACE_RADIUS_KM]
+    await _kv(["set", KV_CHARGE_PLACES_KEY, json.dumps(kept)])
+    return {"ok": True, "cleared": len(places) - len(kept)}
 
 
 @app.post("/api/trips/merge")
