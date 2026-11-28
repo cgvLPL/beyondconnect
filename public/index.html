@@ -826,6 +826,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.11.1 — 28 Nov 2026</h3>
+    <ul>
+      <li>Battery health and driving range load instantly now: they paint from the last visit's values the moment the app opens, refresh in parallel with the car status instead of waiting for it, and the server caches the trip/session derivation so repeat loads skip re-reading thousands of snapshots.</li>
+    </ul>
     <h3>v1.11.0 — 27 Nov 2026</h3>
     <ul>
       <li>Public charging rates now split AC and DC, with an optional per-session fee — set all three per provider in Settings. Sessions are classed AC or DC from their peak power (over 22 kW is DC) and show an AC/DC tag. Defaults follow the researched Indonesian prices: AC and DC energy cost the same Rp2,467/kWh, DC adds the regulated service fee, so DC defaults to Rp3,600/kWh all-in (Voltron AC Rp2,875 with taxes, plus its Rp4,000 admin fee; Hyundai Rp3,000 admin).</li>
@@ -1181,6 +1185,9 @@ function wib(iso){if(!iso)return'';return new Date(iso).toLocaleString('en-GB',{
 function psiToKpa(p){return p==null?null:p*6.89476;}
 async function load(manual){
   $('error').innerHTML='';
+  // Battery health + range come from /api/trips (KV, fast) — don't make
+  // them wait for the BYD status round trip below (v1.11.1).
+  loadServerTrips();
   try{
     const r=await fetch('/api/status',{headers:appKey?{'X-App-Key':appKey}:{}});
     if(r.status===401){$('keybox').style.display='flex';document.body.classList.add('locked');return;}
@@ -1192,7 +1199,6 @@ async function load(manual){
     try{localStorage.setItem('beyondStatus',JSON.stringify({t:Date.now(),d}));}catch(e){}
     document.body.classList.remove('locked');
     $('app').style.display='block';
-    loadServerTrips();
   }catch(e){
     $('error').innerHTML='<div class="err"><b>Could not reach your car.</b><br>'+String(e.message||e)+'</div>';
   }
@@ -1285,6 +1291,7 @@ async function loadServerTrips(){
     if(!d.ok||d.source!=='server'){
       $('serverTrips').innerHTML='<div class="muted">Background logging is off — create a Vercel KV store and link it to the project (see README). Trips below are from this device only.</div>';return;}
     window._soh=d.soh||null; window._range=d.range||null; updateSohRow(); updateRangeTile();
+    try{localStorage.setItem('beyondDerived',JSON.stringify({t:Date.now(),soh:window._soh,range:window._range}));}catch(e){}
     window._trips=d.trips||[]; window._sessions=d.charging_sessions||[];
     // Home location: re-evaluate the hero location label now that home is
     // known (render() may have run before this fetch completed). A home
@@ -1574,12 +1581,13 @@ function timeToFull(rt){
   return mins>=60?Math.floor(mins/60)+' h '+String(mins%60).padStart(2,'0')+' min':mins+' min';
 }
 function specRow(r){return '<div><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';}
-function updateSohRow(){const s=window._soh;document.querySelectorAll('#vehBatt>div').forEach(r=>{const k=r.querySelector('.k');if(k&&k.textContent.indexOf('Battery health')===0){r.querySelector('.v').textContent=s?s.soh_pct+'% · '+s.capacity_kwh+' kWh':'Collecting data…';}});}
+function updateSohRow(){const s=window._soh,v=$('bSohVal'),sub=$('bSohSub');if(!v)return;v.textContent=s?s.soh_pct+'%':'Collecting…';if(sub){const b=[];if(s&&s.charge_sessions)b.push(s.charge_sessions+(s.charge_sessions===1?' charge':' charges'));if(s&&s.trip_estimates)b.push(s.trip_estimates+(s.trip_estimates===1?' trip':' trips'));sub.textContent=s?s.capacity_kwh+' kWh capacity'+(b.length?' · from '+b.join(' · '):''):'';}}
 function updateRangeTile(){
   const r=window._range, el=$('rangeEst');
   if(!el)return;
   if(!r){el.textContent='–';$('rangeEstSub').textContent='Collecting data…';return;}
   el.textContent='≈ '+r.range_full_km+' km';
+  const yv=$('bRangeYouVal'); if(yv)yv.textContent='≈ '+r.range_full_km+' km';
   $('rangeEstSub').textContent=fmtEff(r.eff_kwh100)+' '+effUnitSpaced()+' · '+r.capacity_kwh+' kWh'+(r.capacity_source==='history'?' (measured)':' (rated)');
   document.querySelectorAll('#vehBatt>div').forEach(row=>{const k=row.querySelector('.k');if(k&&k.textContent.indexOf('Range (your driving)')===0){row.querySelector('.v').textContent='≈ '+r.range_full_km+' km · '+fmtEff(r.eff_kwh100)+' '+effUnitSpaced();}});
   if(!window._charging)$('battStatSub').textContent='≈ '+r.range_now_km+' km';
@@ -1994,7 +2002,12 @@ try{
   if(appKey){
     const cached=JSON.parse(localStorage.getItem('beyondStatus')||'null');
     if(cached&&cached.d&&cached.d.realtime&&Date.now()-(cached.t||0)<24*3600*1000){
+      // Battery health + range from the last visit, painted instantly
+      // while fresh data loads (v1.11.1).
+      try{const dv=JSON.parse(localStorage.getItem('beyondDerived')||'null');
+        if(dv&&Date.now()-(dv.t||0)<24*3600*1000){window._soh=dv.soh||null;window._range=dv.range||null;}}catch(e){}
       window._last=cached.d; render(cached.d);
+      updateSohRow(); updateRangeTile();
       document.body.classList.remove('locked');
       $('app').style.display='block';
     }

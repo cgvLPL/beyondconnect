@@ -32,6 +32,7 @@ Env vars:
   BYD_BATTERY_KWH             (default 60.48 — used for trip energy estimates)
 """
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -510,6 +511,7 @@ KV_HOME_KEY = "beyond:home"  # user-set home override: {"lat","lon","name"}
 KV_TRIP_MERGES_KEY = "beyond:trip_merges"  # start_times Ray merged into the previous trip
 KV_CHARGE_PLACES_KEY = "beyond:charge_places"  # [{lat, lon, provider}] places Ray tagged
 KV_OCM_CACHE_KEY = "beyond:ocm_cache"  # {"lat,lon" (3dp): {"bucket","title"} | None}
+KV_DERIVED_KEY = "beyond:derived_cache"  # {fp, trips, sessions, soh, range, home...} (v1.11.1)
 OCM_API_KEY = os.environ.get("OCM_API_KEY", "")  # free key: openchargemap.org
 PROVIDERS = ("home", "spklu", "voltron", "hyundai", "other")
 PROVIDER_LABELS = {"home": "Home", "spklu": "SPKLU", "voltron": "Voltron",
@@ -982,11 +984,12 @@ def _capacity_estimates(snaps: list[dict], trips: list[dict]) -> list:
 
 
 def _estimate_soh(snaps: list[dict], trips: list[dict],
-                  batt_kwh: float) -> dict | None:
+                  batt_kwh: float, estimates=None) -> dict | None:
     """Battery state-of-health from history: the implied capacity (see
     _capacity_estimates) averaged weighted by |dSOC|, vs the nominal pack.
     Returns None when there is no usable history yet."""
-    estimates = _capacity_estimates(snaps, trips)
+    if estimates is None:
+        estimates = _capacity_estimates(snaps, trips)
     if not estimates:
         return None
     wsum = sum(w for _, w, _ in estimates)
@@ -1001,7 +1004,7 @@ def _estimate_soh(snaps: list[dict], trips: list[dict],
 
 
 def _estimate_range(snaps: list[dict], trips: list[dict],
-                    batt_kwh: float) -> dict | None:
+                    batt_kwh: float, estimates=None) -> dict | None:
     """Range from the car's own history, not BYD's dashboard number:
     implied usable capacity (from charging sessions + trips, else the
     nominal pack) divided by the efficiency the car actually drove at.
@@ -1010,7 +1013,8 @@ def _estimate_range(snaps: list[dict], trips: list[dict],
     latest snapshot), falling back to the trips only when the car gives
     no reading. Returns None until at least one efficiency reading
     exists. range_now_km is the range at the latest battery %."""
-    estimates = _capacity_estimates(snaps, trips)
+    if estimates is None:
+        estimates = _capacity_estimates(snaps, trips)
     if estimates:
         wsum = sum(w for _, w, _ in estimates)
         cap = sum(c * w for c, w, _ in estimates) / wsum
@@ -1140,6 +1144,45 @@ async def poll(
             "ok": False, "error": "byd_error", "detail": str(e)[:200]})
 
 
+def _derived_fingerprint(snap_count, newest_raw, home_raw, merges_raw,
+                         places_raw) -> str:
+    """Fingerprint of everything the derived trips/sessions/SOH/range
+    depend on (except the per-request rates). Any new snapshot, home
+    change, trip merge, place tag, or OCM-key change flips it."""
+    h = hashlib.sha1()
+    for part in (str(snap_count), newest_raw or "", home_raw or "",
+                 merges_raw or "", places_raw or "",
+                 "ocm" if OCM_API_KEY else "noocm"):
+        h.update(part.encode())
+        h.update(b"|")
+    return h.hexdigest()
+
+
+def _apply_trip_costs(trips: list[dict], tariff: float) -> list[dict]:
+    """Trip costs at the request's tariff (cached trips carry none)."""
+    out = []
+    for t in trips:
+        t = dict(t)
+        e = t.get("energy_kwh")
+        t["est_cost_rp"] = round(e * tariff) if e is not None else None
+        out.append(t)
+    return out
+
+
+def _apply_session_costs(sessions: list[dict], rates: dict) -> list[dict]:
+    """Session costs at the request's per-provider AC/DC rates + fees
+    (cached sessions carry none)."""
+    out = []
+    for s in sessions:
+        s = dict(s)
+        pr = rates[s["provider"]]
+        cost, rate, fee = _session_cost(s["energy_kwh"], s["charge_type"],
+                                        pr["ac"], pr["dc"], pr["fee"])
+        s["est_cost_rp"], s["rate_rp"], s["fee_rp"] = cost, rate, fee
+        out.append(s)
+    return out
+
+
 @app.get("/api/trips")
 async def trips(
     request: Request,
@@ -1168,6 +1211,51 @@ async def trips(
                 "charging_sessions": [],
                 "note": "Background logging is off — no Vercel KV store "
                         "linked. Browser-local trips still work."}
+    # Derived cache (v1.11.1): fingerprint the inputs with cheap KV
+    # reads; on a hit, serve the stored derivation and only apply the
+    # per-request rates. Saves re-reading + re-deriving 3000 snapshots.
+    t = tariff or TARIFF_RPKWH
+    def _pr(ac, dc, old, fee):
+        a = ac or old or t
+        return {"ac": a, "dc": dc or old or a, "fee": fee or 0}
+    rates = {"home": {"ac": t, "dc": t, "fee": 0},
+             "spklu": _pr(rate_spklu_ac, rate_spklu_dc, rate_spklu, fee_spklu),
+             "voltron": _pr(rate_voltron_ac, rate_voltron_dc,
+                            rate_voltron, fee_voltron),
+             "hyundai": _pr(rate_hyundai_ac, rate_hyundai_dc,
+                            rate_hyundai, fee_hyundai),
+             "other": _pr(rate_other_ac, rate_other_dc,
+                          rate_other, fee_other)}
+
+    async def _raw(key):
+        r = await _kv(["get", key], method="GET")
+        return r.get("result") if r else None
+    llen_r, lidx_r, home_raw, merges_raw, places_raw = await asyncio.gather(
+        _kv(["llen", KV_SNAPS_KEY], method="GET"),
+        _kv(["lindex", KV_SNAPS_KEY, "0"], method="GET"),
+        _raw(KV_HOME_KEY), _raw(KV_TRIP_MERGES_KEY),
+        _raw(KV_CHARGE_PLACES_KEY))
+    fp = _derived_fingerprint(
+        llen_r.get("result") if llen_r else None,
+        lidx_r.get("result") if lidx_r else None,
+        home_raw, merges_raw, places_raw)
+    res_c = await _kv(["get", KV_DERIVED_KEY], method="GET")
+    if res_c and res_c.get("result"):
+        try:
+            cached = json.loads(res_c["result"])
+        except Exception:
+            cached = None
+        if isinstance(cached, dict) and cached.get("fp") == fp:
+            return {"ok": True, "source": "server",
+                    "trips": _apply_trip_costs(cached["trips"], t),
+                    "snapshots": cached["snapshots"],
+                    "charging_sessions": _apply_session_costs(
+                        cached["sessions"], rates),
+                    "home": cached["home"],
+                    "home_source": cached["home_source"],
+                    "home_name": cached["home_name"],
+                    "soh": cached["soh"], "range": cached["range"],
+                    "derived_cached": True}
     res = await _kv(["lrange", KV_SNAPS_KEY, "0", str(KV_MAX_SNAPS - 1)],
                     method="GET")
     snaps = []
@@ -1191,22 +1279,6 @@ async def trips(
         home_source, home_name = "auto", None
     merges = await _trip_merges()
     trips = _derive_trips(snaps, tariff or TARIFF_RPKWH, BATTERY_KWH, home, merges)
-    t = tariff or TARIFF_RPKWH
-    # Per-provider rates: home uses the tariff param (trips too).
-    # Public providers have separate AC/DC rates plus a per-session
-    # fee (v1.11.0); the old single rate_<p> param still works as the
-    # fallback for both, then the tariff.
-    def _pr(ac, dc, old, fee):
-        a = ac or old or t
-        return {"ac": a, "dc": dc or old or a, "fee": fee or 0}
-    rates = {"home": {"ac": t, "dc": t, "fee": 0},
-             "spklu": _pr(rate_spklu_ac, rate_spklu_dc, rate_spklu, fee_spklu),
-             "voltron": _pr(rate_voltron_ac, rate_voltron_dc,
-                            rate_voltron, fee_voltron),
-             "hyundai": _pr(rate_hyundai_ac, rate_hyundai_dc,
-                            rate_hyundai, fee_hyundai),
-             "other": _pr(rate_other_ac, rate_other_dc,
-                          rate_other, fee_other)}
     places = await _charge_places()
     ocm_cache: dict = {}
     ocm_dirty = False
@@ -1245,18 +1317,12 @@ async def trips(
                 provider, source = "other", "unknown"
         ct = _charge_type(s.get("peak_power_kw"), s["energy_kwh"],
                           s["duration_min"])
-        pr = rates[provider]
-        cost, rate, fee = _session_cost(s["energy_kwh"], ct,
-                                        pr["ac"], pr["dc"], pr["fee"])
         sessions.append({
             "start_time": s["start_time"], "end_time": s["end_time"],
             "duration_min": s["duration_min"],
             "start_batt_pct": s["start_batt_pct"],
             "end_batt_pct": s["end_batt_pct"],
             "energy_kwh": s["energy_kwh"],
-            "est_cost_rp": cost,
-            "rate_rp": rate,
-            "fee_rp": fee,
             "charge_type": ct,
             "peak_power_kw": s.get("peak_power_kw"),
             "provider": provider,
@@ -1269,12 +1335,25 @@ async def trips(
         })
     if ocm_dirty:
         await _kv(["set", KV_OCM_CACHE_KEY, json.dumps(ocm_cache)])
-    return {"ok": True, "source": "server", "trips": trips,
-            "snapshots": len(snaps), "charging_sessions": sessions,
+    estimates = _capacity_estimates(snaps, trips)
+    soh = _estimate_soh(snaps, trips, BATTERY_KWH, estimates)
+    rng = _estimate_range(snaps, trips, BATTERY_KWH, estimates)
+    # Store the rate-independent derivation for the next request.
+    trips_base = [{k: v for k, v in tr.items() if k != "est_cost_rp"}
+                  for tr in trips]
+    await _kv(["set", KV_DERIVED_KEY, json.dumps({
+        "fp": fp, "trips": trips_base, "sessions": sessions,
+        "snapshots": len(snaps),
+        "home": list(home) if home else None,
+        "home_source": home_source, "home_name": home_name,
+        "soh": soh, "range": rng})])
+    return {"ok": True, "source": "server",
+            "trips": _apply_trip_costs(trips_base, t),
+            "snapshots": len(snaps),
+            "charging_sessions": _apply_session_costs(sessions, rates),
             "home": list(home) if home else None,
             "home_source": home_source, "home_name": home_name,
-            "soh": _estimate_soh(snaps, trips, BATTERY_KWH),
-            "range": _estimate_range(snaps, trips, BATTERY_KWH)}
+            "soh": soh, "range": rng, "derived_cached": False}
 
 
 @app.post("/api/set-home")
