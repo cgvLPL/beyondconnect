@@ -839,6 +839,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.12.1 — 28 Nov 2026</h3>
+    <ul>
+      <li>Two live-data corrections to the new tiles: the park-brake line no longer claims "off" when the car doesn't report it, and the unconfirmed "pwr" flag (reads 2 on the parked car with everything else clear) is left out of the Warnings tile until its meaning is pinned down.</li>
+    </ul>
     <h3>v1.12.0 — 28 Nov 2026</h3>
     <ul>
       <li>Vehicle tab gains three tiles: Tyres (all four pressures in the car's own unit, flagged red when a tyre reports a problem, with TPMS / rapid-leak notes), Power (off / starting / on, plus park-brake state — BYD doesn't expose the P/R/N/D selector), and Warnings (ABS, stability, airbag, steering, service and more — "All clear" or the active list).</li>
@@ -1646,9 +1650,9 @@ function render(d){
   // Power state + park brake (v1.12.0). BYD reports the power state
   // (off / starting / on), not the P/R/N/D selector.
   $('bPowerVal').textContent={1:'Off',2:'Starting',3:'On'}[rt.power_state]||'—';
-  $('bPowerSub').textContent=rt.epb==null?'':(rt.epb>0?'Park brake on':'Park brake off');
+  $('bPowerSub').textContent=(rt.epb==null||rt.epb<0)?'':(rt.epb>0?'Park brake on':'Park brake off');
   // Warnings (v1.12.0): 0 = normal, >0 = warning, null = unreported.
-  const WNAMES={power_system:'Power system',eps:'Steering',esp:'Stability (ESP)',abs:'ABS',svs:'Service soon',srs:'Airbag (SRS)',ect:'Coolant temp',pwr:'Power',tpms:'Tyre pressure',rapid_leak:'Rapid tyre leak'};
+  const WNAMES={power_system:'Power system',eps:'Steering',esp:'Stability (ESP)',abs:'ABS',svs:'Service soon',srs:'Airbag (SRS)',ect:'Coolant temp',tpms:'Tyre pressure',rapid_leak:'Rapid tyre leak'};
   const wkeys=Object.keys(WNAMES), wseen=wkeys.filter(k=>wn[k]!=null), wact=wkeys.filter(k=>wn[k]>0);
   const wv=$('bWarnVal');
   wv.textContent=!wseen.length?'—':(wact.length?wact.length+' active':'All clear');

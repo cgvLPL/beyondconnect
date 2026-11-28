@@ -1,5 +1,9 @@
 # BEYONDconnect changelog
 
+## v1.12.1 — 28 Nov 2026
+
+- Live-data corrections to v1.12.0 (found in the post-push live check against Ray's car): `epb` comes back -1 (unreported — pyBYD doesn't sentinel-strip it), which the Power tile rendered as "Park brake off"; negatives now render as no claim. `warnings.pwr` reads 2 on the parked car while power_system and every other flag read 0 — meaning unconfirmed (likely a state, not a fault), so it is excluded from the Warnings tile until pinned down (still present in the API payload). Live values otherwise healthy: tyres 38.8/38.1/37.4/36.5 psi (unit 2), all tyre statuses 0, power_state 1 (off), svs + rapid_leak unreported (null).
+
 ## v1.12.0 — 28 Nov 2026
 
 - Tyres, warnings + power state on the Vehicle tab (Ray, 2026-11-28 07:59 WIB, picked from a pyBYD capability inventory). Backend maps power_gear, epb, ten warning flags (power_system, eps, esp, abs, svs, srs, ect, pwr, tpms, rapid_leak — 0 normal / >0 warning / null unreported), per-tyre status and tyre pressure unit into /api/status. Frontend: Tyres wide tile (2x2 pressures in the car's own unit — psi/bar/kPa by tyre_unit, flagged red per-tyre, TPMS/rapid-leak notes), Power tile (Off/Starting/On + park-brake state; BYD does not expose the P/R/N/D selector via this API — PowerGear is the power state), Warnings tile (All clear / N active + names, red when active). New wheel/power/alert glyphs in the v1.7.0 disc system. Verified: rig normal + injected-warning states (2 active: ABS + tyre pressure, RL flagged), zero JS errors; v1.11.0/v1.11.1 suites regression-clean. Note: the render() additions are block-scoped — a bare `const tp` collided with an existing declaration and killed the whole script (caught by the rig).
