@@ -592,6 +592,16 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 .raterow{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--lg-edge)}
 .rategroup .raterow:last-child{border-bottom:0}
 .rdisc{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+/* Consistent value baseline across bento tiles: every label block is
+   two lines tall, so values start at the same height in each tile
+   whether the label wraps or not (v1.12.0 tidy pass). */
+.bento .tile:not(.hero) .k{min-height:36px;align-items:flex-start}
+.tyregrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:8px}
+.tyrecell{display:flex;flex-direction:column;gap:1px;font-size:12px;color:var(--muted)}
+.tyrecell b{font-size:18px;color:var(--text);font-weight:700;letter-spacing:-.02em}
+.tyrecell b small{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0}
+.tyrecell.warn b{color:#ff453a}
+.tile .v.warnon{color:#ff453a}
 .rdisc svg{width:16px;height:16px}
 .rname{flex:1;font-weight:600}
 .rinput{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
@@ -808,6 +818,9 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
   <div class="tile"><div class="k">Efficiency · lifetime</div><div class="v" id="bEffVal">—</div><div class="s" id="bEffSub"></div></div>
   <div class="tile"><div class="k">Battery health · est.</div><div class="v" id="bSohVal">—</div><div class="s" id="bSohSub"></div></div>
   <div class="tile"><div class="k">Capacity</div><div class="v" id="bCapVal">—</div></div>
+  <div class="tile wide"><div class="k">Tyres</div><div class="tyregrid" id="bTyresGrid"></div><div class="s" id="bTyresSub"></div></div>
+  <div class="tile"><div class="k">Power</div><div class="v" id="bPowerVal">—</div><div class="s" id="bPowerSub"></div></div>
+  <div class="tile"><div class="k">Warnings</div><div class="v" id="bWarnVal">—</div><div class="s" id="bWarnSub"></div></div>
   <div class="tile wide"><div class="k">Vehicle</div><div class="spec" id="bId"></div></div>
 </div>
 <div class="muted" style="font-size:13px;margin-top:8px">Estimated from charging sessions of 10%+ (power × time ÷ charge gained) and trips that use 5%+ of the battery (distance × efficiency ÷ charge used). It appears as soon as one qualifies and firms up as more history lands.</div>
@@ -826,6 +839,10 @@ body.lightbg .ctlicon{color:var(--hue-ink,var(--text))}
 <div id="changelogSheet" class="sheet" hidden onclick="if(event.target===this)closeChangelog()">
   <div class="glass sheetcard">
     <div class="lrow"><span class="lbrand">What's new</span><button class="iconbtn" onclick="closeChangelog()" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <h3>v1.12.0 — 28 Nov 2026</h3>
+    <ul>
+      <li>Vehicle tab gains three tiles: Tyres (all four pressures in the car's own unit, flagged red when a tyre reports a problem, with TPMS / rapid-leak notes), Power (off / starting / on, plus park-brake state — BYD doesn't expose the P/R/N/D selector), and Warnings (ABS, stability, airbag, steering, service and more — "All clear" or the active list).</li>
+    </ul>
     <h3>v1.11.1 — 28 Nov 2026</h3>
     <ul>
       <li>Battery health and driving range load instantly now: they paint from the last visit's values the moment the app opens, refresh in parallel with the car status instead of waiting for it, and the server caches the trip/session derivation so repeat loads skip re-reading thousands of snapshots.</li>
@@ -1619,6 +1636,25 @@ function render(d){
   const sohBasis=[]; if(soh&&soh.charge_sessions)sohBasis.push(soh.charge_sessions+(soh.charge_sessions===1?' charge':' charges')); if(soh&&soh.trip_estimates)sohBasis.push(soh.trip_estimates+(soh.trip_estimates===1?' trip':' trips'));
   $('bSohSub').textContent=soh?soh.capacity_kwh+' kWh capacity'+(sohBasis.length?' · from '+sohBasis.join(' · '):''):'';
   $('bCapVal').textContent=(+$('battKwh').value||60.48)+' kWh';
+  { // Tyres / Power / Warnings tiles (v1.12.0) — block-scoped locals.
+  // Tyres: 2x2 pressures in the car's own unit, per-tyre
+  // status flags in red, TPMS / rapid-leak notes in the sub-line.
+  const tu=rt.tyre_unit, tun=tu===1?'bar':tu===3?'kPa':'psi', tdec=tu===1?2:tu===3?0:1;
+  const tp=rt.tyres_psi||{}, ts=rt.tyre_status||{}, wn=rt.warnings||{};
+  $('bTyresGrid').innerHTML=[['fl','Front L'],['fr','Front R'],['rl','Rear L'],['rr','Rear R']].map(([k,lab])=>'<div class="tyrecell'+(ts[k]>0?' warn':'')+'"><span>'+lab+'</span><b>'+(tp[k]!=null?fmt(tp[k],tdec)+' <small>'+tun+'</small>':'—')+'</b></div>').join('');
+  $('bTyresSub').textContent=wn.rapid_leak>0?'Rapid leak warning':(wn.tpms>0?'TPMS warning':'');
+  // Power state + park brake (v1.12.0). BYD reports the power state
+  // (off / starting / on), not the P/R/N/D selector.
+  $('bPowerVal').textContent={1:'Off',2:'Starting',3:'On'}[rt.power_state]||'—';
+  $('bPowerSub').textContent=rt.epb==null?'':(rt.epb>0?'Park brake on':'Park brake off');
+  // Warnings (v1.12.0): 0 = normal, >0 = warning, null = unreported.
+  const WNAMES={power_system:'Power system',eps:'Steering',esp:'Stability (ESP)',abs:'ABS',svs:'Service soon',srs:'Airbag (SRS)',ect:'Coolant temp',pwr:'Power',tpms:'Tyre pressure',rapid_leak:'Rapid tyre leak'};
+  const wkeys=Object.keys(WNAMES), wseen=wkeys.filter(k=>wn[k]!=null), wact=wkeys.filter(k=>wn[k]>0);
+  const wv=$('bWarnVal');
+  wv.textContent=!wseen.length?'—':(wact.length?wact.length+' active':'All clear');
+  wv.classList.toggle('warnon',wact.length>0);
+  $('bWarnSub').textContent=wact.map(k=>WNAMES[k]).join(' · ');
+  }
   const kw=rt.charge_power_kw||(d.charging&&d.charging.charge_power)||0;
   // Regen braking is not charging: the gun must be connected. The charge
   // power and charging_state both read positive while regenerating, but
@@ -1907,7 +1943,10 @@ window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overv
     window:L('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 4v16M4 12h16"/>'),
     lock:L('<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>'),
     trunk:L('<path d="M4 17V9.5L6 6h12l2 3.5V17"/><path d="M3 17h18M9 12h6"/>'),
-    plug:L('<path d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0zM12 17v4"/>')
+    plug:L('<path d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0zM12 17v4"/>'),
+    wheel:L('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.4"/><path d="M12 3.5v6.1M12 14.4v6.1M3.5 12h6.1M14.4 12h6.1"/>'),
+    power:L('<path d="M12 3v7.5"/><path d="M6.6 6.2a8 8 0 1 0 10.8 0"/>'),
+    alert:L('<path d="M12 4L3 20h18z"/><path d="M12 10.5v4M12 17.2v.01"/>')
   };
   /* label (lower-case start) -> [glyph, hue] */
   const MAP=[
@@ -1916,7 +1955,8 @@ window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overv
     ['efficiency',['leaf','green']],['lifetime',['clock','purple']],['cost per',['money','amber']],['full charge',['bolt','yellow']],
     ['added to',['bolt','yellow']],['total cost',['money','amber']],['distance',['route','blue']],['duration',['clock','purple']],['consumption',['plug','yellow']],
     ['inside',['therm','orange']],['outside',['sun','blue']],['set temp',['target','red']],['ac',['flake','blue']],
-    ['front hood',['car','orange']],['doors',['door','blue']],['windows',['window','teal']],['trunk',['trunk','purple']],['locks',['lock','green']]
+    ['front hood',['car','orange']],['doors',['door','blue']],['windows',['window','teal']],['trunk',['trunk','purple']],['locks',['lock','green']],
+    ['tyres',['wheel','teal']],['power',['power','amber']],['warnings',['alert','orange']]
   ];
   const find=t=>{t=t.trim().toLowerCase();for(const [k,v] of MAP)if(t===k||t.startsWith(k+' ')||t.startsWith(k+' ·'))return v;return null;};
   const disc=v=>'<span class="kic hue-'+v[1]+'" aria-hidden="true">'+G[v[0]]+'</span>';

@@ -259,6 +259,26 @@ async def status(x_app_key: str | None = Header(default=None)):
                                   "fr": _num(rt.right_front_tire_pressure),
                                   "rl": _num(rt.left_rear_tire_pressure),
                                   "rr": _num(rt.right_rear_tire_pressure)},
+                    "tyre_status": {"fl": rt.left_front_tire_status,
+                                    "fr": rt.right_front_tire_status,
+                                    "rl": rt.left_rear_tire_status,
+                                    "rr": rt.right_rear_tire_status},
+                    "tyre_unit": int(rt.tire_press_unit)
+                    if rt.tire_press_unit is not None else None,
+                    # Power state (1 off / 2 starting / 3 on). BYD does
+                    # not expose the P/R/N/D selector via this API.
+                    "power_state": int(rt.power_gear)
+                    if rt.power_gear is not None else None,
+                    "epb": rt.epb,
+                    # Warning flags: 0 = normal, >0 = warning,
+                    # None = not reported by the car.
+                    "warnings": {"power_system": rt.power_system,
+                                 "eps": rt.eps, "esp": rt.esp,
+                                 "abs": rt.abs_warning, "svs": rt.svs,
+                                 "srs": rt.srs, "ect": rt.ect,
+                                 "pwr": rt.pwr,
+                                 "tpms": rt.tirepressure_system,
+                                 "rapid_leak": rt.rapid_tire_leak},
                     "timestamp": rt.timestamp.isoformat() if rt.timestamp else None,
                 },
                 "gps": ({"lat": _num(gps.latitude), "lon": _num(gps.longitude),
